@@ -86,7 +86,8 @@ class TableObj {
     selectColumns() {
         if (!this.startCell || !this.endCell) return;
 
-        const minCol = Math.min(this.startCell.cellIndex, this.endCell.cellIndex);
+        // First header should be excluded from column selection.
+        const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 1);
         const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
 
         if (minCol === 0){
