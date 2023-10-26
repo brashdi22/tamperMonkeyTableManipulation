@@ -59,18 +59,16 @@ class TableObj {
         // We need the index within the tbody, so we subtract 1.
         const minRow = Math.min(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex) - 1;
         const maxRow = Math.max(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex) - 1;
-        const minCol = Math.min(this.startCell.cellIndex, this.endCell.cellIndex);
+        let minCol = Math.min(this.startCell.cellIndex, this.endCell.cellIndex);
         const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
+
+        // This prevents selecting the first cell of each row (you could
+        // select the whole row by selecting this cell).
+        minCol = Math.max(minCol, 1);
 
         const selectedCells = this.tbody.querySelectorAll('.selected');
         selectedCells.forEach(cell => {
             cell.classList.remove('selected');
-            // const rowIndex = cell.parentElement.rowIndex;
-            // const columnIndex = cell.cellIndex;
-            // if (rowIndex < minRow || rowIndex > maxRow 
-            //     || columnIndex < minCol || columnIndex > maxCol){
-            //         cell.classList.remove('selected');
-            //     }
         });
 
         // Loop through rows
@@ -270,15 +268,19 @@ class TableObj {
         // Track mouse movement to select cells/columns.
         document.addEventListener("mousemove", (event) => {
             if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-            // if (this.OldEndCell === this.endCell) return;
+            if (this.OldEndCell === this.endCell){
+                console.log(`OldEndCell: ${this.OldEndCell.cellIndex}, endCell: ${this.endCell.cellIndex}`);
+                return;
+            }
+            
             
             if (this.mouseDownH) {
                 if (event.target.closest("thead") !== this.thead){
-                    this.OldEndCell = this.endCell;
+                    this.OldEndCell = Object.assign({}, this.endCell);
                     this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells));
                 } 
                 else {
-                    this.OldEndCell = this.endCell;
+                    this.OldEndCell = Object.assign({}, this.endCell);
                     this.endCell = this.findParentCell(event.target, "TH");
                 }
                     
@@ -288,12 +290,12 @@ class TableObj {
 
             else if (this.mouseDownR) {
                 if (event.target.closest("tbody") !== this.tbody){
-                    this.OldEndCell = this.endCell;
+                    this.OldEndCell = Object.assign({}, this.endCell);
                     this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows))[0].cells[0];
                 }
                     
                 else{
-                    this.OldEndCell = this.endCell;
+                    this.OldEndCell = Object.assign({}, this.endCell);
                     this.endCell = this.findParentCell(event.target, "TD");
                 }
                     
@@ -302,11 +304,11 @@ class TableObj {
             
             else if (this.mouseDown) {
                 if (event.target.closest("tbody") !== this.tbody){
-                    this.OldEndCell = this.endCell;
+                    this.OldEndCell = Object.assign({}, this.endCell);
                     this.endCell = this.findClosestCell(event.clientX, event.clientY);
                 }     
                 else{
-                    this.OldEndCell = this.endCell;
+                    this.OldEndCell = Object.assign({}, this.endCell);
                     this.endCell = this.findParentCell(event.target, "TD");
                 }
                     
@@ -321,6 +323,7 @@ class TableObj {
             this.mouseDownR = false;
             this.startCell = null;
             this.endCell = null;
+            this.OldEndCell = null;
             // window.removeEventListener("mousemove", handleMousemove);
         });
 
