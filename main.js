@@ -20,6 +20,8 @@ class TableObj {
         this.mouseDownH = false;
         this.mouseDownR = false;
 
+        this.selectedCells = [];
+
         this.scrollInterval = null;
 
         this.addEventListeners();
@@ -68,6 +70,7 @@ class TableObj {
 
         const selectedCells = this.tbody.querySelectorAll('.selected');
         selectedCells.forEach(cell => {
+            if (!this.selectedCells.includes(cell))
             cell.classList.remove('selected');
         });
 
@@ -88,15 +91,7 @@ class TableObj {
 
         // First header should be excluded from column selection.
         const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 1);
-        const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
-
-        if (minCol === 0){
-            for (let i = 0; i < this.table.rows.length; i++){
-                this.selectRow(i);
-            } 
-            return;
-        }
-            
+        const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);            
 
         const selectedHeaders = this.thead.querySelectorAll('.selected');
         selectedHeaders.forEach(header => {
@@ -119,7 +114,6 @@ class TableObj {
         const maxRow = Math.max(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex);
 
         const selectedRows = this.tbody.querySelectorAll("td:nth-child(1).selected");
-        
         selectedRows.forEach(cell => {
             const rowIndex = cell.parentElement.rowIndex;
             if (rowIndex < minRow || rowIndex > maxRow)
@@ -142,7 +136,8 @@ class TableObj {
     deselectRow(rowIndex) {
         const row = this.table.rows[rowIndex];
         for (let i = 0; i < row.cells.length; i++) {
-            row.cells[i].classList.remove("selected");
+            if (!this.selectedCells.includes(row.cells[i]))
+                row.cells[i].classList.remove("selected");
         }
     }
 
@@ -156,11 +151,10 @@ class TableObj {
     }
 
     deselectColumn(columnIndex) {
-        this.thead.getElementsByTagName("th")[columnIndex].classList.remove("selected");
-        const rows = this.tbody.getElementsByTagName("tr");
+        const rows = this.table.getElementsByTagName("tr");
         for (let i = 0; i < rows.length; i++) {
-            const cell = rows[i].getElementsByTagName("td")[columnIndex];
-            if (cell) {
+            const cell = rows[i].cells[columnIndex];
+            if (!this.selectedCells.includes(cell)) {
                 cell.classList.remove("selected");
             }
         }
@@ -240,8 +234,13 @@ class TableObj {
     addEventListeners() {
         // Select columns.
         this.thead.addEventListener("mousedown", (event) => {
-            this.tbody.querySelectorAll('.selected').forEach(cell =>
-                cell.classList.remove('selected'));
+            if (!event.ctrlKey){
+                this.table.querySelectorAll('.selected').forEach(cell =>
+                    cell.classList.remove('selected'));
+                    this.selectedCells = [];
+            } else
+                this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+            
             this.mouseDownH = true;
             this.startCell = this.findParentCell(event.target, "TH");
             this.endCell = this.startCell;
@@ -250,8 +249,13 @@ class TableObj {
 
         // Select cells.
         this.tbody.addEventListener("mousedown", (event) => {
-            this.table.querySelectorAll('.selected').forEach(cell =>
-                                                            cell.classList.remove('selected'));
+            if (!event.ctrlKey){
+                this.table.querySelectorAll('.selected').forEach(cell =>
+                    cell.classList.remove('selected'));
+                    this.selectedCells = [];
+            } else
+                this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+                
             
             this.startCell = this.findParentCell(event.target, "TD");
             this.endCell = this.startCell;
@@ -269,11 +273,7 @@ class TableObj {
         // Track mouse movement to select cells/columns.
         document.addEventListener("mousemove", (event) => {
             if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-            if (this.OldEndCell === this.endCell){
-                console.log(`OldEndCell: ${this.OldEndCell.cellIndex}, endCell: ${this.endCell.cellIndex}`);
-                return;
-            }
-            
+            if (this.OldEndCell === this.endCell) return;
             
             if (this.mouseDownH) {
                 if (event.target.closest("thead") !== this.thead){
@@ -322,9 +322,6 @@ class TableObj {
             this.mouseDown = false;
             this.mouseDownH = false;
             this.mouseDownR = false;
-            this.startCell = null;
-            this.endCell = null;
-            this.OldEndCell = null;
             // window.removeEventListener("mousemove", handleMousemove);
         });
 
