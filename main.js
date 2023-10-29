@@ -21,6 +21,9 @@ class TableObj {
         this.mouseDownR = false;
 
         this.selectedCells = [];
+        this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
+        this.selectedRows = [];
+        this.toggleSelect = true;
 
         this.scrollInterval = null;
 
@@ -68,21 +71,41 @@ class TableObj {
         // select the whole row by selecting this cell).
         minCol = Math.max(minCol, 1);
 
-        const selectedCells = this.tbody.querySelectorAll('.selected');
-        selectedCells.forEach(cell => {
-            if (!this.selectedCells.includes(cell))
-            cell.classList.remove('selected');
-        });
 
-        // Loop through rows
-        for (let i = minRow; i <= maxRow; i++) {
-            const cells = rows[i].getElementsByTagName("td");
-
-            // Loop through cells in the row
-            for (let j = minCol; j < maxCol + 1; j++) {
-                const cell = cells[j];
-                cell.classList.add("selected");
+        if (this.toggleSelect){
+            const selectedCells = this.tbody.querySelectorAll('.selected');
+            selectedCells.forEach(cell => {
+                if (!this.selectedCells.includes(cell))
+                cell.classList.remove('selected');
+            });
+    
+            // Loop through rows
+            for (let i = minRow; i <= maxRow; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+    
+                // Loop through cells in the row
+                for (let j = minCol; j < maxCol + 1; j++) {
+                    cells[j].classList.add("selected");
+                }
             }
+        } 
+        else {
+            for (let i = minRow; i <= maxRow; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+
+                for (let j = minCol; j < maxCol + 1; j++) {
+                    cells[j].classList.remove("selected");
+                }
+            }
+
+            this.selectedCells.forEach(cell => {
+                const rowIndex = cell.parentElement.rowIndex - 1;
+                const colIndex = cell.cellIndex;
+                if (rowIndex < minRow || rowIndex > maxRow
+                    || colIndex < minCol || colIndex > maxCol){
+                        cell.classList.add('selected');
+                }
+            });
         }
     }
 
@@ -93,18 +116,34 @@ class TableObj {
         const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 1);
         const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);            
 
-        const selectedHeaders = this.thead.querySelectorAll('.selected');
-        selectedHeaders.forEach(header => {
-            const columnIndex = header.cellIndex;
-            if (columnIndex < minCol || columnIndex > maxCol)
-                this.deselectColumn(columnIndex);
-        });
+        if (this.toggleSelect){
+            for (let i = minCol; i < maxCol + 1; i++){
+                const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].classList.add('selected');
+                }
+            }
 
-        const headers = Array.from(this.thead.getElementsByTagName("th"));
-        for (let i = minCol; i < maxCol + 1; i++){
-            const columnIndex = headers.indexOf(headers[i]);
-            this.selectColumn(columnIndex);
+            const cells = this.table.querySelectorAll('.selected');
+            for (let i = 0; i < cells.length; i++){
+                if (!this.selectedCells.includes(cells[i]) && (cells[i].cellIndex < minCol || cells[i].cellIndex > maxCol))
+                    cells[i].classList.remove('selected');
+            }
         }
+        else {
+            for (let i = minCol; i < maxCol + 1; i++){
+                const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].classList.remove('selected');
+                }
+            }
+
+            this.selectedCells.forEach(cell => {
+                if (cell.cellIndex < minCol || cell.cellIndex > maxCol){
+                    cell.classList.add('selected');
+                }
+            });
+        }      
     }
 
     selectRows() {
@@ -113,51 +152,38 @@ class TableObj {
         const minRow = Math.min(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex);
         const maxRow = Math.max(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex);
 
-        const selectedRows = this.tbody.querySelectorAll("td:nth-child(1).selected");
-        selectedRows.forEach(cell => {
-            const rowIndex = cell.parentElement.rowIndex;
-            if (rowIndex < minRow || rowIndex > maxRow)
-                this.deselectRow(rowIndex);
-                
-        });
+        if (this.toggleSelect){    
+            for (let i = minRow; i <= maxRow; i++){
+                const row = this.table.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    row.cells[j].classList.add("selected");
+                }
+            }
 
-        for (let i = minRow; i <= maxRow; i++){
-            this.selectRow(i);
-        }
-    }
-
-    selectRow(rowIndex) {
-        const row = this.table.rows[rowIndex];
-        for (let i = 0; i < row.cells.length; i++) {
-            row.cells[i].classList.add("selected");
-        }
-    }
-
-    deselectRow(rowIndex) {
-        const row = this.table.rows[rowIndex];
-        for (let i = 0; i < row.cells.length; i++) {
-            if (!this.selectedCells.includes(row.cells[i]))
-                row.cells[i].classList.remove("selected");
-        }
-    }
-
-    selectColumn(columnIndex) {
-        this.thead.getElementsByTagName("th")[columnIndex].classList.add("selected");
-        const rows = this.tbody.getElementsByTagName("tr");
-        for (let i = 0; i < rows.length; i++) {
-            const cell = rows[i].getElementsByTagName("td")[columnIndex];
-            cell.classList.add("selected");
-        }
-    }
-
-    deselectColumn(columnIndex) {
-        const rows = this.table.getElementsByTagName("tr");
-        for (let i = 0; i < rows.length; i++) {
-            const cell = rows[i].cells[columnIndex];
-            if (!this.selectedCells.includes(cell)) {
-                cell.classList.remove("selected");
+            const cells = this.table.querySelectorAll('.selected');
+            for (let i = 0; i < cells.length; i++){
+                const cell = cells[i];
+                if (!this.selectedCells.includes(cell) && 
+                    (cell.parentElement.rowIndex < minRow || cell.parentElement.rowIndex > maxRow)){
+                        cell.classList.remove('selected');
+                }
             }
         }
+        else {
+            for (let i = minRow; i <= maxRow; i++){
+                const row = this.table.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    row.cells[j].classList.remove("selected");
+                }
+            }
+
+            this.selectedCells.forEach(cell => {
+                if (cell.parentElement.rowIndex < minRow || cell.parentElement.rowIndex > maxRow){
+                    cell.classList.add('selected');
+                }
+            });
+        }
+        
     }
 
     findClosestCell(x, y) {
@@ -231,19 +257,67 @@ class TableObj {
         return this.findParentCell(element.parentNode, tag);
     }
 
+    checkAllCellsInColumnSelected(){
+        let changed = false;
+        for (let i = 0; i < this.selectedHeaders.length; i++){
+            if (this.selectedHeaders[i]){
+                const cells = this.tbody.querySelectorAll(`td:nth-child(${i+1})`);
+                for (let j = 0; j < cells.length; j++) {
+                    if (!cells[j].classList.contains('selected')) {
+                        this.selectedHeaders[i] = false;
+                        this.thead.rows[0].cells[i].classList.remove('selected');
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (changed)
+            this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+    }
+
+    checkAllCellsInRowSelected(){
+        let changed = false;
+        const tempArr = [];
+        for (let i = 0; i < this.selectedRows.length; i++){
+            const row = this.table.rows[this.selectedRows[i]];
+            let selected = true;
+            for (let j = 0; j < row.cells.length; j++) {
+                if (!row.cells[j].classList.contains('selected')) {
+                    // this.selectedRows.splice(i, 1);
+                    this.table.rows[this.selectedRows[i]].cells[0].classList.remove('selected');
+                    selected = false;
+                    changed = true;
+                    break;
+                }
+            }
+            if (selected)
+                tempArr.push(this.selectedRows[i]);
+        }
+        this.selectedRows = tempArr;
+
+        if (changed)
+            this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+    }
+
     addEventListeners() {
         // Select columns.
         this.thead.addEventListener("mousedown", (event) => {
             if (!event.ctrlKey){
                 this.table.querySelectorAll('.selected').forEach(cell =>
                     cell.classList.remove('selected'));
-                    this.selectedCells = [];
-            } else
-                this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+                this.selectedCells = [];
+            } 
             
             this.mouseDownH = true;
             this.startCell = this.findParentCell(event.target, "TH");
             this.endCell = this.startCell;
+
+            if (this.endCell.classList.contains("selected"))
+                this.toggleSelect = false;
+            else
+                this.toggleSelect = true;
             this.selectColumns();
         });
 
@@ -252,20 +326,25 @@ class TableObj {
             if (!event.ctrlKey){
                 this.table.querySelectorAll('.selected').forEach(cell =>
                     cell.classList.remove('selected'));
-                    this.selectedCells = [];
-            } else
-                this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+                this.selectedCells = [];
+                this.selectedRows = [];
+            }
                 
-            
             this.startCell = this.findParentCell(event.target, "TD");
             this.endCell = this.startCell;
+
+            if (this.endCell.classList.contains("selected"))
+                this.toggleSelect = false;
+            else
+                this.toggleSelect = true;
+
             if (this.endCell.cellIndex === 0){
                 this.mouseDownR = true;
                 this.selectRows();
             }
-            else{
+            else {
                 this.mouseDown = true;
-                this.selectCells();
+                this.selectCells();     
             }
         });
         // window.addEventListener("mousemove", handleMousemove);
@@ -273,55 +352,78 @@ class TableObj {
         // Track mouse movement to select cells/columns.
         document.addEventListener("mousemove", (event) => {
             if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-            if (this.OldEndCell === this.endCell) return;
+            
             
             if (this.mouseDownH) {
                 if (event.target.closest("thead") !== this.thead){
-                    this.OldEndCell = Object.assign({}, this.endCell);
+                    this.OldEndCell = this.endCell;
                     this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells));
                 } 
                 else {
-                    this.OldEndCell = Object.assign({}, this.endCell);
+                    this.OldEndCell = this.endCell;
                     this.endCell = this.findParentCell(event.target, "TH");
                 }
                     
-
+                if (this.OldEndCell === this.endCell) return;
                 this.selectColumns();
             }
 
             else if (this.mouseDownR) {
                 if (event.target.closest("tbody") !== this.tbody){
-                    this.OldEndCell = Object.assign({}, this.endCell);
+                    this.OldEndCell = this.endCell;
                     this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows))[0].cells[0];
                 }
                     
                 else{
-                    this.OldEndCell = Object.assign({}, this.endCell);
+                    this.OldEndCell = this.endCell;
                     this.endCell = this.findParentCell(event.target, "TD");
                 }
-                    
+                if (this.OldEndCell === this.endCell) return;
                 this.selectRows();
             }
             
             else if (this.mouseDown) {
                 if (event.target.closest("tbody") !== this.tbody){
-                    this.OldEndCell = Object.assign({}, this.endCell);
+                    this.OldEndCell = this.endCell;
                     this.endCell = this.findClosestCell(event.clientX, event.clientY);
                 }     
                 else{
-                    this.OldEndCell = Object.assign({}, this.endCell);
+                    this.OldEndCell = this.endCell;
                     this.endCell = this.findParentCell(event.target, "TD");
                 }
-                    
+
+                if (this.OldEndCell === this.endCell) return;
+
                 this.selectCells();
             }
         });
 
         // Stop selecting when the mouse is released.
         document.addEventListener("mouseup", () => {
+            
+            if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
+            // Update this.selectedHeaders
+            if (this.mouseDownH){
+                const cells = this.thead.rows[0].cells;
+                for (let i = 0; i < cells.length; i++){
+                    this.selectedHeaders[i] = cells[i].classList.contains("selected") ? true : false;
+                }
+            }
+
+            if (this.mouseDownR){
+                this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(1).selected"))
+                    .map(td => td.parentNode.rowIndex);
+            }
+
+            this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+
             this.mouseDown = false;
             this.mouseDownH = false;
             this.mouseDownR = false;
+
+            this.checkAllCellsInColumnSelected();
+            this.checkAllCellsInRowSelected();
+            
             // window.removeEventListener("mousemove", handleMousemove);
         });
 
@@ -383,4 +485,3 @@ setTimeout(function() {
     Array.from(tables).forEach(table =>
                                tableObjects.push(new TableObj(table)));
 }, 1);
-
