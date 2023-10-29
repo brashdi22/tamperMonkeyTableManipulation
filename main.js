@@ -186,6 +186,19 @@ class TableObj {
         
     }
 
+    selecetWholeTable(){
+        if (this.toggleSelect){
+            this.table.querySelectorAll('td, th').forEach(cell => {
+                cell.classList.add('selected');
+            });
+        }
+        else {
+            this.table.querySelectorAll('td, th').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+        }
+    }
+
     findClosestCell(x, y) {
         const rows = this.findClosestRow(y, Array.from(this.tbody.rows));
         const cells = Array.from(rows[0].cells);
@@ -308,9 +321,8 @@ class TableObj {
                 this.table.querySelectorAll('.selected').forEach(cell =>
                     cell.classList.remove('selected'));
                 this.selectedCells = [];
-            } 
+            }
             
-            this.mouseDownH = true;
             this.startCell = this.findParentCell(event.target, "TH");
             this.endCell = this.startCell;
 
@@ -318,10 +330,17 @@ class TableObj {
                 this.toggleSelect = false;
             else
                 this.toggleSelect = true;
-            this.selectColumns();
+
+            if (this.endCell.cellIndex === 0){
+                this.selecetWholeTable();
+            } 
+            else {
+                this.mouseDownH = true;
+                this.selectColumns();
+            }
         });
 
-        // Select cells.
+        // Select rows and cells.
         this.tbody.addEventListener("mousedown", (event) => {
             if (!event.ctrlKey){
                 this.table.querySelectorAll('.selected').forEach(cell =>
@@ -353,7 +372,6 @@ class TableObj {
         document.addEventListener("mousemove", (event) => {
             if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
             
-            
             if (this.mouseDownH) {
                 if (event.target.closest("thead") !== this.thead){
                     this.OldEndCell = this.endCell;
@@ -372,8 +390,7 @@ class TableObj {
                 if (event.target.closest("tbody") !== this.tbody){
                     this.OldEndCell = this.endCell;
                     this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows))[0].cells[0];
-                }
-                    
+                }  
                 else{
                     this.OldEndCell = this.endCell;
                     this.endCell = this.findParentCell(event.target, "TD");
@@ -400,21 +417,19 @@ class TableObj {
 
         // Stop selecting when the mouse is released.
         document.addEventListener("mouseup", () => {
-            
             if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-            // Update this.selectedHeaders
-            if (this.mouseDownH){
-                const cells = this.thead.rows[0].cells;
-                for (let i = 0; i < cells.length; i++){
-                    this.selectedHeaders[i] = cells[i].classList.contains("selected") ? true : false;
-                }
+
+            // Update selected columns
+            const cells = this.thead.rows[0].cells;
+            for (let i = 0; i < cells.length; i++){
+                this.selectedHeaders[i] = cells[i].classList.contains("selected") ? true : false;
             }
 
-            if (this.mouseDownR){
-                this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(1).selected"))
-                    .map(td => td.parentNode.rowIndex);
-            }
+            // Update selected rows
+            this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(1).selected"))
+                .map(td => td.parentNode.rowIndex);
 
+            // Update selected cells
             this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
 
             this.mouseDown = false;
