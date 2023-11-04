@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Data Tables</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Data Tables</h1>
+
+    <h2>Table 1</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Header 1</th>
+                <th>Header 2</th>
+                <th>Header 3</th>
+                <th>Header 4</th>
+                <th>Header 5</th>
+                <th>Header 6</th>
+                <th>Header 7</th>
+                <th>Header 8</th>
+            </tr>
+        </thead>
+        <tbody id="table1-body">
+        </tbody>
+    </table>
+
+    <h2>Table 2</h2>
+    <table>
+        <tbody id="table2-body">
+            <tr>
+                <th>Header 1</th>
+                <th>Header 2</th>
+                <th>Header 3</th>
+                <th>Header 4</th>
+                <th>Header 5</th>
+                <th>Header 6</th>
+                <th>Header 7</th>
+                <th>Header 8</th>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function generateRandomData(rows, cols) {
+            const data = [];
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < cols; j++) {
+                    row.push(Math.floor(Math.random() * 100)); // Generate random data
+                }
+                data.push(row);
+            }
+            return data;
+        }
+
+        function populateTable(tableId, data) {
+            const tableBody = document.getElementById(tableId);
+            for (let i = 0; i < data.length; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < data[i].length; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = data[i][j];
+                    row.appendChild(cell);
+                }
+                tableBody.appendChild(row);
+            }
+        }
+
+        const table1Data = generateRandomData(15, 8);
+        populateTable('table1-body', table1Data);
+
+        const table2Data = generateRandomData(15, 8);
+        populateTable('table2-body', table2Data);
+    </script>
+</body>
+</html>
