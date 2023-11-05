@@ -26,8 +26,8 @@ setTimeout(function() {
         toolbar.id = 'TableObjToolbar';
     
         let button1 = document.createElement('button');
+        button1.id = 'highlightButton';
         button1.innerHTML = '<i class="fas fa-highlighter"></i>';
-        button1.classList.add('TableObjToolbarButton');
         button1.onclick = function() {
             highlight(coloursMap[document.getElementById('highlightColour').value]);
         };
@@ -124,7 +124,7 @@ setTimeout(function() {
         transform: translateY(-50%);
     }
 
-    .TableObjToolbarButton {
+    #TableObjToolbar button {
         padding: 0;
         margin: 0;
     }
