@@ -8,7 +8,7 @@ class TableObj {
         if (this.thead === null)
             this.createThead();
 
-        this.addCellToSelectRows();
+        this.addRowSelectors();
         
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
@@ -41,7 +41,7 @@ class TableObj {
         this.thead = thead;
     }
 
-    addCellToSelectRows(){
+    addRowSelectors(){
         const th = document.createElement("th");
         th.className = "rowSelector";
         th.textContent = "";
@@ -444,10 +444,11 @@ class TableObj {
             // window.removeEventListener("mousemove", handleMousemove);
         });
 
-        // Deselect when clicked outside the table.
+        // Uneselect when clicked outside the table.
         document.addEventListener("mousedown", (event) => {
             if (!this.table.contains(event.target)
-                && event.target !== document.documentElement) {
+                && event.target !== document.documentElement
+                && !event.target.closest('#TableObjToolbar')) {
                 this.table.querySelectorAll('.selected').forEach(cell =>
                                                                  cell.classList.remove('selected'));
                 
