@@ -3,18 +3,18 @@ setTimeout(function() {
 
     function highlight(colour){
         if (colour === 'white'){
-            document.querySelectorAll('.selected').forEach(cell => {
-                cell.classList.remove('highlighted');
+            document.querySelectorAll('.selectedTableObjCell').forEach(cell => {
+                cell.classList.remove('highlightedTableObjCell');
                 // remove any class that ends with -highlighted
                 cell.className = cell.className.replace(/\w+-highlighted/g, '');
             });
         }
         else{
-            document.querySelectorAll('.selected').forEach(cell => {
+            document.querySelectorAll('.selectedTableObjCell').forEach(cell => {
                 cell.className = cell.className.replace(/\w+-highlighted/g, '');
-                // cell.classList.remove('selected');
+                // cell.classList.remove('selectedTableObjCell');
 
-                cell.classList.add('highlighted');
+                cell.classList.add('highlightedTableObjCell');
                 cell.classList.add(`${colour}-highlighted`);
             });
         }
@@ -87,15 +87,15 @@ setTimeout(function() {
         border: 1px solid #ddd;
     }
 
-    .lib-table .selected th {
+    .lib-table .selectedTableObjCell th {
         background-color: antiquewhite;
     }
 
-    .selected {
+    .selectedTableObjCell {
         background-color: antiquewhite !important;
     }
 
-    .selected.highlighted {
+    .selectedTableObjCell.highlightedTableObjCell {
         background-color: #abbdc4 !important;
     }
 

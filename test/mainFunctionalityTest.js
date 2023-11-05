@@ -61,11 +61,11 @@ describe('Check main functionality', function(){
         await highlightButton.click();
 
         // Check that the cell has the correct class
-        // The class list should contain 'selected', 'highlighted' and 'yellow-highlighted'
+        // The class list should contain 'selectedTableObjCell', 'highlightedTableObjCell' and 'yellow-highlighted'
         // but it could contain more classes
         const cellClass = await cell1.getAttribute('class');
-        assert.strictEqual(cellClass.includes('selected'), true);
-        assert.strictEqual(cellClass.includes('highlighted'), true);
+        assert.strictEqual(cellClass.includes('selectedTableObjCell'), true);
+        assert.strictEqual(cellClass.includes('highlightedTableObjCell'), true);
         assert.strictEqual(cellClass.includes('yellow-highlighted'), true);
 
         // Click on another cell.
@@ -96,12 +96,12 @@ describe('Check main functionality', function(){
         await highlightButton.click();
 
         // Check that the cell has the correct class
-        // The class list should contain 'selected', 'highlighted' and 'blue-highlighted'
+        // The class list should contain 'selected', 'highlightedTableObjCell' and 'blue-highlighted'
         // but it could contain more classes.
         // The class list should not contain 'yellow-highlighted'.
         const cellClass = await cell1.getAttribute('class');
-        assert.strictEqual(cellClass.includes('selected'), true);
-        assert.strictEqual(cellClass.includes('highlighted'), true);
+        assert.strictEqual(cellClass.includes('selectedTableObjCell'), true);
+        assert.strictEqual(cellClass.includes('highlightedTableObjCell'), true);
         assert.strictEqual(cellClass.includes('blue-highlighted'), true);
         assert.strictEqual(cellClass.includes('yellow-highlighted'), false);
 
@@ -133,10 +133,10 @@ describe('Check main functionality', function(){
         await highlightButton.click();
 
         // Check that the cell has the correct class
-        // The class list should contain 'selected' but not 'highlighted'
+        // The class list should contain 'selected' but not 'highlightedTableObjCell'
         const cellClass = await cell1.getAttribute('class');
-        assert.strictEqual(cellClass.includes('selected'), true);
-        assert.strictEqual(cellClass.includes('highlighted'), false);
+        assert.strictEqual(cellClass.includes('selectedTableObjCell'), true);
+        assert.strictEqual(cellClass.includes('highlightedTableObjCell'), false);
     });
 
 });

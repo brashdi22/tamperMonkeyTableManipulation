@@ -75,10 +75,10 @@ class TableObj {
 
 
         if (this.toggleSelect){
-            const selectedCells = this.tbody.querySelectorAll('.selected');
+            const selectedCells = this.tbody.querySelectorAll('.selectedTableObjCell');
             selectedCells.forEach(cell => {
                 if (!this.selectedCells.includes(cell))
-                cell.classList.remove('selected');
+                cell.classList.remove('selectedTableObjCell');
             });
     
             // Loop through rows
@@ -87,7 +87,7 @@ class TableObj {
     
                 // Loop through cells in the row
                 for (let j = minCol; j < maxCol + 1; j++) {
-                    cells[j].classList.add("selected");
+                    cells[j].classList.add("selectedTableObjCell");
                 }
             }
         } 
@@ -96,7 +96,7 @@ class TableObj {
                 const cells = rows[i].getElementsByTagName("td");
 
                 for (let j = minCol; j < maxCol + 1; j++) {
-                    cells[j].classList.remove("selected");
+                    cells[j].classList.remove("selectedTableObjCell");
                 }
             }
 
@@ -105,7 +105,7 @@ class TableObj {
                 const colIndex = cell.cellIndex;
                 if (rowIndex < minRow || rowIndex > maxRow
                     || colIndex < minCol || colIndex > maxCol){
-                        cell.classList.add('selected');
+                        cell.classList.add('selectedTableObjCell');
                 }
             });
         }
@@ -122,27 +122,27 @@ class TableObj {
             for (let i = minCol; i < maxCol + 1; i++){
                 const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
                 for (let i = 0; i < cells.length; i++) {
-                    cells[i].classList.add('selected');
+                    cells[i].classList.add('selectedTableObjCell');
                 }
             }
 
-            const cells = this.table.querySelectorAll('.selected');
+            const cells = this.table.querySelectorAll('.selectedTableObjCell');
             for (let i = 0; i < cells.length; i++){
                 if (!this.selectedCells.includes(cells[i]) && (cells[i].cellIndex < minCol || cells[i].cellIndex > maxCol))
-                    cells[i].classList.remove('selected');
+                    cells[i].classList.remove('selectedTableObjCell');
             }
         }
         else {
             for (let i = minCol; i < maxCol + 1; i++){
                 const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
                 for (let i = 0; i < cells.length; i++) {
-                    cells[i].classList.remove('selected');
+                    cells[i].classList.remove('selectedTableObjCell');
                 }
             }
 
             this.selectedCells.forEach(cell => {
                 if (cell.cellIndex < minCol || cell.cellIndex > maxCol){
-                    cell.classList.add('selected');
+                    cell.classList.add('selectedTableObjCell');
                 }
             });
         }      
@@ -158,16 +158,16 @@ class TableObj {
             for (let i = minRow; i <= maxRow; i++){
                 const row = this.table.rows[i];
                 for (let j = 0; j < row.cells.length; j++) {
-                    row.cells[j].classList.add("selected");
+                    row.cells[j].classList.add("selectedTableObjCell");
                 }
             }
 
-            const cells = this.table.querySelectorAll('.selected');
+            const cells = this.table.querySelectorAll('.selectedTableObjCell');
             for (let i = 0; i < cells.length; i++){
                 const cell = cells[i];
                 if (!this.selectedCells.includes(cell) && 
                     (cell.parentElement.rowIndex < minRow || cell.parentElement.rowIndex > maxRow)){
-                        cell.classList.remove('selected');
+                        cell.classList.remove('selectedTableObjCell');
                 }
             }
         }
@@ -175,13 +175,13 @@ class TableObj {
             for (let i = minRow; i <= maxRow; i++){
                 const row = this.table.rows[i];
                 for (let j = 0; j < row.cells.length; j++) {
-                    row.cells[j].classList.remove("selected");
+                    row.cells[j].classList.remove("selectedTableObjCell");
                 }
             }
 
             this.selectedCells.forEach(cell => {
                 if (cell.parentElement.rowIndex < minRow || cell.parentElement.rowIndex > maxRow){
-                    cell.classList.add('selected');
+                    cell.classList.add('selectedTableObjCell');
                 }
             });
         }
@@ -191,12 +191,12 @@ class TableObj {
     selecetWholeTable(){
         if (this.toggleSelect){
             this.table.querySelectorAll('td, th').forEach(cell => {
-                cell.classList.add('selected');
+                cell.classList.add('selectedTableObjCell');
             });
         }
         else {
             this.table.querySelectorAll('td, th').forEach(cell => {
-                cell.classList.remove('selected');
+                cell.classList.remove('selectedTableObjCell');
             });
         }
     }
@@ -278,9 +278,9 @@ class TableObj {
             if (this.selectedHeaders[i]){
                 const cells = this.tbody.querySelectorAll(`td:nth-child(${i+1})`);
                 for (let j = 0; j < cells.length; j++) {
-                    if (!cells[j].classList.contains('selected')) {
+                    if (!cells[j].classList.contains('selectedTableObjCell')) {
                         this.selectedHeaders[i] = false;
-                        this.thead.rows[0].cells[i].classList.remove('selected');
+                        this.thead.rows[0].cells[i].classList.remove('selectedTableObjCell');
                         changed = true;
                         break;
                     }
@@ -289,7 +289,7 @@ class TableObj {
         }
 
         if (changed)
-            this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+            this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
     }
 
     checkAllCellsInRowSelected(){
@@ -299,9 +299,9 @@ class TableObj {
             const row = this.table.rows[this.selectedRows[i]];
             let selected = true;
             for (let j = 0; j < row.cells.length; j++) {
-                if (!row.cells[j].classList.contains('selected')) {
+                if (!row.cells[j].classList.contains('selectedTableObjCell')) {
                     // this.selectedRows.splice(i, 1);
-                    this.table.rows[this.selectedRows[i]].cells[0].classList.remove('selected');
+                    this.table.rows[this.selectedRows[i]].cells[0].classList.remove('selectedTableObjCell');
                     selected = false;
                     changed = true;
                     break;
@@ -313,22 +313,22 @@ class TableObj {
         this.selectedRows = tempArr;
 
         if (changed)
-            this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+            this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
     }
 
     addEventListeners() {
         // Select columns.
         this.thead.addEventListener("mousedown", (event) => {
             if (!event.ctrlKey){
-                this.table.querySelectorAll('.selected').forEach(cell =>
-                    cell.classList.remove('selected'));
+                this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
+                    cell.classList.remove('selectedTableObjCell'));
                 this.selectedCells = [];
             }
             
             this.startCell = this.findParentCell(event.target, "TH");
             this.endCell = this.startCell;
 
-            if (this.endCell.classList.contains("selected"))
+            if (this.endCell.classList.contains("selectedTableObjCell"))
                 this.toggleSelect = false;
             else
                 this.toggleSelect = true;
@@ -345,8 +345,8 @@ class TableObj {
         // Select rows and cells.
         this.tbody.addEventListener("mousedown", (event) => {
             if (!event.ctrlKey){
-                this.table.querySelectorAll('.selected').forEach(cell =>
-                    cell.classList.remove('selected'));
+                this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
+                    cell.classList.remove('selectedTableObjCell'));
                 this.selectedCells = [];
                 this.selectedRows = [];
             }
@@ -354,7 +354,7 @@ class TableObj {
             this.startCell = this.findParentCell(event.target, "TD");
             this.endCell = this.startCell;
 
-            if (this.endCell.classList.contains("selected"))
+            if (this.endCell.classList.contains("selectedTableObjCell"))
                 this.toggleSelect = false;
             else
                 this.toggleSelect = true;
@@ -424,15 +424,15 @@ class TableObj {
             // Update selected columns
             const cells = this.thead.rows[0].cells;
             for (let i = 0; i < cells.length; i++){
-                this.selectedHeaders[i] = cells[i].classList.contains("selected") ? true : false;
+                this.selectedHeaders[i] = cells[i].classList.contains("selectedTableObjCell") ? true : false;
             }
 
             // Update selected rows
-            this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(1).selected"))
+            this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(1).selectedTableObjCell"))
                 .map(td => td.parentNode.rowIndex);
 
             // Update selected cells
-            this.selectedCells = Array.from(this.table.querySelectorAll('.selected'));
+            this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
 
             this.mouseDown = false;
             this.mouseDownH = false;
@@ -449,8 +449,8 @@ class TableObj {
             if (!this.table.contains(event.target)
                 && event.target !== document.documentElement
                 && !event.target.closest('#TableObjToolbar')) {
-                this.table.querySelectorAll('.selected').forEach(cell =>
-                                                                 cell.classList.remove('selected'));
+                this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
+                                                                 cell.classList.remove('selectedTableObjCell'));
                 
                 this.selectedCells = [];
                 this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);

@@ -43,7 +43,7 @@ describe('Check main functionality', function(){
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
             const classes = await cell.getAttribute('class');
-            assert(classes.includes('selected'), 'Cell is not selected');
+            assert(classes.includes('selectedTableObjCell'), 'Cell is not selected');
         }
     });
 
@@ -78,7 +78,7 @@ describe('Check main functionality', function(){
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
             const classes = await cell.getAttribute('class');
-            assert(classes.includes('selected'), 'Cell is not selected while it should be selected');
+            assert(classes.includes('selectedTableObjCell'), 'Cell is not selected while it should be selected');
         }
 
         // Get all cells in the 3rd and 4th columns, these should not be selected
@@ -91,7 +91,7 @@ describe('Check main functionality', function(){
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
             const classes = await cell.getAttribute('class');
-            assert(!classes.includes('selected'), 'Cell is selected while it should not be selected');
+            assert(!classes.includes('selectedTableObjCell'), 'Cell is selected while it should not be selected');
         }
     });
 

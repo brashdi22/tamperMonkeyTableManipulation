@@ -34,12 +34,12 @@ describe('Check main functionality', function(){
         await cell.click();
 
         // Check that the cell was selected correctly
-        let selectedCells = await table.findElements(By.css('.selected'));
+        let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 1, '1 cell should be selected');
 
         // Simulate the unselection of a cell
         await driver.actions().keyDown(Key.CONTROL).click(cell).keyUp(Key.CONTROL).perform();
-        selectedCells = await table.findElements(By.css('.selected'));
+        selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 0, 'No cell should be selected');
     });
 
@@ -56,7 +56,7 @@ describe('Check main functionality', function(){
             .perform();
 
         // Check that the cells were selected correctly
-        let selectedCells = await table.findElements(By.css('.selected'));
+        let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 16, '16 cells should be selected');
 
         startCell = await table.findElement(By.css('tr:nth-child(3) td:nth-child(3)'));
@@ -67,7 +67,7 @@ describe('Check main functionality', function(){
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
             .keyUp(Key.CONTROL).perform();
-        selectedCells = await table.findElements(By.css('.selected'));
+        selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 12, '12 cells should be selected');
     });
 
@@ -83,12 +83,12 @@ describe('Check main functionality', function(){
         await cell.click();
 
         // Check that the whole table was selected correctly
-        let selectedCells = await table.findElements(By.css('.selected'));
+        let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, cells.length, 'Not all cells are selected');
 
         // Simulate the unselection of a cell
         await driver.actions().keyDown(Key.CONTROL).click(cell).keyUp(Key.CONTROL).perform();
-        selectedCells = await table.findElements(By.css('.selected'));
+        selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 0, 'No cell should be selected');
     });
 
@@ -113,7 +113,7 @@ describe('Check main functionality', function(){
             .keyUp(Key.CONTROL).perform();
     
         // Check that all cells are selected
-        let selectedCells = await table.findElements(By.css('.selected'));
+        let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 8, '8 cells should be selected');
 
         // unselect the first cell
@@ -125,7 +125,7 @@ describe('Check main functionality', function(){
         await driver.actions().keyDown(Key.CONTROL).click(cell).keyUp(Key.CONTROL).perform();
 
         // Check that are 6 selected cells left
-        selectedCells = await table.findElements(By.css('.selected'));
+        selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 6, '6 cells should be selected');
     });
 
@@ -152,7 +152,7 @@ describe('Check main functionality', function(){
         await driver.actions().release().perform();
     
         // Check that only on cell is selected
-        let selectedCells = await table.findElements(By.css('.selected'));
+        let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 1, '1 cell should be selected');
     });
 
@@ -186,7 +186,7 @@ describe('Check main functionality', function(){
         await driver.actions().release().keyUp(Key.CONTROL).perform();
     
         // Check that only on cell is selected
-        let selectedCells = await table.findElements(By.css('.selected'));
+        let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 1, '1 cell should be selected');
     });
 });
