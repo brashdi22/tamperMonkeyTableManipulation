@@ -21,17 +21,83 @@ setTimeout(function() {
         
     }
 
+    function hideColsRows(){
+        // Get the rowSelectors
+        let rows = document.querySelectorAll('table td:first-child.selectedTableObjCell');
+
+        // Hide the selected rows
+        rows.forEach(cell => {
+            cell.parentElement.style.display = 'none';
+            cell.classList.add('hiddenRow');
+        });
+
+        // Get the column headers
+        let columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
+
+        // Hide the selected columns
+        columns.forEach(cell => {
+            cell.classList.add('hiddenColumn');
+            let index = cell.cellIndex;
+            let table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
+            let rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                // This takes into account rows with a colspan
+                try{
+                    row.cells[index].style.display = 'none';
+                } catch (e) {}
+            });
+        });
+    }
+
+    function showColsRows(){
+        // Get the hidden rows
+        let rows = document.querySelectorAll('table td:first-child.hiddenRow');
+
+        // Show the hidden rows
+        rows.forEach(cell => {
+            cell.parentElement.style.display = '';
+            cell.classList.remove('hiddenRow');
+        });
+
+        // Get the hidden columns
+        let columns = document.querySelectorAll('table thead tr th.hiddenColumn');
+
+        // Show the hidden columns
+        columns.forEach(cell => {
+            cell.classList.remove('hiddenColumn');
+            let index = cell.cellIndex;
+            let table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
+            let rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                try{
+                    row.cells[index].style.display = '';
+                } catch (e) {}
+            });
+        });
+    }
+
     function createToolBar(){
         let toolbar = document.createElement('div');
         toolbar.id = 'TableObjToolbar';
     
-        let button1 = document.createElement('button');
-        button1.id = 'highlightButton';
-        button1.innerHTML = '<i class="fas fa-highlighter"></i>';
-        button1.onclick = function() {
+        let highlightButton = document.createElement('button');
+        highlightButton.id = 'highlightButton';
+        highlightButton.innerHTML = '<i class="fas fa-highlighter"></i>';
+        highlightButton.onclick = function() {
             highlight(coloursMap[document.getElementById('highlightColour').value]);
         };
-        toolbar.appendChild(button1);
+
+        // Create a button to hide selected rows/columns
+        let hideButton = document.createElement('button');
+        hideButton.id = 'hideButton';
+        hideButton.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        hideButton.onclick = hideColsRows;
+
+        // Create a button to show hidden rows/columns
+        let showButton = document.createElement('button');
+        showButton.id = 'showButton';
+        showButton.innerHTML = '<i class="fas fa-eye"></i>';
+        showButton.onclick = showColsRows;
     
         // Create the colour select dropdown
         let colourSelect = document.createElement('select');
@@ -52,7 +118,19 @@ setTimeout(function() {
         colourSelect.selectedIndex = 0;
         colourSelect.style.backgroundColor = colourSelect.value;
 
-        toolbar.appendChild(colourSelect);
+
+        // Highlight
+        let div = document.createElement('div');
+        div.appendChild(highlightButton);
+        div.appendChild(colourSelect);
+        toolbar.appendChild(div);
+
+        // Show/Hide
+        div = document.createElement('div');
+        div.appendChild(hideButton);
+        div.appendChild(showButton);
+        toolbar.appendChild(div);
+
         document.body.appendChild(toolbar);
     }
 
@@ -118,7 +196,7 @@ setTimeout(function() {
         background-color: #f8f8f8;
         padding: 5px;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
         gap: 2px;
         transform: translateY(-50%);
@@ -127,6 +205,19 @@ setTimeout(function() {
     #TableObjToolbar button {
         padding: 0;
         margin: 0;
+        width: 50%;
+        height: 100%;
+    }
+
+    #TableObjToolbar div {
+        background-color: #f8f8f8;
+        margin: 2px 0px;
+        width: 40px;
+        height: 20px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 2px;
     }
 
     #highlightColour {
@@ -134,7 +225,8 @@ setTimeout(function() {
         -moz-appearance: none;
         -webkit-appearance: none;
         background: transparent;
-        width: 15px;
+        width: 30%;
+        height: 100%;
         border-radius: 5px;
     }
     `;

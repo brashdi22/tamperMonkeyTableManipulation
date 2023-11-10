@@ -203,66 +203,47 @@ class TableObj {
 
     findClosestCell(x, y) {
         const rows = this.findClosestRow(y, Array.from(this.tbody.rows));
-        const cells = Array.from(rows[0].cells);
+        const cells = Array.from(rows.cells);
         return this.findClosestCol(x, cells);
     }
 
-    findClosestRow(y, rows){
-        while (rows.length > 1){
-            // Vertical distance from the cursor to the top row.
-            const row1 = rows[0];
-            const row1Bounds = row1.getBoundingClientRect();
-            // This if-statement takes into account the rows of different heights.
-            if (y >= row1Bounds.top && y <= row1Bounds.bottom){
-                rows = rows.slice(0, 1);
-                break;
+    findClosestRow(y, rows) {
+        while (rows.length > 1) {
+            const midIndex = Math.floor(rows.length / 2);
+            const midRow = rows[midIndex];
+            const midRowBounds = midRow.getBoundingClientRect();
+    
+            if (y < midRowBounds.top)
+                rows = rows.slice(0, midIndex);
+            else if (y > midRowBounds.bottom){
+                if (midIndex + 1 < rows.length) {
+                    rows = rows.slice(midIndex + 1);
+                } else {
+                    return midRow;
+                }
             }
-            const d1 = Math.abs(row1Bounds.top - y);
-
-            // Vertical distance from the cursor to the bottom row.
-            const row2 = rows[rows.length - 1];
-            const row2Bounds = row2.getBoundingClientRect();
-            if (y >= row2Bounds.top && y <= row2Bounds.bottom){
-                rows = rows.slice(rows.length - 1, rows.length);
-                break;
+            else {
+                return midRow;
             }
-            const d2 = Math.abs(row2Bounds.bottom - y);
-
-
-            if (d1 <= d2)
-                rows = rows.slice(0, Math.ceil(rows.length/2));
-            else
-                rows = rows.slice(Math.floor(rows.length/2), rows.length + 1);
         }
-        return rows;
+    
+        return rows[0];
     }
 
-    findClosestCol(x, cells){
-        while (cells.length > 1){
-            // Horizontal distance from the cursor to the leftmost cell.
-            const cell1 = cells[0];
-            const cell1Bounds = cell1.getBoundingClientRect();
-            // This if-statement takes into account the cells of different widths.
-            if (x >= cell1Bounds.left && x <= cell1Bounds.right){
-                cells = cells.slice(0, 1);
-                break;
-            }
-            const d1 = Math.abs(cell1Bounds.left - x);
-
-            // Horizontal distance from the cursor to rightPtr the rightmost cell.
-            const cell2 = cells[cells.length - 1];
-            const cell2Bounds = cell2.getBoundingClientRect();
-            if (x >= cell2Bounds.left && x <= cell2Bounds.right){
-                cells = cells.slice(cells.length - 1, cells.length);
-                break;
-            }
-            const d2 = Math.abs(cell2Bounds.right - x);
-
-            if (d1 <= d2)
-                cells = cells.slice(0, Math.ceil(cells.length/2));
+    findClosestCol(x, cells) {
+        while (cells.length > 1) {
+            const midIndex = Math.floor(cells.length / 2);
+            const midCell = cells[midIndex];
+            const midCellBounds = midCell.getBoundingClientRect();
+    
+            if (x < midCellBounds.left)
+                cells = cells.slice(0, midIndex);
+            else if (x > midCellBounds.right)
+                cells = cells.slice(midIndex + 1);
             else
-                cells = cells.slice(Math.floor(cells.length/2), cells.length + 1);
+                return midCell;
         }
+    
         return cells[0];
     }
 
@@ -327,19 +308,17 @@ class TableObj {
             
             this.startCell = this.findParentCell(event.target, "TH");
             this.endCell = this.startCell;
+            this.mouseDownH = true;
 
             if (this.endCell.classList.contains("selectedTableObjCell"))
                 this.toggleSelect = false;
             else
                 this.toggleSelect = true;
 
-            if (this.endCell.cellIndex === 0){
+            if (this.endCell.cellIndex === 0)
                 this.selecetWholeTable();
-            } 
-            else {
-                this.mouseDownH = true;
+            else
                 this.selectColumns();
-            }
         });
 
         // Select rows and cells.
@@ -391,7 +370,7 @@ class TableObj {
             else if (this.mouseDownR) {
                 if (event.target.closest("tbody") !== this.tbody){
                     this.OldEndCell = this.endCell;
-                    this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows))[0].cells[0];
+                    this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows)).cells[0];
                 }  
                 else{
                     this.OldEndCell = this.endCell;
@@ -455,7 +434,7 @@ class TableObj {
                 this.selectedCells = [];
                 this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
                 this.selectedRows = [];
-}
+            }
         });
     }
 }
