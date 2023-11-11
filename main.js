@@ -7,13 +7,6 @@ setTimeout(function() {
     // Add the stylesheet to the page
     GM_addStyle(styleSheet);
 
-    // Add font awesome stylesheet to the page
-    GM_addElement('link', {
-        rel: 'stylesheet',
-        href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'
-    });
-
-
     // Retrieve the tables from the page
     let tables = document.getElementsByTagName("table");
     let tableObjects = [];
