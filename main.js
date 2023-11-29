@@ -46,58 +46,86 @@ function highlight(colour){
 }
 
 function hideColsRows(){
-    // Get the rowSelectors
-    let rows = document.querySelectorAll('table td:first-child.selectedTableObjCell');
-
     // Hide the selected rows
+    let rows = document.querySelectorAll('table tbody td:first-child.selectedTableObjCell');
     rows.forEach(cell => {
-        cell.parentElement.style.display = 'none';
-        cell.classList.add('hiddenRow');
+        hideRow(cell);
+
+        // The id of the respective checkbox: `${table.id}-row${index}`
+        // Get the checkbox and uncheck it
+        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
+        checkbox.checked = false;
     });
 
-    // Get the column headers
-    let columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
-
     // Hide the selected columns
+    let columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
     columns.forEach(cell => {
-        cell.classList.add('hiddenColumn');
-        let index = cell.cellIndex;
-        let table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
-        let rows = table.querySelectorAll('tr');
-        rows.forEach(row => {
-            // This takes into account rows with a colspan
-            try{
-                row.cells[index].style.display = 'none';
-            } catch (e) {}
-        });
+        hideCol(cell);
+
+        // The id of the respective checkbox: `${table.id}-col${index}`
+        // Get the checkbox and uncheck it
+        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
+        checkbox.checked = false;
     });
 }
 
 function showColsRows(){
-    // Get the hidden rows
-    let rows = document.querySelectorAll('table td:first-child.hiddenRow');
-
     // Show the hidden rows
+    let rows = document.querySelectorAll('table tbody td:first-child.hiddenRow');
     rows.forEach(cell => {
-        cell.parentElement.style.display = '';
-        cell.classList.remove('hiddenRow');
-    });
+        showRow(cell);
 
-    // Get the hidden columns
-    let columns = document.querySelectorAll('table thead tr th.hiddenColumn');
+        // The id of the respective checkbox: `${table.id}-row${index}`
+        // Get the checkbox and check it
+        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
+        checkbox.checked = true;
+    });
 
     // Show the hidden columns
+    let columns = document.querySelectorAll('table thead tr th.hiddenColumn');
     columns.forEach(cell => {
-        cell.classList.remove('hiddenColumn');
-        let index = cell.cellIndex;
-        let table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
-        let rows = table.querySelectorAll('tr');
-        rows.forEach(row => {
-            try{
-                row.cells[index].style.display = '';
-            } catch (e) {}
-        });
+        showCol(cell);
+
+        // The id of the respective checkbox: `${table.id}-col${index}`
+        // Get the checkbox and check it
+        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
+        checkbox.checked = true;
     });
+}
+
+function hideCol(cell){
+    cell.classList.add('hiddenColumn');
+    const index = cell.cellIndex;
+    const table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        // This takes into account rows with a colspan
+        try{
+            row.cells[index].style.display = 'none';
+        } catch (e) {}
+    });
+}
+
+function showCol(cell){
+    cell.classList.remove('hiddenColumn');
+    const index = cell.cellIndex;
+    const table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        try{
+            row.cells[index].style.display = '';
+        } catch (e) {}
+    });
+}
+
+function hideRow(cell){
+    cell.parentElement.style.display = 'none';
+    cell.classList.add('hiddenRow');
+}
+
+function showRow(cell){
+    cell.parentElement.style.display = '';
+    cell.classList.remove('hiddenRow');
 }
 
 const coloursMap = {

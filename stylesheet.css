@@ -1,6 +1,7 @@
 .lib-tabl {
     user-select: none;
 }
+
 .lib-table {
     border-collapse: collapse;
     width: 100%;
@@ -58,3 +59,53 @@ table.lib-table th {
     transform: translateY(-50%);
     z-index: 99;
 }
+
+.TableObjMenuContainer {
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.TableObjMenuContainer label {
+    margin-left: 4px;
+}
+
+.TableObjMenu, .TableObjSubMenu {
+    min-width: 180px;
+    max-width: fit-content;
+    list-style: none;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: #fbf6f6;
+    border: black 1px solid;
+    border-radius: 4px;
+    position: absolute;
+}
+
+.TableObjMenu li, .TableObjSubMenu li {
+    user-select: none;
+    cursor: default;
+    position: relative;
+    display: block;
+    padding: 5px;
+}
+
+.TableObjMenu li:hover {
+    background-color: #e8e8e8;
+}
+
+.TableObjSubMenu {
+    max-height: 300px;
+    overflow-y: auto;
+    top: 0;
+    right: auto;
+    left: 100%;
+    display: none;
+}
+
+.TableObjMenu li:hover > .TableObjSubMenu {
+    display: block;
+    z-index: 99;
+}
+
+

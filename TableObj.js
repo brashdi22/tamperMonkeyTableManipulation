@@ -1,5 +1,8 @@
 class TableObj {
+    static tablesCount = 0;
+
     constructor(tableElem){
+        TableObj.tablesCount++;
         this.table = tableElem;
     
         this.tbody = this.table.tBodies[0];
@@ -9,6 +12,8 @@ class TableObj {
             this.createThead();
 
         this.addRowSelectors();
+        this.addTableId();
+        this.addTableSettingsMenu();
         
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
@@ -41,6 +46,13 @@ class TableObj {
         this.thead = thead;
     }
 
+    // Add an id to the table if it does not have one.
+    addTableId(){
+        if (!this.table.id){
+            this.table.id = `TableObj-table${TableObj.tablesCount}`;
+        }
+    }
+
     addRowSelectors(){
         const th = document.createElement("th");
         th.className = "rowSelector";
@@ -48,12 +60,243 @@ class TableObj {
         this.thead.rows[0].insertBefore(th, this.thead.rows[0].firstElementChild);
 
         const rows = Array.from(this.tbody.rows);
-        rows.forEach(row => {
-            const cell = row.insertCell(0);
-            cell.textContent = "\t";
+
+        for (let i = 0; i < rows.length; i++){
+            const cell = rows[i].insertCell(0);
+            cell.textContent = i + 1;
             cell.className = "rowSelector";
-        });
+        }
         
+    }
+
+    // Add table settings dropdown menu above each table
+    addTableSettingsMenu(){
+        // Add a button to be clicked to show the menu
+        const settingsButton = document.createElement('button');
+        settingsButton.innerHTML = 'Table Settings';
+        // settingsButton.id = 'settingsButton';
+        // settingsButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M256 48C141.12 48 48 141.12 48 256s93.12 208 208 208 208-93.12 208-208S370.88 48 256 48zm0 384c-88.22 0-160-71.78-160-160 0-88.22 71.78-160 160-160 88.22 0 160 71.78 160 160 0 88.22-71.78 160-160 160z"/></svg>';
+        settingsButton.onclick = () => {
+            const menu = document.getElementById(`settingsMenu-${this.table.id}`);
+            if (menu.style.display === 'none')
+                menu.style.display = '';
+            else
+                menu.style.display = 'none';
+        };
+
+        // Add a 'ul' to hold the menu options
+        const settingsMenu = document.createElement('ul');
+        settingsMenu.id = `settingsMenu-${this.table.id}`;
+        settingsMenu.className = 'TableObjMenu';
+        settingsMenu.style.display = 'none';
+
+        // ================================= Columns option =================================
+        let li = document.createElement('li');
+        li.textContent = 'Show/Hide Columns';
+        let submenue = document.createElement('ul');
+        submenue.className = 'TableObjSubMenu';
+        let columns = Array.from(this.thead.rows[0].cells).slice(1);
+        // Add an 'li' and a checkbox for the first column (whole table selector)
+        let nestedLi = document.createElement('li');
+        let checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `${this.table.id}-col0`;
+        checkbox.className = 'tableCheckbox';
+        checkbox.checked = true;
+        checkbox.value = 0;
+        let label = document.createElement('label');
+        label.htmlFor = `${this.table.id}-col0`;
+        label.appendChild(document.createTextNode('Whole Table'));
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked){
+                this.showColAndCheckCheckbox();
+            }
+            else {
+                this.hideColAndUncheckCheckbox();
+            }
+            // TO DO: the rowSelectors should be hidden/shown as well
+
+        });
+        nestedLi.appendChild(checkbox);
+        nestedLi.appendChild(label);
+        submenue.appendChild(nestedLi);
+
+
+        columns = Array.from(this.thead.rows[0].cells).slice(1);
+
+        columns.forEach((column, index) => {
+            let nestedLi = document.createElement('li');
+
+            // Create the checkbox
+            let checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `${this.table.id}-col${index + 1}`;
+            checkbox.className = 'columnCheckbox';
+            checkbox.checked = true;
+            checkbox.value = index + 1;
+            let label = document.createElement('label');
+            label.htmlFor = `${this.table.id}-col${index + 1}`;
+            label.appendChild(document.createTextNode(column.textContent));
+
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked){
+                    // Show the column
+                    showCol(column);
+                    if (this.allColumnCheckboxesChecked()){
+                        document.getElementById(`${this.table.id}-col0`).checked = true;
+                    }
+                }
+                    
+                else {
+                    // Hide the column
+                    hideCol(column);
+                    if (!this.allColumnCheckboxesChecked()){
+                        document.getElementById(`${this.table.id}-col0`).checked = false;
+                    }
+                }
+            });
+
+            nestedLi.appendChild(checkbox);
+            nestedLi.appendChild(label);
+            submenue.appendChild(nestedLi);
+        });
+
+        li.appendChild(submenue);
+        settingsMenu.appendChild(li);
+
+        // Add event listener to the submenu to toggle the checkbox
+        submenue.addEventListener('click', (event) => {
+            if (event.target.tagName.toLowerCase() === 'li') {
+                let checkbox = event.target.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+
+                    // If the class of the checkbox is 'tableCheckbox', use the same functionality as above
+                    if (checkbox.classList.contains('tableCheckbox')){
+                        if (checkbox.checked)
+                            this.showColAndCheckCheckbox();
+                        else
+                            this.hideColAndUncheckCheckbox();
+                    }
+                    else {
+                        if (checkbox.checked){
+                            showCol(this.thead.rows[0].cells[checkbox.value]);
+                            if (this.allColumnCheckboxesChecked()){
+                                document.getElementById(`${this.table.id}-col0`).checked = true;
+                            }
+                        }
+                        else {
+                            hideCol(this.thead.rows[0].cells[checkbox.value]);
+                            if (!this.allColumnCheckboxesChecked()){
+                                document.getElementById(`${this.table.id}-col0`).checked = false;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        // ================================= Columns option =================================
+
+        // ================================= Rows option =================================
+        li = document.createElement('li');
+        li.textContent = 'Show/Hide Rows';
+        submenue = document.createElement('ul');
+        submenue.className = 'TableObjSubMenu';
+        const rows = Array.from(this.tbody.rows);
+
+        rows.forEach((row, index) => {
+            let nestedLi = document.createElement('li');
+
+            // Create the checkbox
+            let checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `${this.table.id}-row${index}`;
+            checkbox.className = 'rowCheckbox';
+            checkbox.checked = true;
+            checkbox.value = index;
+            let label = document.createElement('label');
+            label.htmlFor = `${this.table.id}-row${index}`;
+            label.appendChild(document.createTextNode(row.cells[1].textContent));
+
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked)
+                    showRow(row.cells[0]);
+                else
+                    hideRow(row.cells[0]);
+            });
+
+            nestedLi.appendChild(checkbox);
+            nestedLi.appendChild(label);
+            submenue.appendChild(nestedLi);
+        });
+
+        li.appendChild(submenue);
+        settingsMenu.appendChild(li);
+
+        // Add event listener to the submenu to toggle the checkbox
+        submenue.addEventListener('click', (event) => {
+            if (event.target.tagName.toLowerCase() === 'li') {
+                let checkbox = event.target.querySelector('input[type="checkbox"]');
+                // If the id of the checkbox is `row0-col0`
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+
+                    if (checkbox.checked)
+                        showRow(this.tbody.rows[checkbox.value].cells[0]);
+                    else
+                        hideRow(this.tbody.rows[checkbox.value].cells[0]);
+                }
+            }
+        });
+        // ================================= Rows option =================================
+
+        // create a container
+        const container = document.createElement('div');
+        container.className = 'TableObjMenuContainer';
+        container.id = `${this.table.id}-menuContainer`;
+        container.appendChild(settingsButton);
+        container.appendChild(settingsMenu);
+        this.table.parentElement.insertBefore(container, this.table);
+    }
+
+    allColumnCheckboxesChecked(){
+        let checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
+        let allChecked = true;
+        for (let i = 0; i < checkboxes.length; i++){
+            if (!checkboxes[i].checked){
+                allChecked = false;
+                break;
+            }
+        }
+        return allChecked;
+    }
+
+    showColAndCheckCheckbox(){
+        const checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
+        for (let i = 0; i < checkboxes.length; i++){
+            // If the checkbox is not checked, show the column and check the box
+            if (!checkboxes[i].checked){
+                showCol(this.thead.rows[0].cells[i+1]);
+                checkboxes[i].checked = true;
+            }
+        }
+
+        // Show the first column (rowSelectors)
+        showCol(this.thead.rows[0].cells[0]);
+    }
+
+    hideColAndUncheckCheckbox(){
+        const checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
+        for (let i = 0; i < checkboxes.length; i++){
+            // If the checkbox is checked, hide the column and uncheck the box
+            if (checkboxes[i].checked){
+                hideCol(this.thead.rows[0].cells[i+1]);
+                checkboxes[i].checked = false;
+            }
+        }
+
+        // Hide the first column (rowSelectors)
+        hideCol(this.thead.rows[0].cells[0]);
     }
 
     // Function to highlight selected cells
@@ -434,6 +677,17 @@ class TableObj {
                 this.selectedCells = [];
                 this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
                 this.selectedRows = [];
+
+            }
+
+            // If the click is not on a settings button, settings menu, or 
+            // settings submenu, hide the settings menus.
+            if (!event.target.closest('.TableObjMenu')
+                && !event.target.closest('.TableObjSubMenu')) {
+                const menus = document.querySelectorAll('.TableObjMenu');
+                menus.forEach(menu => {
+                    menu.style.display = 'none';
+                });
             }
         });
     }
