@@ -1,11 +1,16 @@
 setTimeout(function() {
     'use strict';
 
-    // Get the CSS text from the imported CSS file
-    const styleSheet = GM_getResourceText("IMPORTED_CSS");
+    // This try-catch block is used to catch errors when the script is injected directly
+    // into the page (during testing) rather than using Tampermonkey.  
+    try{
+        // Get the CSS text from the imported CSS file
+        const styleSheet = GM_getResourceText("IMPORTED_CSS");
 
-    // Add the stylesheet to the page
-    GM_addStyle(styleSheet);
+        // Add the stylesheet to the page
+        GM_addStyle(styleSheet);
+        
+    } catch (e) {console.log(e);}
 
     // Retrieve the tables from the page
     let tables = document.getElementsByTagName("table");

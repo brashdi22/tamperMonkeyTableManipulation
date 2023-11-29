@@ -12,10 +12,20 @@ describe('Check main functionality', function(){
 
         await driver.get('file:///C:/Users/brash/Desktop/3rdYproject/repository/tamperMonkeyTableManipulation/testWebpage/testPage.html');
         
+        // Add the stylesheet to the page
+        const stylesheetUrl = '../stylesheet.css';
+        await driver.executeScript(`
+            let link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '${stylesheetUrl}';
+            document.head.appendChild(link);
+        `);
+
         // Inject the user script into the page
+        const toolbar = fs.readFileSync('ToolbarShadowDOM.js', 'utf8');
         const tableObjScript = fs.readFileSync('TableObj.js', 'utf8');
         const mainScript = fs.readFileSync('main.js', 'utf8');
-        await driver.executeScript(tableObjScript + mainScript);
+        await driver.executeScript(toolbar + tableObjScript + mainScript);
 
         // Find all the tables on the page
         tables = await driver.findElements(By.tagName('table'));
