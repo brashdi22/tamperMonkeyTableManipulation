@@ -46,6 +46,10 @@ table.lib-table th {
     background-color: #9bd49e !important;
 }
 
+.rowDragHandle{
+    cursor: move;
+}
+
 #TableObjToolbar {
     position: fixed;
     top: 50%;
