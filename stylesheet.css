@@ -46,7 +46,7 @@ table.lib-table th {
     background-color: #9bd49e !important;
 }
 
-.rowDragHandle{
+.rowDragHandle, .columnDragHandle{
     cursor: move;
 }
 

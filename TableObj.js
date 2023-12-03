@@ -13,6 +13,7 @@ class TableObj {
 
         this.addRowSelectors();
         this.addRowDragHandles();
+        this.addColumnDragHandles();
         this.addTableId();
         this.addTableSettingsMenu();
         
@@ -105,6 +106,56 @@ class TableObj {
                     targetRow.after(sourceRow);
                 else
                     targetRow.before(sourceRow);
+            }
+        });
+    }
+
+    addColumnDragHandles(){
+        let sourceColumn;
+        let lastSourceColumn, lastTargetColumn;
+        // add a new row to the thead
+        const tr = document.createElement("tr");
+        this.thead.insertBefore(tr, this.thead.rows[0]);
+        tr.appendChild(document.createElement("th"));
+        tr.appendChild(document.createElement("th"));
+        const numOfCols = this.thead.rows[1].cells.length;
+        for (let i = 0; i < numOfCols-2; i++){
+            const cell = document.createElement("th");
+            cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 288H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM96 96H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
+            cell.className = 'columnDragHandle';
+            cell.id = i + 1;
+            tr.appendChild(cell);
+
+            cell.draggable = true;
+
+            cell.addEventListener('dragstart', (event) => {
+                sourceColumn = event.target.cellIndex;
+                // event.dataTransfer.setDragImage(sourceRow,event.target.getBoundingClientRect().width/2, event.target.getBoundingClientRect().height/2);
+            });
+        }
+
+        document.addEventListener('dragend', (event) => {sourceColumn = null;});
+
+        document.addEventListener('dragover', (event) => {
+            if (!sourceColumn) return;
+            event.preventDefault();
+
+            let targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
+
+            if (sourceColumn !== targetColumn && targetColumn > 1){
+                const rows = this.table.rows;
+                for (let i = 0; i < rows.length; i++){
+                    const cell1 = rows[i].cells[sourceColumn];
+                    const cell2 = rows[i].cells[targetColumn];
+
+                    // Remove the source cell from the row
+                    const removedCell = rows[i].removeChild(cell1);
+                    if (targetColumn > sourceColumn)
+                        cell2.after(removedCell);
+                    else
+                        cell2.before(removedCell);
+                }
+                sourceColumn = targetColumn;
             }
         });
     }
@@ -346,9 +397,9 @@ class TableObj {
         const rows = this.tbody.rows;
 
         // cell.parentElement.rowIndex returns the row index within the whole table.
-        // We need the index within the tbody, so we subtract 1.
-        const minRow = Math.min(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex) - 1;
-        const maxRow = Math.max(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex) - 1;
+        // We need the index within the tbody, so we subtract the number of rows in the thead.
+        const minRow = Math.min(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex) - this.thead.rows.length;
+        const maxRow = Math.max(this.startCell.parentElement.rowIndex, this.endCell.parentElement.rowIndex) - this.thead.rows.length;
         let minCol = Math.min(this.startCell.cellIndex, this.endCell.cellIndex);
         const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
 
@@ -384,7 +435,7 @@ class TableObj {
             }
 
             this.selectedCells.forEach(cell => {
-                const rowIndex = cell.parentElement.rowIndex - 1;
+                const rowIndex = cell.parentElement.rowIndex - this.thead.rows.length;
                 const colIndex = cell.cellIndex;
                 if (rowIndex < minRow || rowIndex > maxRow
                     || colIndex < minCol || colIndex > maxCol){
@@ -403,7 +454,7 @@ class TableObj {
 
         if (this.toggleSelect){
             for (let i = minCol; i < maxCol + 1; i++){
-                const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
+                const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), thead tr:nth-child(n+2) th:nth-child(${i+1})`);
                 for (let i = 0; i < cells.length; i++) {
                     cells[i].classList.add('selectedTableObjCell');
                 }
@@ -473,12 +524,12 @@ class TableObj {
 
     selecetWholeTable(){
         if (this.toggleSelect){
-            this.table.querySelectorAll('td, th').forEach(cell => {
+            this.table.querySelectorAll('tbody td:nth-child(n+2), thead tr:nth-child(n+2) th:nth-child(n+2)').forEach(cell => {
                 cell.classList.add('selectedTableObjCell');
             });
         }
         else {
-            this.table.querySelectorAll('td, th').forEach(cell => {
+            this.table.querySelectorAll('tbody td:nth-child(n+2), thead tr:nth-child(n+2) th:nth-child(n+2)').forEach(cell => {
                 cell.classList.remove('selectedTableObjCell');
             });
         }
@@ -541,10 +592,11 @@ class TableObj {
         for (let i = 0; i < this.selectedHeaders.length; i++){
             if (this.selectedHeaders[i]){
                 const cells = this.tbody.querySelectorAll(`td:nth-child(${i+1})`);
-                for (let j = 0; j < cells.length; j++) {
+                for (let j = 1; j < cells.length; j++) {
                     if (!cells[j].classList.contains('selectedTableObjCell')) {
                         this.selectedHeaders[i] = false;
                         this.thead.rows[0].cells[i].classList.remove('selectedTableObjCell');
+                        this.thead.rows[1].cells[i].classList.remove('selectedTableObjCell');
                         changed = true;
                         break;
                     }
@@ -562,10 +614,10 @@ class TableObj {
         for (let i = 0; i < this.selectedRows.length; i++){
             const row = this.table.rows[this.selectedRows[i]];
             let selected = true;
-            for (let j = 0; j < row.cells.length; j++) {
+            for (let j = 1; j < row.cells.length; j++) {
                 if (!row.cells[j].classList.contains('selectedTableObjCell')) {
-                    // this.selectedRows.splice(i, 1);
                     this.table.rows[this.selectedRows[i]].cells[0].classList.remove('selectedTableObjCell');
+                    this.table.rows[this.selectedRows[i]].cells[1].classList.remove('selectedTableObjCell');
                     selected = false;
                     changed = true;
                     break;
@@ -597,12 +649,24 @@ class TableObj {
             else
                 this.toggleSelect = true;
 
-            if (this.endCell.cellIndex === 0)
-                this.selecetWholeTable();
+            if (this.endCell.parentElement.rowIndex === 0){
+                
+                if (this.endCell.cellIndex !== 0 && this.endCell.cellIndex !== 1){
+                    const cells = this.table.querySelectorAll(`td:nth-child(${this.endCell.cellIndex+1}), th:nth-child(${this.endCell.cellIndex+1})`);
+                    for (let i = 0; i < cells.length; i++) {
+                        cells[i].classList.add('selectedTableObjCell');
+                    }
+                }
+            } 
             else {
-                this.mouseDownH = true;
-                this.selectColumns();
+                if (this.endCell.cellIndex === 1)
+                    this.selecetWholeTable();
+                else if (this.endCell.cellIndex !== 0){
+                    this.mouseDownH = true;
+                    this.selectColumns();
+                }
             }
+            
         });
 
         // Select rows and cells.
@@ -691,13 +755,13 @@ class TableObj {
             if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
 
             // Update selected columns
-            const cells = this.thead.rows[0].cells;
+            const cells = this.thead.rows[1].cells;
             for (let i = 0; i < cells.length; i++){
                 this.selectedHeaders[i] = cells[i].classList.contains("selectedTableObjCell") ? true : false;
             }
 
             // Update selected rows
-            this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(1).selectedTableObjCell"))
+            this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(2).selectedTableObjCell"))
                 .map(td => td.parentNode.rowIndex);
 
             // Update selected cells
