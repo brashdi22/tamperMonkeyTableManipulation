@@ -137,7 +137,6 @@ class TableObj {
         document.addEventListener('dragover', (event) => {
             if (!sourceColumn) return;
             event.preventDefault();
-
             const targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
 
             if (sourceColumn !== targetColumn && targetColumn > 1){
@@ -403,7 +402,7 @@ class TableObj {
 
         // This prevents selecting the first cell of each row (you could
         // select the whole row by selecting this cell).
-        minCol = Math.max(minCol, 1);
+        minCol = Math.max(minCol, 2);
 
 
         if (this.toggleSelect){
@@ -446,8 +445,8 @@ class TableObj {
     selectColumns() {
         if (!this.startCell || !this.endCell) return;
 
-        // First header should be excluded from column selection.
-        const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 1);
+        // First 2 headers should be excluded from column selection.
+        const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 2);
         const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);            
 
         if (this.toggleSelect){
@@ -534,8 +533,11 @@ class TableObj {
     }
 
     findClosestCell(x, y) {
-        const rows = this.findClosestRow(y, Array.from(this.tbody.rows));
-        const cells = Array.from(rows.cells);
+        const row = this.findClosestRow(y, Array.from(this.tbody.rows));
+        let cells = Array.from(row.cells);
+        // Remove the first 2 cells (drag handles and row selectors)
+        cells.shift();
+        cells.shift();
         return this.findClosestCol(x, cells);
     }
 
@@ -548,15 +550,13 @@ class TableObj {
             if (y < midRowBounds.top)
                 rows = rows.slice(0, midIndex);
             else if (y > midRowBounds.bottom){
-                if (midIndex + 1 < rows.length) {
+                if (midIndex + 1 < rows.length)
                     rows = rows.slice(midIndex + 1);
-                } else {
+                else
                     return midRow;
-                }
             }
-            else {
+            else
                 return midRow;
-            }
         }
     
         return rows[0];
@@ -570,12 +570,14 @@ class TableObj {
     
             if (x < midCellBounds.left)
                 cells = cells.slice(0, midIndex);
-            else if (x > midCellBounds.right)
+            else if (x > midCellBounds.right){
                 cells = cells.slice(midIndex + 1);
+                if (cells.length === 0) return midCell;
+            }
             else
                 return midCell;
         }
-    
+        
         return cells[0];
     }
 
