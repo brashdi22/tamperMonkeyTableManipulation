@@ -112,7 +112,6 @@ class TableObj {
 
     addColumnDragHandles(){
         let sourceColumn;
-        let lastSourceColumn, lastTargetColumn;
         // add a new row to the thead
         const tr = document.createElement("tr");
         this.thead.insertBefore(tr, this.thead.rows[0]);
@@ -123,7 +122,6 @@ class TableObj {
             const cell = document.createElement("th");
             cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 288H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM96 96H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
             cell.className = 'columnDragHandle';
-            cell.id = i + 1;
             tr.appendChild(cell);
 
             cell.draggable = true;
@@ -140,7 +138,7 @@ class TableObj {
             if (!sourceColumn) return;
             event.preventDefault();
 
-            let targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
+            const targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
 
             if (sourceColumn !== targetColumn && targetColumn > 1){
                 const rows = this.table.rows;
