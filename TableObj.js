@@ -4,41 +4,42 @@ class TableObj {
     constructor(tableElem){
         TableObj.tablesCount++;
         this.table = tableElem;
-    
         this.tbody = this.table.tBodies[0];
         this.thead = this.table.tHead;
 
         if (this.thead === null)
             this.createThead();
 
+        this.addTableId();
         this.addRowSelectors();
         this.addRowDragHandles();
         this.addColumnDragHandles();
-        this.addTableId();
         this.addTableSettingsMenu();
         
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
 
         this.mouseDown = false;
+        this.mouseDownH = false;
+        this.mouseDownR = false;
         this.startCell = null;
         this.endCell = null;
         this.OldEndCell = null;
-        this.mouseDownH = false;
-        this.mouseDownR = false;
 
         this.selectedCells = [];
         this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
         this.selectedRows = [];
-        this.toggleSelect = true;
 
-        this.scrollInterval = null;
+        this.toggleSelect = true;
+        // this.scrollInterval = null;
 
         this.addEventListeners();
     }
 
-    // Let the first row of the 'tbody' be the 'thead' if the table
-    // does not have a 'thead'.
+    /**
+     * Creates a thead element and copies the first row of the table to it,
+     * then removes the copied row from the tbody.
+     */
     createThead(){
         const headerRow = this.table.rows[0];
         const thead = document.createElement("thead");
@@ -48,13 +49,23 @@ class TableObj {
         this.thead = thead;
     }
 
-    // Add an id to the table if it does not have one.
+    /**
+     * Adds an id to the table if it does not have one.
+     * 
+     * The id will be 'TableObj-table{n}' where n is the number of 
+     * tables rendered in the page so far.
+     */
     addTableId(){
         if (!this.table.id){
             this.table.id = `TableObj-table${TableObj.tablesCount}`;
         }
     }
 
+    /**
+     * Adds an extra cell to the left of each row to be used as a row selector.
+     * 
+     * When this cell is selected, the whole row will be selected.
+     */
     addRowSelectors(){
         const th = document.createElement("th");
         th.className = "rowSelector";
@@ -71,6 +82,10 @@ class TableObj {
         
     }
 
+    /**
+     * Adds an extra cell to the left of each row to be used as a drag handle
+     * and adds event listeners to the cells.
+     */
     addRowDragHandles(){
         let sourceRow;
         const th = document.createElement("th");
@@ -110,6 +125,10 @@ class TableObj {
         });
     }
 
+    /**
+     * Adds an extra cell above each column to be used as a drag handle
+     * and adds event listeners to the cells.
+     */
     addColumnDragHandles(){
         let sourceColumn;
         // add a new row to the thead
@@ -157,7 +176,9 @@ class TableObj {
         });
     }
 
-    // Add table settings dropdown menu above each table
+    /**
+     * Adds a dropdown menu above the table to show/hide columns and rows.
+     */
     addTableSettingsMenu(){
         // Add a button to be clicked to show the menu
         const settingsButton = document.createElement('button');
@@ -347,6 +368,10 @@ class TableObj {
         this.table.parentElement.insertBefore(container, this.table);
     }
 
+    /**
+     * Checks if all the column checkboxes are checked.
+     * @returns {Boolean} true if all the column checkboxes are checked, false otherwise.
+     */
     allColumnCheckboxesChecked(){
         let checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
         let allChecked = true;
@@ -359,6 +384,9 @@ class TableObj {
         return allChecked;
     }
 
+    /**
+     * Shows the column and checks its corresponding checkbox.
+     */
     showColAndCheckCheckbox(){
         const checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
         for (let i = 0; i < checkboxes.length; i++){
@@ -373,6 +401,9 @@ class TableObj {
         showCol(this.thead.rows[0].cells[0]);
     }
 
+    /**
+     * Hides the column and unchecks its corresponding checkbox.
+     */
     hideColAndUncheckCheckbox(){
         const checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
         for (let i = 0; i < checkboxes.length; i++){
@@ -387,7 +418,9 @@ class TableObj {
         hideCol(this.thead.rows[0].cells[0]);
     }
 
-    // Function to highlight selected cells
+    /**
+     * Selects the cells between startCell and the endCell.
+     */
     selectCells() {
         if (!this.startCell || !this.endCell) return;
 
@@ -532,6 +565,12 @@ class TableObj {
         }
     }
 
+    /**
+     * Finds the closest cell to the mouse cursor if the it is not directly over a cell.
+     * @param {Number} x x coordinate of the mouse cursor
+     * @param {Number} y y coordinate of the mouse cursor
+     * @returns {HTMLTableCellElement} HTMLTableCellElement, either a th or a td
+     */
     findClosestCell(x, y) {
         const row = this.findClosestRow(y, Array.from(this.tbody.rows));
         let cells = Array.from(row.cells);
@@ -541,6 +580,37 @@ class TableObj {
         return this.findClosestCol(x, cells);
     }
 
+    /**
+     * Finds the closest column to the mouse cursor if the it is not directly over a column.
+     * @param {Number} x x coordinate of the mouse cursor
+     * @param {Array<HTMLTableCellElement>} cells the cells in a table row 
+     * @returns {HTMLTableCellElement} HTMLTableCellElement, either a th or a td
+     */
+    findClosestCol(x, cells) {
+        while (cells.length > 1) {
+            const midIndex = Math.floor(cells.length / 2);
+            const midCell = cells[midIndex];
+            const midCellBounds = midCell.getBoundingClientRect();
+    
+            if (x < midCellBounds.left)
+                cells = cells.slice(0, midIndex);
+            else if (x > midCellBounds.right){
+                cells = cells.slice(midIndex + 1);
+                if (cells.length === 0) return midCell;
+            }
+            else
+                return midCell;
+        }
+        
+        return cells[0];
+    }
+
+    /**
+     * Finds the closest row to the mouse cursor if the it is not directly over a row.
+     * @param {Number} y y coordinate of the mouse cursor
+     * @param {Array<HTMLTableRowElement>} rows the rows in a table body
+     * @returns {HTMLTableRowElement} HTMLTableRowElement
+     */
     findClosestRow(y, rows) {
         while (rows.length > 1) {
             const midIndex = Math.floor(rows.length / 2);
@@ -562,31 +632,22 @@ class TableObj {
         return rows[0];
     }
 
-    findClosestCol(x, cells) {
-        while (cells.length > 1) {
-            const midIndex = Math.floor(cells.length / 2);
-            const midCell = cells[midIndex];
-            const midCellBounds = midCell.getBoundingClientRect();
-    
-            if (x < midCellBounds.left)
-                cells = cells.slice(0, midIndex);
-            else if (x > midCellBounds.right){
-                cells = cells.slice(midIndex + 1);
-                if (cells.length === 0) return midCell;
-            }
-            else
-                return midCell;
-        }
-        
-        return cells[0];
-    }
-
-    // In case the table cell contains a nested HTML element.
+    /**
+     * Finds the parent cell.
+     * Used in case the table cell contains a nested HTML element.
+     * @param {HTMLElement} element 
+     * @param {String} tag 
+     * @returns {HTMLTableCellElement} HTMLTableCellElement, either a th or a td
+     */
     findParentCell(element, tag){
         if (element.tagName === tag) return element;
         return this.findParentCell(element.parentNode, tag);
     }
 
+    /**
+     * Updates the selected columns. If a column is not fully selected, the column
+     * header will be deselected.
+     */
     checkAllCellsInColumnSelected(){
         let changed = false;
         for (let i = 0; i < this.selectedHeaders.length; i++){
@@ -608,6 +669,10 @@ class TableObj {
             this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
     }
 
+    /**
+     * Updates the selected rows. If a row is not fully selected, the row
+     * selector will be deselected.
+     */
     checkAllCellsInRowSelected(){
         let changed = false;
         const tempArr = [];
@@ -777,7 +842,7 @@ class TableObj {
             // window.removeEventListener("mousemove", handleMousemove);
         });
 
-        // Uneselect when clicked outside the table.
+        // Deselect when clicked outside the table.
         document.addEventListener("mousedown", (event) => {
             if (!this.table.contains(event.target)
                 && event.target !== document.documentElement

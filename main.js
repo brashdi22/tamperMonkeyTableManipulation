@@ -30,6 +30,11 @@ setTimeout(function() {
     document.body.appendChild(toolbar);
 }, 1);
 
+/**
+ * This function takes the colour as input and applies the
+ * repspective class to the selected cells.
+ * @param {String} colour 
+ */
 function highlight(colour){
     if (colour === 'white'){
         document.querySelectorAll('.selectedTableObjCell').forEach(cell => {
@@ -50,6 +55,10 @@ function highlight(colour){
     
 }
 
+/**
+ * Hide the selected rows and columns and update the 
+ * checkboxes (to keep the UI in sync).
+ */
 function hideColsRows(){
     // Hide the selected rows
     let rows = document.querySelectorAll('table tbody td:first-child.selectedTableObjCell');
@@ -74,6 +83,10 @@ function hideColsRows(){
     });
 }
 
+/**
+ * Show the hidden rows and columns and update the
+ * checkboxes (to keep the UI in sync).
+ */
 function showColsRows(){
     // Show the hidden rows
     let rows = document.querySelectorAll('table tbody td:first-child.hiddenRow');
@@ -98,6 +111,10 @@ function showColsRows(){
     });
 }
 
+/**
+ * Hide a column given the header.
+ * @param {HTMLTableCellElement} cell the header of the column to hide
+ */
 function hideCol(cell){
     cell.classList.add('hiddenColumn');
     const index = cell.cellIndex;
@@ -111,6 +128,10 @@ function hideCol(cell){
     });
 }
 
+/**
+ * Show a column given the header.
+ * @param {HTMLTableCellElement} cell the header of the column to show
+ */
 function showCol(cell){
     cell.classList.remove('hiddenColumn');
     const index = cell.cellIndex;
@@ -123,11 +144,19 @@ function showCol(cell){
     });
 }
 
+/**
+ * Hide a row given its rowSelector.
+ * @param {HTMLTableCellElement} cell the rowSelector of the row to hide
+ */
 function hideRow(cell){
     cell.parentElement.style.display = 'none';
     cell.classList.add('hiddenRow');
 }
 
+/**
+ * Show a row given its rowSelector.
+ * @param {HTMLTableCellElement} cell the rowSelector of the row to show
+ */
 function showRow(cell){
     cell.parentElement.style.display = '';
     cell.classList.remove('hiddenRow');
