@@ -162,6 +162,25 @@ function showRow(cell){
     cell.classList.remove('hiddenRow');
 }
 
+/** 
+ * This function is used to toggle the magnify-on-hover class on the cells.
+ * @param {Boolean} magnify true to add the class, false to remove it.
+*/
+function toggleMagnify(magnify){
+    // Get all cells in all tables except the cells in the first row in the thead and the first cell in each row in the table
+    const cells = document.querySelectorAll('table tbody td:not(:first-child), table thead tr:not(:first-child) th:not(:first-child)');
+    if (magnify){
+        cells.forEach(cell => {
+            cell.classList.add('magnify-on-hover');
+        });
+    }
+    else{
+        cells.forEach(cell => {
+            cell.classList.remove('magnify-on-hover');
+        });
+    }
+}
+
 const coloursMap = {
     '#ebe052': 'yellow',
     '#d5e6ed': 'blue',

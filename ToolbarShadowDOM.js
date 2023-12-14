@@ -2,6 +2,7 @@ class TableObjToolbar extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
+        this.magnify = false;
 
         // Add the stylesheet to the page
         const styleSheet = `
@@ -58,6 +59,24 @@ class TableObjToolbar extends HTMLElement {
             highlight(coloursMap[this.shadow.getElementById('highlightColour').value]);
         };
 
+        // Create the colour select dropdown
+        let colourSelect = document.createElement('select');
+        colourSelect.id = 'highlightColour';
+        ['#ebe052', '#d5e6ed', '#9bd49e', 'white'].forEach(colour => {
+            let option = document.createElement('option');
+            option.value = colour;
+            option.style.backgroundColor = colour;
+            colourSelect.appendChild(option);
+        });
+
+        // Change the background colour of the select menu to the selected colour
+        colourSelect.onchange = function() {
+            this.style.backgroundColor = this.value;
+        };
+
+        // Select the first option by default
+        colourSelect.selectedIndex = 0;
+        colourSelect.style.backgroundColor = colourSelect.value;
         
 
         // Create a button to hide selected rows/columns
@@ -72,37 +91,38 @@ class TableObjToolbar extends HTMLElement {
         showButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z"/></svg>';
         showButton.onclick = showColsRows;
     
-        // Create the colour select dropdown
-        let colourSelect = document.createElement('select');
-        colourSelect.id = 'highlightColour';
-        ['#ebe052', '#d5e6ed', '#9bd49e', 'white'].forEach(colour => {
-            let option = document.createElement('option');
-            option.value = colour;
-            option.style.backgroundColor = colour;
-            colourSelect.appendChild(option);
-        });
-
-        // Change the background color of the select menu to the selected color
-        colourSelect.onchange = function() {
-            this.style.backgroundColor = this.value;
+        // Create a button to toggle the magnifying glass
+        let magnifyButton = document.createElement('button');
+        magnifyButton.id = 'magnifyButton';
+        magnifyButton.style.margin = '0 auto';
+        magnifyButton.style.width = '90%';
+        magnifyButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M304 192v32c0 6.6-5.4 12-12 12h-56v56c0 6.6-5.4 12-12 12h-32c-6.6 0-12-5.4-12-12v-56h-56c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h56v-56c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v56h56c6.6 0 12 5.4 12 12zm201 284.7L476.7 505c-9.4 9.4-24.6 9.4-33.9 0L343 405.3c-4.5-4.5-7-10.6-7-17V372c-35.3 27.6-79.7 44-128 44C93.1 416 0 322.9 0 208S93.1 0 208 0s208 93.1 208 208c0 48.3-16.4 92.7-44 128h16.3c6.4 0 12.5 2.5 17 7l99.7 99.7c9.3 9.4 9.3 24.6 0 34zM344 208c0-75.2-60.8-136-136-136S72 132.8 72 208s60.8 136 136 136 136-60.8 136-136z"/></svg>';
+        magnifyButton.onclick = () => {
+            this.magnify = !this.magnify;
+            toggleMagnify(this.magnify);
         };
 
-        // Select the first option by default
-        colourSelect.selectedIndex = 0;
-        colourSelect.style.backgroundColor = colourSelect.value;
 
         // Add the elements to the shadow root
+
         // Highlight
         let div = document.createElement('div');
         div.className = 'buttonsDiv';
         div.appendChild(highlightButton);
         div.appendChild(colourSelect);
         this.shadow.appendChild(div);
+
         // Show/Hide
         div = document.createElement('div');
         div.className = 'buttonsDiv';
         div.appendChild(hideButton);
         div.appendChild(showButton);
+        this.shadow.appendChild(div);
+
+        // Magnify
+        div = document.createElement('div');
+        div.className = 'buttonsDiv';
+        div.appendChild(magnifyButton);
         this.shadow.appendChild(div);
     }
 }

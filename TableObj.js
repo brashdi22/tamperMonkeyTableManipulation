@@ -12,6 +12,7 @@ class TableObj {
 
         this.addTableId();
         this.addRowSelectors();
+        this.showColNameOnHover();
         this.addRowDragHandles();
         this.addColumnDragHandles();
         this.addTableSettingsMenu();
@@ -80,6 +81,37 @@ class TableObj {
             cell.className = "rowSelector";
         }
         
+    }
+
+    /** 
+     * A recursive function to find the background color of a cell
+     * @param {HTMLElement} element an HTML element to find its background color
+     * @returns {String} a colour
+    */
+    findBackgroundColor(element){
+        // if null return white as the default background color
+        if (!element)
+            return 'white';
+        if (element.style.backgroundColor)
+            return element.style.backgroundColor;
+        else
+            return this.findBackgroundColor(element.parentElement);
+    }
+
+    /** 
+     * Adds a title attribute to each cell to show the column name on hover
+    */
+    showColNameOnHover(){
+        const colour = this.findBackgroundColor(this.table);
+        for (let i = 0; i < this.table.rows.length; i++) {
+            const row = this.table.rows[i];
+            for (let j = 0; j < row.cells.length; j++) {
+                row.cells[j].title = this.thead.rows[0].cells[j].textContent;
+
+                // Add a background colour to the cell if does not have one (useful for the magnifier)
+                row.cells[j].style.backgroundColor = this.findBackgroundColor(row.cells[j]);
+            }
+        }
     }
 
     /**
@@ -223,15 +255,13 @@ class TableObj {
             else {
                 this.hideColAndUncheckCheckbox();
             }
-            // TO DO: the rowSelectors should be hidden/shown as well
-
         });
         nestedLi.appendChild(checkbox);
         nestedLi.appendChild(label);
         submenue.appendChild(nestedLi);
 
 
-        columns = Array.from(this.thead.rows[0].cells).slice(1);
+        columns = Array.from(this.thead.rows[1].cells).slice(1);
 
         columns.forEach((column, index) => {
             let nestedLi = document.createElement('li');
