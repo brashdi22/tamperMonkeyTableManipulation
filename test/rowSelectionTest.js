@@ -40,15 +40,15 @@ describe('Check main functionality', function(){
         const table = tables[0];
     
         // Simulate the selection of rows
-        const startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(1)'));
-        const endCell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(1)'));
+        const startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(2)'));
+        const endCell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(2)'));
         await driver.actions()
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
             .perform();
 
-        // Get all cells in the first four rows
-        const cells = await table.findElements(By.css('tr:nth-child(n+2):nth-child(-n+5) td'));
+        // Get all cells in the first four rows except the first column (drag handles)
+        const cells = await table.findElements(By.css('tr:nth-child(n+1):nth-child(-n+4) td:not(:first-child)'));
         // Iterate over each cell and check if it's selected
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
@@ -61,25 +61,25 @@ describe('Check main functionality', function(){
         // Get the first table
         const table = tables[0];
     
-        // Simulate the selection of rows 2-5
-        let startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(1)'));
-        let endCell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(1)'));
+        // Simulate the selection of rows 1-4
+        let startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(2)'));
+        let endCell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(2)'));
         await driver.actions()
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
             .perform();
 
         // Simulate the unselection of the 2 middle rows from the 4 selected rows
-        startCell = await table.findElement(By.css('tr:nth-child(3) td:nth-child(1)'));
-        endCell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(1)'));
+        startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        endCell = await table.findElement(By.css('tr:nth-child(3) td:nth-child(2)'));
         await driver.actions().keyDown(Key.CONTROL)
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
             .keyUp(Key.CONTROL).perform();
 
-        // Get all cells in the 2nd and 5th rows, these should be selected
-        const cells2nd = await table.findElements(By.css('tr:nth-child(2) td'));
-        const cells5th = await table.findElements(By.css('tr:nth-child(5) td'));
+        // Get all cells in the 1st and 4th rows, these should be selected
+        const cells2nd = await table.findElements(By.css('tr:nth-child(1) td:not(:first-child)'));
+        const cells5th = await table.findElements(By.css('tr:nth-child(4) td:not(:first-child)'));
 
         // Combine the results
         cells = cells2nd.concat(cells5th);
@@ -91,9 +91,9 @@ describe('Check main functionality', function(){
             assert(classes.includes('selectedTableObjCell'), 'Cell is not selected while it should be selected');
         }
 
-        // Get all cells in the 3rd and 4th rows, these should not be selected
-        const cells3rd = await table.findElements(By.css('tr:nth-child(3) td'));
-        const cells4th = await table.findElements(By.css('tr:nth-child(4) td'));
+        // Get all cells in the 2nd and 3rd rows, these should not be selected
+        const cells3rd = await table.findElements(By.css('tr:nth-child(2) td:not(:first-child)'));
+        const cells4th = await table.findElements(By.css('tr:nth-child(3) td:not(:first-child)'));
         // Combine the results
         cells = cells3rd.concat(cells4th);
 

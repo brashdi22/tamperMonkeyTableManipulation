@@ -28,7 +28,7 @@ describe('Check main functionality', function(){
         await driver.executeScript(toolbar + tableObjScript + mainScript);
 
         // Find all the tables on the page
-        tables = await driver.findElements(By.tagName('table'));
+        tables = await driver.findElements(By.css('table'));
     });
 
     afterEach(async function() {
@@ -47,8 +47,9 @@ describe('Check main functionality', function(){
 
     it('should add row selectors to each table', async function(){
         for (const table of tables) {
-            const rows = await table.findElements(By.tagName('tr'));
-            const rowSelectors = await table.findElements(By.className('rowSelector'));
+            const tbody = await table.findElement(By.css('tbody'));
+            const rows = await tbody.findElements(By.css('tr'));
+            const rowSelectors = await tbody.findElements(By.className('rowSelector'));
             assert.strictEqual(rows.length, rowSelectors.length, 'Not all rows have a row selector');
         }
     });
@@ -76,7 +77,7 @@ describe('Check main functionality', function(){
 
     it('should highlight the selected cell using the selected colour', async function(){
         // Simulate the selection of a cell
-        const cell1 = await tables[0].findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        const cell1 = await tables[0].findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await cell1.click();
 
         // Click the highlight button
@@ -95,7 +96,7 @@ describe('Check main functionality', function(){
         // Click on another cell.
         // The colour of the cell is different if the cell is selected and highlighted
         // or just highlighted.
-        const cell2 = await tables[0].findElement(By.css('tr:nth-child(3) td:nth-child(2)'));
+        const cell2 = await tables[0].findElement(By.css('tr:nth-child(2) td:nth-child(3)'));
         await cell2.click();
 
         // Check that the cell is highlighted yellow
@@ -105,7 +106,7 @@ describe('Check main functionality', function(){
 
     it('should change the colour of the highlighted cell correctly', async function(){
         // Simulate the selection of a cell
-        const cell1 = await tables[0].findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        const cell1 = await tables[0].findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await cell1.click();
 
         // Click the highlight button
@@ -131,7 +132,7 @@ describe('Check main functionality', function(){
         assert.strictEqual(cellClass.includes('yellow-highlighted'), false);
 
         // Click on another cell.
-        const cell2 = await tables[0].findElement(By.css('tr:nth-child(3) td:nth-child(2)'));
+        const cell2 = await tables[0].findElement(By.css('tr:nth-child(2) td:nth-child(3)'));
         await cell2.click();
 
         // Check that the cell is highlighted blue
@@ -141,7 +142,7 @@ describe('Check main functionality', function(){
 
     it('should unhighlight the selected cell correctly', async function(){
         // Simulate the selection of a cell
-        const cell1 = await tables[0].findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        const cell1 = await tables[0].findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await cell1.click();
 
         // Click the highlight button
@@ -168,10 +169,11 @@ describe('Check main functionality', function(){
     it('should hide/unhide the selected rows correctly using the hide/show buttons', async function(){
         // Get the first table
         const table = tables[0];
+        const tbody = await table.findElement(By.css('tbody'));
     
         // Simulate the selection of rows
-        const startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(1)'));
-        const endCell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(1)'));
+        const startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(2)'));
+        const endCell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(2)'));
         await driver.actions()
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
@@ -183,7 +185,7 @@ describe('Check main functionality', function(){
         await hideButton.click();
 
         // Check that the rows were hidden correctly, their style should contain 'display: none'
-        const rows = await table.findElements(By.css('tr:nth-child(n+2):nth-child(-n+5)'));
+        const rows = await tbody.findElements(By.css('tr:nth-child(n+1):nth-child(-n+4)'));
         for (const row of rows) {
             const style = await row.getAttribute('style');
             assert.strictEqual(style.includes('display: none'), true);
@@ -206,8 +208,8 @@ describe('Check main functionality', function(){
         const table = tables[0];
     
         // Simulate the selection of columns in the thead
-        const startCell = await table.findElement(By.css('tr:nth-child(1) th:nth-child(2)'));
-        const endCell = await table.findElement(By.css('tr:nth-child(1) th:nth-child(5)'));
+        const startCell = await table.findElement(By.css('tr:nth-child(2) th:nth-child(3)'));
+        const endCell = await table.findElement(By.css('tr:nth-child(2) th:nth-child(6)'));
         await driver.actions()
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
@@ -219,7 +221,7 @@ describe('Check main functionality', function(){
         await hideButton.click();
 
         // Check that the columns were hidden correctly, their style should contain 'display: none'
-        const columns = await table.findElements(By.css('tr th:nth-child(n+2):nth-child(-n+5)'));
+        const columns = await table.findElements(By.css('tr th:nth-child(n+3):nth-child(-n+6)'));
         for (const column of columns) {
             const style = await column.getAttribute('style');
             assert.strictEqual(style.includes('display: none'), true);
