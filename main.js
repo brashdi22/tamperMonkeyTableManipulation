@@ -13,7 +13,7 @@ setTimeout(function() {
     } catch (e) {console.log(e);}
 
     // Retrieve the tables from the page
-    let tables = document.getElementsByTagName("table");
+    const tables = document.getElementsByTagName("table");
     let tableObjects = [];
 
     // Create an instance of TableObj for each table
@@ -25,7 +25,7 @@ setTimeout(function() {
     customElements.define('table-obj-toolbar', TableObjToolbar);
     
     // Create the toolbar and add to the page
-    let toolbar = document.createElement('table-obj-toolbar');
+    const toolbar = document.createElement('table-obj-toolbar');
     toolbar.id = 'TableObjToolbar';
     document.body.appendChild(toolbar);
 }, 1);
@@ -61,24 +61,24 @@ function highlight(colour){
  */
 function hideColsRows(){
     // Hide the selected rows
-    let rows = document.querySelectorAll('table tbody td:first-child.selectedTableObjCell');
+    const rows = document.querySelectorAll('table tbody td:nth-child(2).selectedTableObjCell');
     rows.forEach(cell => {
         hideRow(cell);
 
         // The id of the respective checkbox: `${table.id}-row${index}`
         // Get the checkbox and uncheck it
-        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
         checkbox.checked = false;
     });
 
     // Hide the selected columns
-    let columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
+    const columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
     columns.forEach(cell => {
         hideCol(cell);
 
         // The id of the respective checkbox: `${table.id}-col${index}`
         // Get the checkbox and uncheck it
-        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
         checkbox.checked = false;
     });
 }
@@ -89,24 +89,24 @@ function hideColsRows(){
  */
 function showColsRows(){
     // Show the hidden rows
-    let rows = document.querySelectorAll('table tbody td:first-child.hiddenRow');
+    const rows = document.querySelectorAll('table tbody td:nth-child(2).hiddenRow');
     rows.forEach(cell => {
         showRow(cell);
 
         // The id of the respective checkbox: `${table.id}-row${index}`
         // Get the checkbox and check it
-        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
         checkbox.checked = true;
     });
 
     // Show the hidden columns
-    let columns = document.querySelectorAll('table thead tr th.hiddenColumn');
+    const columns = document.querySelectorAll('table thead tr th.hiddenColumn');
     columns.forEach(cell => {
         showCol(cell);
 
         // The id of the respective checkbox: `${table.id}-col${index}`
         // Get the checkbox and check it
-        let checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
         checkbox.checked = true;
     });
 }
