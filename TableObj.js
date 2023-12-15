@@ -87,7 +87,6 @@ class TableObj {
      * Adds a title attribute to each cell to show the column name on hover
     */
     showColNameOnHover(){
-        const colour = this.findBackgroundColor(this.table);
         for (let i = 0; i < this.table.rows.length; i++) {
             const row = this.table.rows[i];
             for (let j = 0; j < row.cells.length; j++) {
