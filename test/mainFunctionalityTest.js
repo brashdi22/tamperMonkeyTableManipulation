@@ -1,6 +1,7 @@
 const {Builder, By, Key} = require('selenium-webdriver');
 const assert = require('assert');
 const fs = require('fs');
+const { log } = require('console');
 
 describe('Check main functionality', function(){
     let driver;
@@ -238,6 +239,63 @@ describe('Check main functionality', function(){
         }
     });
 
+    it ('should display the column header when hoovering over a cell', async function(){
+        // Get the first table
+        const table = tables[0];
+    
+        // Get the first cell in the third column
+        const cell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
+
+        // Hover over the cell
+        await driver.actions()
+            .move({origin: cell})
+            .perform();
+
+        // Check that the column header is displayed, the column header should be a title attribute to the cell
+        const columnHeader = await cell.getAttribute('title');
+        assert.strictEqual(columnHeader, 'Header 1');
+    });
+
+    it ('should magnify the cell when hoovering over it', async function(){
+        // Get the first table
+        const table = tables[0];
+    
+        // Get a cell
+        const cell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
+
+        // Get the magnify button
+        const toolbar = await driver.findElement(By.id('TableObjToolbar'));
+        const magnifyButton = await driver.executeScript('return arguments[0].shadowRoot.querySelector("#magnifyButton")', toolbar);
+
+        // Hover over the cell
+        await driver.actions()
+            .move({origin: cell})
+            .perform();
+        
+        // Ensure that the cell does not have the 'magnify-on-hover' class yet
+        let cellClass = await cell.getAttribute('class');
+        assert.strictEqual(cellClass.includes('magnify-on-hover'), false);
+
+        // Click the magnify button
+        await magnifyButton.click();
+
+        // Hover over the cell
+        await driver.actions()
+            .move({origin: cell})
+            .perform();
+
+        // The cell should have the 'magnify-on-hover' class
+        cellClass = await cell.getAttribute('class');
+        assert.strictEqual(cellClass.includes('magnify-on-hover'), true);
+
+        // Get the computed style of the cell to check the transform property
+        const transformedStyle = await driver.executeScript("return window.getComputedStyle(arguments[0]).transform;", cell);
+
+        // It should be 1.5 times bigger than the original size
+        assert.strictEqual(transformedStyle, 'matrix(1.5, 0, 0, 1.5, 0, 0)');
+
+
+    });
 });
 
 
