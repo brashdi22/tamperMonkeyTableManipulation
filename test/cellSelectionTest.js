@@ -40,7 +40,7 @@ describe('Check main functionality', function(){
         const table = tables[0];
     
         // Simulate the selection of a cell
-        const cell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        const cell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await cell.click();
 
         // Check that the cell was selected correctly
@@ -58,8 +58,8 @@ describe('Check main functionality', function(){
         const table = tables[0];
     
         // Simulate the selection of cells
-        let startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
-        let endCell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(5)'));
+        let startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
+        let endCell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(6)'));
         await driver.actions()
             .move({origin: startCell}).press()
             .move({origin: endCell}).release()
@@ -69,8 +69,8 @@ describe('Check main functionality', function(){
         let selectedCells = await table.findElements(By.css('.selectedTableObjCell'));
         assert.strictEqual(selectedCells.length, 16, '16 cells should be selected');
 
-        startCell = await table.findElement(By.css('tr:nth-child(3) td:nth-child(3)'));
-        endCell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(4)'));
+        startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(4)'));
+        endCell = await table.findElement(By.css('tr:nth-child(3) td:nth-child(5)'));
 
         // Simulate the unselection of cells
         await driver.actions().keyDown(Key.CONTROL)
@@ -86,10 +86,11 @@ describe('Check main functionality', function(){
         const table = tables[0];
 
         // Get all cells in the table
-        const cells = await table.findElements(By.css('td, th'));
+        // const cells = await table.findElements(By.css('td, th'));
+        const cells = await table.findElements(By.css('thead tr:not(:first-child) th:not(:first-child), tbody td:not(:first-child)'));
     
         // Simulate the selection of the whole table
-        const cell = await table.findElement(By.css('tr:nth-child(1) th:nth-child(1)'));
+        const cell = await table.findElement(By.css('tr:nth-child(2) th:nth-child(2)'));
         await cell.click();
 
         // Check that the whole table was selected correctly
@@ -107,16 +108,16 @@ describe('Check main functionality', function(){
         const table = tables[0];
     
         // Select multiple cells from one end of the table
-        const startCell1 = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
-        const endCell1 = await table.findElement(By.css('tr:nth-child(3) td:nth-child(3)'));
+        const startCell1 = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
+        const endCell1 = await table.findElement(By.css('tr:nth-child(2) td:nth-child(4)'));
         await driver.actions()
             .move({origin: startCell1}).press()
             .move({origin: endCell1}).release()
             .perform();
     
         // Select multiple cells from the other end of the table while holding the control key
-        const startCell2 = await table.findElement(By.css('tr:nth-child(4) td:nth-child(4)'));
-        const endCell2 = await table.findElement(By.css('tr:nth-child(5) td:nth-child(5)'));
+        const startCell2 = await table.findElement(By.css('tr:nth-child(3) td:nth-child(5)'));
+        const endCell2 = await table.findElement(By.css('tr:nth-child(4) td:nth-child(6)'));
         await driver.actions().keyDown(Key.CONTROL)
             .move({origin: startCell2}).press()
             .move({origin: endCell2}).release()
@@ -127,11 +128,11 @@ describe('Check main functionality', function(){
         assert.strictEqual(selectedCells.length, 8, '8 cells should be selected');
 
         // unselect the first cell
-        let cell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        let cell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await driver.actions().keyDown(Key.CONTROL).click(cell).keyUp(Key.CONTROL).perform();
 
         // unselect the second cell
-        cell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(5)'));
+        cell = await table.findElement(By.css('tr:nth-child(4) td:nth-child(6)'));
         await driver.actions().keyDown(Key.CONTROL).click(cell).keyUp(Key.CONTROL).perform();
 
         // Check that are 6 selected cells left
@@ -147,15 +148,15 @@ describe('Check main functionality', function(){
         const cell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(5)'));
         await cell.click();
     
-        // Press the mouse on cell (2,2)
-        const startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        // Press the mouse on cell (1,3)
+        const startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await driver.actions().move({origin: startCell}).press().perform();
 
         // Move the mouse to cell (6,6)
         const endCell = await table.findElement(By.css('tr:nth-child(6) td:nth-child(6)'));
         await driver.actions().move({origin: endCell}).perform();
 
-        // Move the mouse back to cell (2,2)
+        // Move the mouse back to cell (1,3)
         await driver.actions().move({origin: startCell}).perform();
 
         // Release the mouse
@@ -174,13 +175,12 @@ describe('Check main functionality', function(){
         const cell = await table.findElement(By.css('tr:nth-child(5) td:nth-child(5)'));
         await cell.click();
 
-        // Press the mouse outside the table
-        //Press on the h1 element
+        // Press the mouse outside the table (press the h1 element)
         const header = await driver.findElement(By.css('h1'));
         await driver.actions().move({origin: header}).press().perform();
     
-        // Press the mouse on cell (2,2)
-        const startCell = await table.findElement(By.css('tr:nth-child(2) td:nth-child(2)'));
+        // Press the mouse on cell (1,3)
+        const startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
         await driver.actions().keyDown(Key.CONTROL)
             .move({origin: startCell}).press()
             .perform();
@@ -189,7 +189,7 @@ describe('Check main functionality', function(){
         const midCell = await table.findElement(By.css('tr:nth-child(6) td:nth-child(6)'));
         await driver.actions().move({origin: midCell}).perform();
 
-        // Move the mouse back to cell (2,2)
+        // Move the mouse back to cell (1,3)
         await driver.actions().move({origin: startCell}).perform();
 
         // Release the mouse
