@@ -10,6 +10,8 @@ class TableObj {
         if (this.thead === null)
             this.createThead();
 
+        this.ensureTheadCellsAreThs();
+
         this.addTableId();
         this.addRowSelectors();
         this.showColNameOnHover();
@@ -48,6 +50,24 @@ class TableObj {
         thead.appendChild(headerRow.cloneNode(true));
         this.tbody.removeChild(this.tbody.rows[0]);
         this.thead = thead;
+    }
+
+    /**
+     * Ensure all cells in the thead are 'th's.
+     */
+    ensureTheadCellsAreThs(){
+        const rows = Array.from(this.thead.rows);
+        rows.forEach(row => {
+            const cells = Array.from(row.cells);
+            cells.forEach(cell => {
+                if (cell.tagName !== 'TH'){
+                    const th = document.createElement('th');
+                    th.innerHTML = cell.innerHTML;
+                    th.style.cssText = cell.style.cssText;
+                    row.replaceChild(th, cell);
+                }
+            });
+        });
     }
 
     /**
