@@ -296,6 +296,68 @@ describe('Check main functionality', function(){
 
 
     });
+
+    it ('should reset the table when clicking the reset button', async function(){
+        // Get the first table
+        let table = tables[0];
+        // Store the innerHTML of the table
+        const oldTableInnerHTML = await table.getAttribute('innerHTML');
+
+        // Select a column and highlight it
+        let column = await table.findElement(By.css('tr:nth-child(2) th:nth-child(3)'));
+        await column.click();
+
+        // Highlight the column
+        const toolbar = await driver.findElement(By.id('TableObjToolbar'));
+        const highlightButton = await driver.executeScript('return arguments[0].shadowRoot.querySelector("#highlightButton")', toolbar);
+        await highlightButton.click();
+
+        // Select a row and hide it
+        const row = await table.findElement(By.css('tr:nth-child(1) td:nth-child(2)'));
+        await row.click();
+
+        // Hide the row
+        const hideButton = await driver.executeScript('return arguments[0].shadowRoot.querySelector("#hideButton")', toolbar);
+        await hideButton.click();
+
+        // Click the reset button
+        const resetButtons = await driver.findElements(By.css('.TableObjResetButton'));
+        await driver.executeScript("arguments[0].click();", resetButtons[0]);
+
+        // get the tables again
+        tables = await driver.findElements(By.css('table'));
+        table = tables[0];
+
+        // Check that the table is reset
+        const newTableInnerHTML = await table.getAttribute('innerHTML');
+        assert.strictEqual(oldTableInnerHTML, newTableInnerHTML);
+    });
+
+    // it ('should copy the selected cells to clipboard', async function(){
+    //     // Get the first table
+    //     const table = tables[0];
+    
+    //     // Simulate the selection of cells
+    //     let startCell = await table.findElement(By.css('tr:nth-child(1) td:nth-child(3)'));
+    //     let endCell = await table.findElement(By.css('tr:nth-child(3) td:nth-child(5)'));
+    //     await driver.actions()
+    //         .move({origin: startCell}).press()
+    //         .move({origin: endCell}).release()
+    //         .perform();
+
+    //     // Press ctrl + c
+    //     await driver.actions().keyDown(Key.CONTROL).sendKeys('c').keyUp(Key.CONTROL).perform();
+
+    //     // Get the clipboard content
+    //     const clipboardContent = await driver.executeScript('return navigator.clipboard.readText()');
+    //     console.log(clipboardContent);
+
+    //     // the clipboard content should be matched with the expression 
+    //     // '((\d+\t)+\n(\d+\t)+\n(\d+\t)+\n)+'
+    //     assert.strictEqual(clipboardContent.match(/((\d+\t)+\n(\d+\t)+\n(\d+\t)+\n)+/g)[0], clipboardContent);
+    //     // '77\t46\t32\t\n49\t0\t10\t\n39\t37\t58\t\n'
+        
+    // });
 });
 
 
