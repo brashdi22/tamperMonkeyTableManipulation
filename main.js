@@ -28,6 +28,13 @@ setTimeout(function() {
     const toolbar = document.createElement('table-obj-toolbar');
     toolbar.id = 'TableObjToolbar';
     document.body.appendChild(toolbar);
+
+    // Add an event listener to copy the selected cells to the clipboard
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'c') {
+            copySelectedCellsAsTSV();
+        }
+    });
 }, 1);
 
 /**
@@ -179,6 +186,52 @@ function toggleMagnify(magnify){
             cell.classList.remove('magnify-on-hover');
         });
     }
+}
+
+/** 
+ * This function copies the text content of the selected cells to the clipboard.
+ * The text is copied as text where each seperatede from the other by a new line(\n).
+*/
+function copySelectedCellsAsText() {
+    // Get the text content of each selected cell and join them into a string
+    const textToCopy = Array.from(document.querySelectorAll('.selectedTableObjCell'))
+        .map(cell => cell.textContent)
+        .join('\n');
+
+    // Use the Clipboard API to copy the text to the clipboard
+    navigator.clipboard.writeText(textToCopy)
+        .catch(err => console.error('Error copying text: ', err));
+}
+
+/** 
+ * This function copies the text content of the selected cells to the clipboard.
+ * The text is copied as TSV (Tab-Separated Values) where each cell is separated
+ *  from the other by a tab(\t) and where rows are separateed by new lines(\n).
+*/
+function copySelectedCellsAsTSV() {
+    // Get the selected cells
+    const selectedCells = Array.from(document.querySelectorAll('.selectedTableObjCell'));
+
+    // Get the minimum and maximum row and column index of the selected cells
+    const minRowIndex = Math.min(...selectedCells.map(cell => cell.parentNode.rowIndex));
+    const maxRowIndex = Math.max(...selectedCells.map(cell => cell.parentNode.rowIndex));
+    const minColIndex = Math.min(...selectedCells.map(cell => cell.cellIndex));
+    const maxColIndex = Math.max(...selectedCells.map(cell => cell.cellIndex));
+
+    // Create a 2D array with empty strings
+    const rows = Array.from({ length: maxRowIndex - minRowIndex + 1 }, () => Array(maxColIndex - minColIndex + 1).fill(''));
+
+    // Put the text content of the selected cells in the 2D array
+    for (const cell of selectedCells) {
+        rows[cell.parentNode.rowIndex - minRowIndex][cell.cellIndex - minColIndex] = cell.textContent;
+    }
+
+    // Convert the 2D array to TSV format (Tab-Separated Values)
+    const textToCopy = rows.map(row => row.join('\t')).join('\n');
+
+    // Use the Clipboard API to copy the text to the clipboard
+    navigator.clipboard.writeText(textToCopy)
+        .catch(err => console.error('Error copying text: ', err));                   
 }
 
 const coloursMap = {
