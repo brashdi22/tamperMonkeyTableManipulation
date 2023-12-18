@@ -379,6 +379,7 @@ class TableObj {
         // ================================= Reset option =================================
         li = document.createElement('li');
         li.textContent = 'Reset';
+        li.className = 'TableObjResetButton';
         li.addEventListener('click', () => {
             this.table.parentElement.replaceChild(this.originalTable, this.table);
             this.table = this.originalTable;
