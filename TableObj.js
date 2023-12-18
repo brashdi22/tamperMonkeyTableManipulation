@@ -202,9 +202,8 @@ class TableObj {
     addTableSettingsMenu(){
         // Add a button to be clicked to show the menu
         const settingsButton = document.createElement('button');
+        settingsButton.className = 'TableObjMenuButton';
         settingsButton.innerHTML = 'Table Settings';
-        // settingsButton.id = 'settingsButton';
-        // settingsButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M256 48C141.12 48 48 141.12 48 256s93.12 208 208 208 208-93.12 208-208S370.88 48 256 48zm0 384c-88.22 0-160-71.78-160-160 0-88.22 71.78-160 160-160 88.22 0 160 71.78 160 160 0 88.22-71.78 160-160 160z"/></svg>';
         settingsButton.onclick = () => {
             const menu = document.getElementById(`settingsMenu-${this.table.id}`);
             if (menu.style.display === 'none')
@@ -901,7 +900,8 @@ class TableObj {
         // If the click is not on a settings button, settings menu, or 
         // settings submenu, hide the settings menus.
         if (!event.target.closest('.TableObjMenu')
-            && !event.target.closest('.TableObjSubMenu')) {
+            && !event.target.closest('.TableObjSubMenu')
+            && !event.target.classList.contains('TableObjMenuButton')) {
             const menus = document.querySelectorAll('.TableObjMenu');
             menus.forEach(menu => {
                 menu.style.display = 'none';

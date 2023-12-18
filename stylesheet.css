@@ -74,6 +74,7 @@ table.lib-table th {
 }
 
 .TableObjMenuContainer {
+    position: relative;
     margin-bottom: 10px;
     padding: 0;
     display: flex;
@@ -93,6 +94,11 @@ table.lib-table th {
     border: black 1px solid;
     border-radius: 4px;
     position: absolute;
+}
+
+.TableObjMenu {
+    top: 100%;
+    left: 0;
 }
 
 .TableObjMenu li, .TableObjSubMenu li {
