@@ -4,6 +4,7 @@ class TableObj {
     constructor(tableElem){
         TableObj.tablesCount++;
         this.table = tableElem;
+
         this.tbody = this.table.tBodies[0];
         this.thead = this.table.tHead;
 
@@ -11,7 +12,6 @@ class TableObj {
             this.createThead();
 
         this.ensureTheadCellsAreThs();
-
         this.addTableId();
         this.addRowSelectors();
         this.showColNameOnHover();
@@ -21,6 +21,24 @@ class TableObj {
         
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
+
+        // Create a copy of the table to be used if the user hits the reset button
+        this.originalTable = this.table.cloneNode(true);
+
+        this.addDocumentEventListeners();
+
+        this.initialiseTableSpecificVariablesAndListeners();
+
+    }
+
+    /** 
+     * This function initialises the variables and event listeners that need to reset
+     * when the user hits the reset button. This id used during the first initialisation
+     * and when the user hits the reset button.
+    */
+    initialiseTableSpecificVariablesAndListeners(){
+        this.sourceRow = null;
+        this.sourceColumn = null;
 
         this.mouseDown = false;
         this.mouseDownH = false;
@@ -36,7 +54,7 @@ class TableObj {
         this.toggleSelect = true;
         // this.scrollInterval = null;
 
-        this.addEventListeners();
+        this.addTableSpecificEventListeners();
     }
 
     /**
@@ -120,7 +138,6 @@ class TableObj {
      * and adds event listeners to the cells.
      */
     addRowDragHandles(){
-        let sourceRow;
         const th = document.createElement("th");
         this.thead.rows[0].insertBefore(th, this.thead.rows[0].firstElementChild);
         const rows = Array.from(this.tbody.rows);
@@ -129,33 +146,8 @@ class TableObj {
             const cell = rows[i].insertCell(0);
             cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="10" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 32H32C14.3 32 0 46.3 0 64v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zm0 160H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm0 160H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM288 32h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zm0 160h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm0 160h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
             cell.className = 'rowDragHandle';
-
             cell.draggable = true;
-
-            cell.addEventListener('dragstart', (event) => {
-                sourceRow = event.target.parentElement;
-                event.dataTransfer.setDragImage(sourceRow,event.target.getBoundingClientRect().width/2, event.target.getBoundingClientRect().height/2);
-            });
-
-            // cell.addEventListener('dragend', (event) => {
-            //     sourceRow.classList.remove('selectedTableObjCell');
-            // });
         }
-        document.addEventListener('dragend', (event) => {sourceRow = null;});
-
-        document.addEventListener('dragover', (event) => {
-            if (!sourceRow) return;
-            event.preventDefault();
-
-            let targetRow = this.findClosestRow(event.clientY, Array.from(this.tbody.rows));
-
-            if (sourceRow.rowIndex !== targetRow.rowIndex){
-                if (targetRow.rowIndex > sourceRow.rowIndex)
-                    targetRow.after(sourceRow);
-                else
-                    targetRow.before(sourceRow);
-            }
-        });
     }
 
     /**
@@ -163,49 +155,44 @@ class TableObj {
      * and adds event listeners to the cells.
      */
     addColumnDragHandles(){
-        let sourceColumn;
-        // add a new row to the thead
         const tr = document.createElement("tr");
         this.thead.insertBefore(tr, this.thead.rows[0]);
         tr.appendChild(document.createElement("th"));
         tr.appendChild(document.createElement("th"));
+
         const numOfCols = this.thead.rows[1].cells.length;
+
         for (let i = 0; i < numOfCols-2; i++){
             const cell = document.createElement("th");
             cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 288H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM96 96H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
             cell.className = 'columnDragHandle';
             tr.appendChild(cell);
-
-            cell.draggable = true;
-
-            cell.addEventListener('dragstart', (event) => {
-                sourceColumn = event.target.cellIndex;
-                // event.dataTransfer.setDragImage(sourceRow,event.target.getBoundingClientRect().width/2, event.target.getBoundingClientRect().height/2);
-            });
+            cell.draggable = true;  
         }
+    }
 
-        document.addEventListener('dragend', (event) => {sourceColumn = null;});
+    /** 
+     * Adds the event listener that is responsible for initialising the row drag operation.
+     */
+    addRowDragHandlesListeners(){
+        const rowDragHandles = document.querySelectorAll(`#${this.table.id} .rowDragHandle`);
+        rowDragHandles.forEach(handle => {
+            handle.addEventListener('dragstart', (event) => {
+                this.sourceRow = event.target.parentElement;
+                event.dataTransfer.setDragImage(this.sourceRow,event.target.getBoundingClientRect().width/2, event.target.getBoundingClientRect().height/2);
+            });
+        });
+    }
 
-        document.addEventListener('dragover', (event) => {
-            if (!sourceColumn) return;
-            event.preventDefault();
-            const targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
-
-            if (sourceColumn !== targetColumn && targetColumn > 1){
-                const rows = this.table.rows;
-                for (let i = 0; i < rows.length; i++){
-                    const cell1 = rows[i].cells[sourceColumn];
-                    const cell2 = rows[i].cells[targetColumn];
-
-                    // Remove the source cell from the row
-                    const removedCell = rows[i].removeChild(cell1);
-                    if (targetColumn > sourceColumn)
-                        cell2.after(removedCell);
-                    else
-                        cell2.before(removedCell);
-                }
-                sourceColumn = targetColumn;
-            }
+    /**
+     * Adds the event listener that is responsible for initialising the column drag operation.
+     */
+    addColumnDragHandlesListeners(){
+        const columnDragHandles = document.querySelectorAll(`#${this.table.id} .columnDragHandle`);
+        columnDragHandles.forEach(handle => {
+            handle.addEventListener('dragstart', (event) => {
+                this.sourceColumn = event.target.cellIndex;
+            });
         });
     }
 
@@ -389,6 +376,22 @@ class TableObj {
             }
         });
         // ================================= Rows option =================================
+
+        // ================================= Reset option =================================
+        li = document.createElement('li');
+        li.textContent = 'Reset';
+        li.addEventListener('click', () => {
+            this.table.parentElement.replaceChild(this.originalTable, this.table);
+            this.table = this.originalTable;
+            this.originalTable = this.table.cloneNode(true);
+            this.tbody = this.table.tBodies[0];
+            this.thead = this.table.tHead;
+
+            this.initialiseTableSpecificVariablesAndListeners();
+               
+        });
+        settingsMenu.appendChild(li);
+        // ================================= Reset option =================================
 
         // create a container
         const container = document.createElement('div');
@@ -728,174 +731,224 @@ class TableObj {
             this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
     }
 
-    addEventListeners() {
-        // Select columns.
-        this.thead.addEventListener("mousedown", (event) => {
-            if (!event.ctrlKey){
-                this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
-                    cell.classList.remove('selectedTableObjCell'));
-                this.selectedCells = [];
-            }
+    addDocumentEventListeners(){
+        document.addEventListener("mousemove", this.documentMouseMove.bind(this));
+        document.addEventListener("mouseup", this.documentMouseUp.bind(this));
+        document.addEventListener("mousedown", this.documentMouseDown.bind(this));
+        document.addEventListener("dragend", this.documentDragEnd.bind(this));
+        document.addEventListener("dragover", this.documentDragOver.bind(this));
+    }
+
+    addTableSpecificEventListeners(){
+        this.thead.addEventListener("mousedown", this.theadMouseDown.bind(this));
+        this.tbody.addEventListener("mousedown", this.tbodyMouseDown.bind(this));
+        this.addRowDragHandlesListeners();
+        this.addColumnDragHandlesListeners();
+    }
+
+    // ====================================== Event Listeners' Functions ======================================
+    theadMouseDown(event){
+        if (!event.ctrlKey){
+            this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
+                cell.classList.remove('selectedTableObjCell'));
+            this.selectedCells = [];
+        }
+        
+        this.startCell = this.findParentCell(event.target, "TH");
+        this.endCell = this.startCell;
+
+        if (this.endCell.classList.contains("selectedTableObjCell"))
+            this.toggleSelect = false;
+        else
+            this.toggleSelect = true;
+
+        if (this.endCell.parentElement.rowIndex === 0){
             
-            this.startCell = this.findParentCell(event.target, "TH");
-            this.endCell = this.startCell;
-
-            if (this.endCell.classList.contains("selectedTableObjCell"))
-                this.toggleSelect = false;
-            else
-                this.toggleSelect = true;
-
-            if (this.endCell.parentElement.rowIndex === 0){
-                
-                if (this.endCell.cellIndex !== 0 && this.endCell.cellIndex !== 1){
-                    const cells = this.table.querySelectorAll(`td:nth-child(${this.endCell.cellIndex+1}), th:nth-child(${this.endCell.cellIndex+1})`);
-                    for (let i = 0; i < cells.length; i++) {
-                        cells[i].classList.add('selectedTableObjCell');
-                    }
-                }
-            } 
-            else {
-                if (this.endCell.cellIndex === 1)
-                    this.selecetWholeTable();
-                else if (this.endCell.cellIndex !== 0){
-                    this.mouseDownH = true;
-                    this.selectColumns();
+            if (this.endCell.cellIndex !== 0 && this.endCell.cellIndex !== 1){
+                const cells = this.table.querySelectorAll(`td:nth-child(${this.endCell.cellIndex+1}), th:nth-child(${this.endCell.cellIndex+1})`);
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].classList.add('selectedTableObjCell');
                 }
             }
-            
-        });
-
-        // Select rows and cells.
-        this.tbody.addEventListener("mousedown", (event) => {
-            if (!event.ctrlKey){
-                this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
-                    cell.classList.remove('selectedTableObjCell'));
-                this.selectedCells = [];
-                this.selectedRows = [];
-            }
-                
-            this.startCell = this.findParentCell(event.target, "TD");
-            this.endCell = this.startCell;
-
-            if (this.endCell.classList.contains("selectedTableObjCell"))
-                this.toggleSelect = false;
-            else
-                this.toggleSelect = true;
-
-            if (this.endCell.cellIndex === 1){
-                this.mouseDownR = true;
-                this.selectRows();
-            }
-            else if (this.endCell.cellIndex === 0){
-                const row = this.startCell.parentElement;
-                for (let i = 0; i < row.cells.length; i++) {
-                    row.cells[i].classList.add("selectedTableObjCell");
-                }
-            }
-            else {
-                this.mouseDown = true;
-                this.selectCells();     
-            }
-        });
-        // window.addEventListener("mousemove", handleMousemove);
-
-        // Track mouse movement to select cells/columns.
-        document.addEventListener("mousemove", (event) => {
-            if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-            
-            if (this.mouseDownH) {
-                if (event.target.closest("thead") !== this.thead){
-                    this.OldEndCell = this.endCell;
-                    this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells));
-                } 
-                else {
-                    this.OldEndCell = this.endCell;
-                    this.endCell = this.findParentCell(event.target, "TH");
-                }
-                    
-                if (this.OldEndCell === this.endCell) return;
+        } 
+        else {
+            if (this.endCell.cellIndex === 1)
+                this.selecetWholeTable();
+            else if (this.endCell.cellIndex !== 0){
+                this.mouseDownH = true;
                 this.selectColumns();
             }
-
-            else if (this.mouseDownR) {
-                if (event.target.closest("tbody") !== this.tbody){
-                    this.OldEndCell = this.endCell;
-                    this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows)).cells[0];
-                }  
-                else{
-                    this.OldEndCell = this.endCell;
-                    this.endCell = this.findParentCell(event.target, "TD");
-                }
-                if (this.OldEndCell === this.endCell) return;
-                this.selectRows();
-            }
-            
-            else if (this.mouseDown) {
-                if (event.target.closest("tbody") !== this.tbody){
-                    this.OldEndCell = this.endCell;
-                    this.endCell = this.findClosestCell(event.clientX, event.clientY);
-                }     
-                else{
-                    this.OldEndCell = this.endCell;
-                    this.endCell = this.findParentCell(event.target, "TD");
-                }
-
-                if (this.OldEndCell === this.endCell) return;
-
-                this.selectCells();
-            }
-        });
-
-        // Stop selecting when the mouse is released.
-        document.addEventListener("mouseup", () => {
-            if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-
-            // Update selected columns
-            const cells = this.thead.rows[1].cells;
-            for (let i = 0; i < cells.length; i++){
-                this.selectedHeaders[i] = cells[i].classList.contains("selectedTableObjCell") ? true : false;
-            }
-
-            // Update selected rows
-            this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(2).selectedTableObjCell"))
-                .map(td => td.parentNode.rowIndex);
-
-            // Update selected cells
-            this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
-
-            this.mouseDown = false;
-            this.mouseDownH = false;
-            this.mouseDownR = false;
-
-            this.checkAllCellsInColumnSelected();
-            this.checkAllCellsInRowSelected();
-            
-            // window.removeEventListener("mousemove", handleMousemove);
-        });
-
-        // Deselect when clicked outside the table.
-        document.addEventListener("mousedown", (event) => {
-            if (!this.table.contains(event.target)
-                && event.target !== document.documentElement
-                && !event.target.closest('#TableObjToolbar')) {
-                this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
-                                                                 cell.classList.remove('selectedTableObjCell'));
-                
-                this.selectedCells = [];
-                this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
-                this.selectedRows = [];
-
-            }
-
-            // If the click is not on a settings button, settings menu, or 
-            // settings submenu, hide the settings menus.
-            if (!event.target.closest('.TableObjMenu')
-                && !event.target.closest('.TableObjSubMenu')) {
-                const menus = document.querySelectorAll('.TableObjMenu');
-                menus.forEach(menu => {
-                    menu.style.display = 'none';
-                });
-            }
-        });
+        }
     }
+
+    tbodyMouseDown(event){
+        if (!event.ctrlKey){
+            this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
+                cell.classList.remove('selectedTableObjCell'));
+            this.selectedCells = [];
+            this.selectedRows = [];
+        }
+            
+        this.startCell = this.findParentCell(event.target, "TD");
+        this.endCell = this.startCell;
+
+        if (this.endCell.classList.contains("selectedTableObjCell"))
+            this.toggleSelect = false;
+        else
+            this.toggleSelect = true;
+
+        if (this.endCell.cellIndex === 1){
+            this.mouseDownR = true;
+            this.selectRows();
+        }
+        else if (this.endCell.cellIndex === 0){
+            const row = this.startCell.parentElement;
+            for (let i = 0; i < row.cells.length; i++) {
+                row.cells[i].classList.add("selectedTableObjCell");
+            }
+        }
+        else {
+            this.mouseDown = true;
+            this.selectCells();     
+        }
+    }
+
+    documentMouseMove(event){
+        if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
+            
+        if (this.mouseDownH) {
+            if (event.target.closest("thead") !== this.thead){
+                this.OldEndCell = this.endCell;
+                this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells));
+            } 
+            else {
+                this.OldEndCell = this.endCell;
+                this.endCell = this.findParentCell(event.target, "TH");
+            }
+                
+            if (this.OldEndCell === this.endCell) return;
+            this.selectColumns();
+        }
+
+        else if (this.mouseDownR) {
+            if (event.target.closest("tbody") !== this.tbody){
+                this.OldEndCell = this.endCell;
+                this.endCell = this.findClosestRow(event.clientY, Array.from(this.tbody.rows)).cells[0];
+            }  
+            else{
+                this.OldEndCell = this.endCell;
+                this.endCell = this.findParentCell(event.target, "TD");
+            }
+            if (this.OldEndCell === this.endCell) return;
+            this.selectRows();
+        }
+        
+        else if (this.mouseDown) {
+            if (event.target.closest("tbody") !== this.tbody){
+                this.OldEndCell = this.endCell;
+                this.endCell = this.findClosestCell(event.clientX, event.clientY);
+            }     
+            else{
+                this.OldEndCell = this.endCell;
+                this.endCell = this.findParentCell(event.target, "TD");
+            }
+
+            if (this.OldEndCell === this.endCell) return;
+
+            this.selectCells();
+        }
+    }
+
+    documentMouseUp(){
+        if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
+
+        // Update selected columns
+        const cells = this.thead.rows[1].cells;
+        for (let i = 0; i < cells.length; i++){
+            this.selectedHeaders[i] = cells[i].classList.contains("selectedTableObjCell") ? true : false;
+        }
+
+        // Update selected rows
+        this.selectedRows = Array.from(this.tbody.querySelectorAll("td:nth-child(2).selectedTableObjCell"))
+            .map(td => td.parentNode.rowIndex);
+
+        // Update selected cells
+        this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
+
+        this.mouseDown = false;
+        this.mouseDownH = false;
+        this.mouseDownR = false;
+
+        this.checkAllCellsInColumnSelected();
+        this.checkAllCellsInRowSelected();
+        
+        // window.removeEventListener("mousemove", handleMousemove);
+    }
+
+    documentMouseDown(event){
+        if (!this.table.contains(event.target)
+            && event.target !== document.documentElement
+            && !event.target.closest('#TableObjToolbar')) {
+            this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
+                                                                cell.classList.remove('selectedTableObjCell'));
+            
+            this.selectedCells = [];
+            this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
+            this.selectedRows = [];
+
+        }
+
+        // If the click is not on a settings button, settings menu, or 
+        // settings submenu, hide the settings menus.
+        if (!event.target.closest('.TableObjMenu')
+            && !event.target.closest('.TableObjSubMenu')) {
+            const menus = document.querySelectorAll('.TableObjMenu');
+            menus.forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+    }
+
+    documentDragEnd(){
+        this.sourceRow = null;
+        this.sourceColumn = null;
+    }
+
+    documentDragOver(event){
+        if (!this.sourceRow && !this.sourceColumn) return;
+
+        event.preventDefault();
+
+        if (this.sourceRow){
+            let targetRow = this.findClosestRow(event.clientY, Array.from(this.tbody.rows));
+
+            if (this.sourceRow.rowIndex !== targetRow.rowIndex){
+                if (targetRow.rowIndex > this.sourceRow.rowIndex)
+                    targetRow.after(this.sourceRow);
+                else
+                    targetRow.before(this.sourceRow);
+            }
+        }
+        else {
+            const targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
+
+            if (this.sourceColumn !== targetColumn && targetColumn > 1){
+                const rows = this.table.rows;
+                for (let i = 0; i < rows.length; i++){
+                    const cell1 = rows[i].cells[this.sourceColumn];
+                    const cell2 = rows[i].cells[targetColumn];
+
+                    // Remove the source cell from the row
+                    const removedCell = rows[i].removeChild(cell1);
+                    if (targetColumn > this.sourceColumn)
+                        cell2.after(removedCell);
+                    else
+                        cell2.before(removedCell);
+                }
+                this.sourceColumn = targetColumn;
+            }
+        }
+    }
+    // ====================================== Event Listeners' Functions ======================================
+
 }
