@@ -32,7 +32,10 @@ setTimeout(function() {
     // Add an event listener to copy the selected cells to the clipboard
     document.addEventListener('keydown', (event) => {
         if (event.ctrlKey && event.key === 'c') {
-            copySelectedCellsAsTSV();
+            if (document.activeElement.closest('.lib-tabl'))
+                copySelectedCellsAsTSV();
+            else
+                document.execCommand('copy');
         }
     });
 }, 1);

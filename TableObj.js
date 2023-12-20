@@ -11,6 +11,8 @@ class TableObj {
         if (this.thead === null)
             this.createThead();
 
+        this.table.tabIndex = 0;
+
         this.ensureTheadCellsAreThs();
         this.addTableId();
         this.addRowSelectors();
@@ -380,6 +382,9 @@ class TableObj {
         li = document.createElement('li');
         li.textContent = 'Reset';
         li.className = 'TableObjResetButton';
+        li.style.cursor = 'pointer';
+        li.addEventListener('mousedown', () => {li.style.backgroundColor = '#949090';});
+        li.addEventListener('mouseup', () => {li.style.backgroundColor = '';});
         li.addEventListener('click', () => {
             this.table.parentElement.replaceChild(this.originalTable, this.table);
             this.table = this.originalTable;
