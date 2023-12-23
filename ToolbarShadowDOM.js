@@ -102,6 +102,18 @@ class TableObjToolbar extends HTMLElement {
             toggleMagnify(this.magnify);
         };
 
+        // Create a button to determine the data type of the selected column
+        let dataTypeButton = document.createElement('button');
+        dataTypeButton.id = 'dataTypeButton';
+        dataTypeButton.style.margin = '0 auto';
+        dataTypeButton.style.width = '90%';
+        dataTypeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 0C100.3 0 0 100.3 0 224s100.3 224 224 224 224-100.3 224-224S347.7 0 224 0zm0 416c-88.4 0-160-71.6-160-160 0-88.4 71.6-160 160-160 88.4 0 160 71.6 160 160 0 88.4-71.6 160-160 160z"/></svg>';
+        dataTypeButton.onclick = async () => {
+            const dataType = await getColumnCellsContent();
+            if (dataType)
+                console.log(dataType);
+        };
+        
 
         // Add the elements to the shadow root
 
@@ -123,6 +135,12 @@ class TableObjToolbar extends HTMLElement {
         div = document.createElement('div');
         div.className = 'buttonsDiv';
         div.appendChild(magnifyButton);
+        this.shadow.appendChild(div);
+
+        // Data Type
+        div = document.createElement('div');
+        div.className = 'buttonsDiv';
+        div.appendChild(dataTypeButton);
         this.shadow.appendChild(div);
     }
 }
