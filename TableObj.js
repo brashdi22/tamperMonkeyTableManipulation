@@ -236,7 +236,7 @@ class TableObj {
         checkbox.value = 0;
         let label = document.createElement('label');
         label.htmlFor = `${this.table.id}-col0`;
-        label.appendChild(document.createTextNode('Whole Table'));
+        label.appendChild(document.createTextNode('All columns'));
         checkbox.addEventListener('change', () => {
             if (checkbox.checked){
                 this.showColAndCheckCheckbox();
@@ -391,6 +391,11 @@ class TableObj {
             this.originalTable = this.table.cloneNode(true);
             this.tbody = this.table.tBodies[0];
             this.thead = this.table.tHead;
+
+            // Delete the menu container and create a new one (to reinitialise the event listeners)
+            const container = document.getElementById(`${this.table.id}-menuContainer`);
+            container.parentElement.removeChild(container);
+            this.addTableSettingsMenu();
 
             this.initialiseTableSpecificVariablesAndListeners();
                

@@ -94,6 +94,7 @@ table.lib-table th {
     border: black 1px solid;
     border-radius: 4px;
     position: absolute;
+    z-index: 99;
 }
 
 .TableObjMenu {

@@ -114,7 +114,7 @@ function hideColsRows(){
 
         // The id of the respective checkbox: `${table.id}-row${index}`
         // Get the checkbox and uncheck it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
         checkbox.checked = false;
     });
 
@@ -142,7 +142,7 @@ function showColsRows(){
 
         // The id of the respective checkbox: `${table.id}-row${index}`
         // Get the checkbox and check it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 1}`);
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
         checkbox.checked = true;
     });
 
