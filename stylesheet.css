@@ -128,4 +128,58 @@ table.lib-table th {
     z-index: 99;
 }
 
+.columnDragLineLeft {
+    position: relative;
+    border-left: 3px solid #000000 !important;
+}
 
+.columnDragLineRight {
+    position: relative;
+    border-right: 3px solid #000000 !important;
+}
+
+.rowDragLineTop {
+    position: relative;
+    border-top: 3px solid #000000 !important;
+}
+
+.rowDragLineBottom {
+    position: relative;
+    border-bottom: 3px solid #000000 !important;
+}
+
+.columnDragLineLeft::after, .columnDragLineRight::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    z-index: 10;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid black;
+}
+
+.columnDragLineLeft::after {
+    left: -11.5px;
+}
+
+.columnDragLineRight::after {
+    right: -11.5px;
+}
+
+.rowDragLineTop::after, .rowDragLineBottom::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    z-index: 10;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid black;
+}
+
+.rowDragLineTop::after {
+    top: -13px;
+}
+
+.rowDragLineBottom::after {
+    bottom: -13px;
+}
