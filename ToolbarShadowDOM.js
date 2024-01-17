@@ -3,6 +3,7 @@ class TableObjToolbar extends HTMLElement {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
         this.magnify = false;
+        this.graphOptionsHidden = true;
 
         // Add the stylesheet to the page
         const styleSheet = `
@@ -20,6 +21,8 @@ class TableObjToolbar extends HTMLElement {
             }
             
             div {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
                 background-color: #f8f8f8;
                 margin: 2px 0px;
                 width: 40px;
@@ -39,6 +42,50 @@ class TableObjToolbar extends HTMLElement {
                 height: 100%;
                 border-radius: 5px;
             }
+
+            h6 {
+                font-size: 12px;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+            }
+
+            #graphOptionsContainer {
+                position: fixed;
+                border: 1px solid black;
+                border-radius: 5px;
+                margin: 0;
+                padding: 5px;
+                width: 300px;
+                height: 150px;
+                background-color: #f8f8f8;
+                top: -1px;
+                left: -2px;
+                transform: translateX(-100%);
+                display: none;
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .inputFieldContainer {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                gap: 5px;
+            }
+
+            label {
+                min-width: 100px;
+                background-color: transparent;
+            }
+
+            input {
+                width:100%;
+            }
         `;
         let style = document.createElement('style');
         style.innerHTML = styleSheet;
@@ -47,6 +94,7 @@ class TableObjToolbar extends HTMLElement {
 
     connectedCallback() {
         this.createToolBar();
+        this.createGraphOptionsContainer();
     }
 
     createToolBar() {
@@ -109,9 +157,34 @@ class TableObjToolbar extends HTMLElement {
         dataTypeButton.style.width = '90%';
         dataTypeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 0C100.3 0 0 100.3 0 224s100.3 224 224 224 224-100.3 224-224S347.7 0 224 0zm0 416c-88.4 0-160-71.6-160-160 0-88.4 71.6-160 160-160 88.4 0 160 71.6 160 160 0 88.4-71.6 160-160 160z"/></svg>';
         dataTypeButton.onclick = async () => {
-            const dataType = await getColumnCellsContent();
-            if (dataType)
-                console.log(dataType);
+            if (this.graphOptionsHidden) {
+                // Display the graphOptionsContainer
+                this.graphOptionsHidden = false;
+                this.shadow.getElementById('graphOptionsContainer').style.display = 'block';
+
+                // Get the data type of the selected columns
+                const dataType = await getColumnsToPlot();
+                if (dataType){
+                    const col1Name = this.shadow.getElementById('col1Name');
+                    const col2Name = this.shadow.getElementById('col2Name');
+                    col1Name.value = dataType[0][1];
+                    col2Name.value = dataType[1][1];
+                    // get the labels for the input fields
+                    const label1 = col1Name.previousSibling;
+                    const label2 = col2Name.previousSibling;
+                    label1.innerHTML = dataType[0][0];
+                    label2.innerHTML = dataType[1][0];
+                    // dataType.forEach(column => {
+                    //     console.log(column[0], column[1]);
+                    // });
+                }
+            }
+            else {
+                // Hide the graphOptionsContainer
+                this.graphOptionsHidden = true;
+                this.shadow.getElementById('graphOptionsContainer').style.display = 'none';
+                return;
+            }                
         };
         
 
@@ -142,5 +215,74 @@ class TableObjToolbar extends HTMLElement {
         div.className = 'buttonsDiv';
         div.appendChild(dataTypeButton);
         this.shadow.appendChild(div);
+
+    }
+
+    createGraphOptionsContainer() {
+        // Create the container
+        const container = document.createElement('div');
+        container.id = 'graphOptionsContainer';
+
+        // Create the title
+        const title = document.createElement('h6');
+        title.innerHTML = 'Graph Options';
+        container.appendChild(title);
+
+        // create a p tag to display
+        const p = document.createElement('p');
+        p.innerHTML = 'Confirm the data type of the selected columns:';
+        container.appendChild(p);
+
+        container.appendChild(this.createDataTypesForm());
+        
+        // Add the container to the shadow root
+        this.shadow.appendChild(container);
+    }
+
+    createDataTypesForm() {
+        const form = document.createElement('form');
+        form.id = 'graphOptionsForm';
+
+        // Create the first input field
+        const div1 = document.createElement('div');
+        div1.className = "inputFieldContainer";
+        const input1 = document.createElement('input');
+        input1.type = 'text';
+        input1.id = 'col1Name';
+        input1.name = 'col1Name';
+        // create a label for the input field
+        const label1 = document.createElement('label');
+        label1.innerHTML = 'Column 1';
+        label1.htmlFor = 'col1Name';
+        div1.appendChild(label1);
+        div1.appendChild(input1);
+        form.appendChild(div1);
+
+        // Create the second input field
+        const div2 = document.createElement('div');
+        div2.className = "inputFieldContainer";
+        const input2 = document.createElement('input');
+        input2.type = 'text';
+        input2.id = 'col2Name';
+        input2.name = 'col2Name';
+        // create a label for the input field
+        const label2 = document.createElement('label');
+        label2.innerHTML = 'Column 2';
+        label2.htmlFor = 'col2Name';
+        div2.appendChild(label2);
+        div2.appendChild(input2);
+        form.appendChild(div2);
+
+        // Create a button
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.innerHTML = 'confirm';
+        button.onclick = () => {
+            // Get the values from the input fields
+            // Set the availbe graph types based on the data type
+        };
+        form.appendChild(button);
+
+        return form;
     }
 }

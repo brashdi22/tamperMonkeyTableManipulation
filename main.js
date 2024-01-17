@@ -401,3 +401,53 @@ async function getColumnCellsContent(){
     const dataType = await classifyColumn(contentArray);
     return dataType;
 }
+
+async function getColumnsToPlot(){
+    const columns = document.querySelectorAll('table thead tr:nth-child(2) th.selectedTableObjCell');
+    if (columns.length === 0) return;
+
+    let col1, col2;
+    const table = columns[0].parentElement.parentElement.parentElement; // table -> thead -> tr -> th
+
+    if (columns.length === 1 && columns[0].cellIndex !== 2){
+        col1 = 2;
+        col2 = columns[0].cellIndex;
+
+        // Select the second column as well
+        const cells = table.querySelectorAll(`th:nth-child(3), td:nth-child(3)`);
+        for (let i = 1; i < cells.length; i++) {
+            cells[i].classList.add('selectedTableObjCell');
+        }
+    }
+    else if (columns.length === 1 && columns[0].cellIndex === 2){
+        col1 = 1;     // this is the index column
+        col2 = 2;
+
+        // Select the first column as well
+        const cells = table.querySelectorAll(`th:nth-child(2), td:nth-child(2)`);
+        for (let i = 1; i < cells.length; i++) {
+            cells[i].classList.add('selectedTableObjCell');
+        }
+    }
+    else {
+        col1 = columns[0].cellIndex;
+        col2 = columns[1].cellIndex;
+    }
+
+    const col1ContentArray = [];
+    table.querySelectorAll(`tbody td:nth-child(${col1 + 1})`).forEach(cell => {
+        col1ContentArray.push(cell.textContent);
+    });
+
+    const col2ContentArray = [];
+    table.querySelectorAll(`tbody td:nth-child(${col2 + 1})`).forEach(cell => {
+        col2ContentArray.push(cell.textContent);
+    });
+
+    const col1DataType = await classifyColumn(col1ContentArray);
+    const col2DataType = await classifyColumn(col2ContentArray);
+
+    return [[table.rows[1].cells[col1].textContent, col1DataType],
+           [table.rows[1].cells[col2].textContent, col2DataType]];
+
+}

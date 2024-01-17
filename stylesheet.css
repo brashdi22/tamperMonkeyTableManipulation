@@ -71,6 +71,8 @@ table.lib-table th {
     gap: 2px;
     transform: translateY(-50%);
     z-index: 99;
+    border: 1px solid #000;
+    border-radius: 5px;
 }
 
 .TableObjMenuContainer {
