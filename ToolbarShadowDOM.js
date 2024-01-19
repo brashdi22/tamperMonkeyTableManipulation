@@ -43,6 +43,12 @@ class TableObjToolbar extends HTMLElement {
                 border-radius: 5px;
             }
 
+            .inputFieldContainer select {
+                appearance: auto;
+                background-color: white;
+                padding: 0 3px;
+            }
+
             h6 {
                 font-size: 12px;
                 margin: 0;
@@ -57,7 +63,7 @@ class TableObjToolbar extends HTMLElement {
                 margin: 0;
                 padding: 5px;
                 width: 300px;
-                height: 150px;
+                height: 200px;
                 background-color: #f8f8f8;
                 top: -1px;
                 left: -2px;
@@ -86,6 +92,47 @@ class TableObjToolbar extends HTMLElement {
             input {
                 width:100%;
             }
+
+            i {
+                position: relative;
+                padding: 0px 4px;
+                border: 1px solid black;
+                background-color: #ecdf7c;
+                border-radius: 50%;
+                cursor: context-menu;
+            }
+
+            .tooltip {
+                position: absolute;
+                background-color: white;
+                border: 1px solid black;
+                border-radius: 5px;
+                padding: 5px;
+                width: 200px;
+                height: 100px;
+                transform: translateX(-100%);
+                top: 0;
+                left: -1px;
+            }
+
+            #graphOptionsContainer .buttonsDiv {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 5px;
+                width: 100%;
+                height: 25px;
+            }
+
+            #graphOptionsContainer .buttonsDiv button {
+                padding: 0px 2px;
+                margin: 2px;
+                width: 15%;
+                cursor: pointer;
+                background-color: white;
+                border: 1px solid black;
+            }
+
         `;
         let style = document.createElement('style');
         style.innerHTML = styleSheet;
@@ -155,7 +202,7 @@ class TableObjToolbar extends HTMLElement {
         dataTypeButton.id = 'dataTypeButton';
         dataTypeButton.style.margin = '0 auto';
         dataTypeButton.style.width = '90%';
-        dataTypeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M224 0C100.3 0 0 100.3 0 224s100.3 224 224 224 224-100.3 224-224S347.7 0 224 0zm0 416c-88.4 0-160-71.6-160-160 0-88.4 71.6-160 160-160 88.4 0 160 71.6 160 160 0 88.4-71.6 160-160 160z"/></svg>';
+        dataTypeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M332.8 320h38.4c6.4 0 12.8-6.4 12.8-12.8V172.8c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v134.4c0 6.4 6.4 12.8 12.8 12.8zm96 0h38.4c6.4 0 12.8-6.4 12.8-12.8V76.8c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v230.4c0 6.4 6.4 12.8 12.8 12.8zm-288 0h38.4c6.4 0 12.8-6.4 12.8-12.8v-70.4c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v70.4c0 6.4 6.4 12.8 12.8 12.8zm96 0h38.4c6.4 0 12.8-6.4 12.8-12.8V108.8c0-6.4-6.4-12.8-12.8-12.8h-38.4c-6.4 0-12.8 6.4-12.8 12.8v198.4c0 6.4 6.4 12.8 12.8 12.8zM496 384H64V80c0-8.8-7.2-16-16-16H16C7.2 64 0 71.2 0 80v336c0 17.7 14.3 32 32 32h464c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16z"/></svg>';
         dataTypeButton.onclick = async () => {
             if (this.graphOptionsHidden) {
                 // Display the graphOptionsContainer
@@ -167,6 +214,7 @@ class TableObjToolbar extends HTMLElement {
                 if (dataType){
                     const col1Name = this.shadow.getElementById('col1Name');
                     const col2Name = this.shadow.getElementById('col2Name');
+                    // select the correct option in the select menu
                     col1Name.value = dataType[0][1];
                     col2Name.value = dataType[1][1];
                     // get the labels for the input fields
@@ -174,9 +222,6 @@ class TableObjToolbar extends HTMLElement {
                     const label2 = col2Name.previousSibling;
                     label1.innerHTML = dataType[0][0];
                     label2.innerHTML = dataType[1][0];
-                    // dataType.forEach(column => {
-                    //     console.log(column[0], column[1]);
-                    // });
                 }
             }
             else {
@@ -230,10 +275,58 @@ class TableObjToolbar extends HTMLElement {
 
         // create a p tag to display
         const p = document.createElement('p');
-        p.innerHTML = 'Confirm the data type of the selected columns:';
+        p.innerHTML = 'Confirm the data type of the selected columns: ';
+        // Create an info icon
+        const infoIcon = document.createElement('i');
+        infoIcon.style.border = '1px solid black';
+        infoIcon.className = 'info-icon';
+        infoIcon.textContent = 'ℹ️';
+
+        // Create a tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = 'This is some info about the data types';
+        // Hide the tooltip by default
+        tooltip.style.display = 'none';
+
+        // Show the tooltip when the info icon is hovered over
+        infoIcon.addEventListener('mouseover', () => {
+            tooltip.style.display = 'block';
+        });
+
+        // Hide the tooltip when the mouse leaves the info icon
+        infoIcon.addEventListener('mouseout', () => {
+            tooltip.style.display = 'none';
+        });
+
+        infoIcon.appendChild(tooltip);
+        p.appendChild(infoIcon);
         container.appendChild(p);
 
         container.appendChild(this.createDataTypesForm());
+
+        const p2 = document.createElement('p');
+        p2.innerHTML = 'Select the type of graph to plot: ';
+        container.appendChild(p2);
+
+        // Create a div to hold the buttons
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'buttonsDiv';
+        // Create the buttons
+        const buttons = ['scatter', 'line', 'bar', 'histogram','pie'];
+        buttons.forEach(button => {
+            const buttonElement = document.createElement('button');
+            buttonElement.type = 'button';
+            buttonElement.id = `${button}Button`;
+            buttonElement.innerHTML = button;
+            buttonElement.disabled = true;
+            buttonElement.onclick = () => {
+                console.log(button);
+            };
+            buttonsDiv.appendChild(buttonElement);
+        });
+
+        container.appendChild(buttonsDiv);
         
         // Add the container to the shadow root
         this.shadow.appendChild(container);
@@ -246,43 +339,88 @@ class TableObjToolbar extends HTMLElement {
         // Create the first input field
         const div1 = document.createElement('div');
         div1.className = "inputFieldContainer";
-        const input1 = document.createElement('input');
-        input1.type = 'text';
+        const input1 = document.createElement('select');
         input1.id = 'col1Name';
-        input1.name = 'col1Name';
         // create a label for the input field
         const label1 = document.createElement('label');
         label1.innerHTML = 'Column 1';
-        label1.htmlFor = 'col1Name';
+
+        // Add the select options ('numerical', 'textual', 'ordinal', 'nominal')
+        const options = ['numerical', 'textual', 'ordinal', 'nominal'];
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.innerHTML = option;
+            input1.appendChild(optionElement);
+        });
+
         div1.appendChild(label1);
         div1.appendChild(input1);
         form.appendChild(div1);
 
+
         // Create the second input field
         const div2 = document.createElement('div');
         div2.className = "inputFieldContainer";
-        const input2 = document.createElement('input');
-        input2.type = 'text';
+        const input2 = document.createElement('select');
         input2.id = 'col2Name';
-        input2.name = 'col2Name';
         // create a label for the input field
         const label2 = document.createElement('label');
         label2.innerHTML = 'Column 2';
-        label2.htmlFor = 'col2Name';
+
+        // Add the select options ('numerical', 'textual', 'ordinal', 'nominal')
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.innerHTML = option;
+            input2.appendChild(optionElement);
+        });
+
         div2.appendChild(label2);
         div2.appendChild(input2);
         form.appendChild(div2);
 
-        // Create a button
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.innerHTML = 'confirm';
-        button.onclick = () => {
-            // Get the values from the input fields
-            // Set the availbe graph types based on the data type
-        };
-        form.appendChild(button);
+        // Add event listeners to the input fields to update
+        // the available graph types.
+        input1.addEventListener('change', () => {
+            this.updateAvailableGraphs(input1.value, input2.value);
+        });
+        input2.addEventListener('change', () => {
+            this.updateAvailableGraphs(input1.value, input2.value);
+        });
 
         return form;
+    }
+
+    updateAvailableGraphs(type1, type2) {
+        console.log(type1, type2);
+        let enable = [];
+        let disable = [];
+
+        if (type1 === 'numerical' && type2 === 'numerical') {
+            enable = ['scatter', 'line'];
+            disable = ['bar', 'pie', 'histogram'];
+        }
+        else if (type1 === 'numerical' && type2 === 'textual' || type1 === 'textual' && type2 === 'numerical') {
+            enable = ['bar', 'line', 'scatter'];
+            disable = ['pie', 'histogram'];
+        }
+        else if (type1 === 'numerical' && (type2 === 'ordinal' || type2 === 'nominal') || type2 === 'numerical' && (type1 === 'ordinal' || type1 === 'nominal')) {
+            enable = ['bar', 'histogram'];
+            disable = ['pie', 'line', 'scatter'];
+        }
+        else {
+            disable = ['bar', 'line', 'scatter', 'pie', 'histogram'];
+        }
+
+        // Enable
+        enable.forEach(button => {
+            this.shadow.getElementById(`${button}Button`).disabled = false;
+        });
+
+        // Disable
+        disable.forEach(button => {
+            this.shadow.getElementById(`${button}Button`).disabled = true;
+        });
     }
 }
