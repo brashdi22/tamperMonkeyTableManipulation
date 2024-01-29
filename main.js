@@ -17,6 +17,11 @@ setTimeout(function() {
     ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js';
     document.head.appendChild(ortScript);
 
+    // Add chart.js to the page
+    const chartjsScript = document.createElement('script');
+    chartjsScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    document.head.appendChild(chartjsScript);
+
     // Retrieve the tables from the page
     const tables = document.getElementsByTagName("table");
     let tableObjects = [];
@@ -447,7 +452,6 @@ async function getColumnsToPlot(){
     const col1DataType = await classifyColumn(col1ContentArray);
     const col2DataType = await classifyColumn(col2ContentArray);
 
-    return [[table.rows[1].cells[col1].textContent, col1DataType],
-           [table.rows[1].cells[col2].textContent, col2DataType]];
-
+    return [[table.rows[1].cells[col1].textContent, col1DataType, col1ContentArray],
+           [table.rows[1].cells[col2].textContent, col2DataType, col2ContentArray]];
 }
