@@ -141,7 +141,7 @@ class TableObjToolbar extends HTMLElement {
                 cursor: pointer;
             }
 
-            #graphOptionsContainer .buttonsDiv button:disabled {
+            #graphOptionsContainer button:disabled {
                 cursor: not-allowed;
             }
 
@@ -358,6 +358,7 @@ class TableObjToolbar extends HTMLElement {
         div1.className = "inputFieldContainer";
         const input1 = document.createElement('select');
         input1.id = 'col1Name';
+        input1.disabled = true;
         // create a label for the input field
         const label1 = document.createElement('label');
         label1.id = 'col1Label';
@@ -382,6 +383,7 @@ class TableObjToolbar extends HTMLElement {
         div2.className = "inputFieldContainer";
         const input2 = document.createElement('select');
         input2.id = 'col2Name';
+        input2.disabled = true;
         // create a label for the input field
         const label2 = document.createElement('label');
         label2.id = 'col2Label';
@@ -412,6 +414,7 @@ class TableObjToolbar extends HTMLElement {
         const swapButton = document.createElement('button');
         swapButton.type = 'button';
         swapButton.id = 'swapButton';
+        swapButton.disabled = true;
         swapButton.innerText = 'Swap x and y';
         swapButton.onclick = () => {
             // Swap the values of the input fields
@@ -462,6 +465,18 @@ class TableObjToolbar extends HTMLElement {
             // Update the data
             this.col1data = dataType[0][2];
             this.col2data = dataType[1][2];
+
+            // Enable the 2 select elements and the swap button
+            ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
+                this.shadow.getElementById(id).disabled = false;
+            });
+        }
+        else {
+            this.updateAvailableGraphs('', '');
+            // Disable the 2 select elements and the swap button
+            ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
+                this.shadow.getElementById(id).disabled = true;
+            });
         }
     }
 
@@ -473,7 +488,7 @@ class TableObjToolbar extends HTMLElement {
             enable = ['scatter', 'line'];
             disable = ['bar', 'histogram'];
         }
-        else if (type1 === 'numerical' && type2 === 'textual' || type1 === 'textual' && type2 === 'numerical') {
+        else if (type1 === 'textual' && type2 === 'numerical') {
             enable = ['bar', 'line', 'scatter'];
             disable = ['histogram'];
         }

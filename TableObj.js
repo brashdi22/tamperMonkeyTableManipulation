@@ -747,6 +747,7 @@ class TableObj {
         document.addEventListener("mousedown", this.documentMouseDown.bind(this));
         document.addEventListener("dragend", this.documentDragEnd.bind(this));
         document.addEventListener("dragover", this.documentDragOver.bind(this));
+        document.addEventListener("click", this.documentClick.bind(this));
     }
 
     addTableSpecificEventListeners(){
@@ -903,14 +904,14 @@ class TableObj {
     documentMouseDown(event){
         if (!this.table.contains(event.target)
             && event.target !== document.documentElement
-            && !event.target.closest('#TableObjToolbar')) {
+            && !event.target.closest('#TableObjToolbar')
+            && !event.target.closest('#chartContainer')) {
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                                                                 cell.classList.remove('selectedTableObjCell'));
             
             this.selectedCells = [];
             this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
             this.selectedRows = [];
-
         }
 
         // If the click is not on a settings button, settings menu, or 
@@ -922,6 +923,15 @@ class TableObj {
             menus.forEach(menu => {
                 menu.style.display = 'none';
             });
+        }
+    }
+
+    documentClick(event){
+        if (!event.target.closest('#TableObjToolbar')){
+            // Update the graphs options if the graphs tab is open
+            const toolbar = document.getElementById('TableObjToolbar');
+            if (!toolbar.graphOptionsHidden)
+                toolbar.updateSelectedColumns();
         }
     }
 
