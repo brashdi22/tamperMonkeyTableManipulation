@@ -885,6 +885,11 @@ class TableObj {
         // Update selected cells
         this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
 
+        // Update the graphs options if the graphs tab is open
+        const toolbar = document.getElementById('TableObjToolbar');
+        if (!toolbar.graphOptionsHidden)
+            toolbar.updateSelectedColumns();
+
         this.mouseDown = false;
         this.mouseDownH = false;
         this.mouseDownR = false;

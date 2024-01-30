@@ -219,35 +219,14 @@ class TableObjToolbar extends HTMLElement {
         dataTypeButton.style.width = '90%';
         dataTypeButton.innerHTML = '<svg fill="#000000" width="20px" height="18px" viewBox="0 0 24 24" id="Main" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="1.968"></g><g id="SVGRepo_iconCarrier"><title></title><path d="M20,7H18a2,2,0,0,0-2,2V20H15V12a2,2,0,0,0-2-2H11a2,2,0,0,0-2,2v8H8V16a2,2,0,0,0-2-2H4a2,2,0,0,0-2,2v5a1,1,0,0,0,1,1H21a1,1,0,0,0,1-1V9A2,2,0,0,0,20,7ZM4,20V16H6v4Zm7,0V12h2v8Zm7,0V9h2V20Z"></path><path d="M3.81,12.58l4.57-6.4L13.68,8a1,1,0,0,0,.82-.08l7-4a1,1,0,0,0-1-1.74L13.89,5.91,8.32,4.05a1,1,0,0,0-1.13.37l-5,7a1,1,0,0,0,.23,1.39A1,1,0,0,0,3,13,1,1,0,0,0,3.81,12.58Z"></path></g></svg>';
         dataTypeButton.onclick = async () => {
-            if (this.graphOptionsHidden) {
-                // Display the graphOptionsContainer
+            if (this.graphOptionsHidden) {      // Show the graphOptionsContainer
                 this.graphOptionsHidden = false;
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'block';
-
-                // Get the data type of the selected columns
-                const dataType = await getColumnsToPlot();
-                if (dataType){
-                    const col1Name = this.shadow.getElementById('col1Name');
-                    const col2Name = this.shadow.getElementById('col2Name');
-                    // Select the correct option in the select menu
-                    col1Name.value = dataType[0][1];
-                    col2Name.value = dataType[1][1];
-
-                    // Set the labels for the input fields to be the column names
-                    this.shadow.getElementById('col1Label').innerHTML = dataType[0][0];
-                    this.shadow.getElementById('col2Label').innerHTML = dataType[1][0];
-
-                    // Update the available graphs
-                    this.updateAvailableGraphs(col1Name.value, col2Name.value);
-                    this.col1data = dataType[0][2];
-                    this.col2data = dataType[1][2];
-                }
+                this.updateSelectedColumns();
             }
-            else {
-                // Hide the graphOptionsContainer
+            else {      // Hide the graphOptionsContainer
                 this.graphOptionsHidden = true;
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'none';
-                return;
             }                
         };
         
@@ -348,7 +327,7 @@ class TableObjToolbar extends HTMLElement {
             if (i === 3) buttonElement.title = 'Histogram';
             else
                 buttonElement.title = buttons[i].charAt(0).toUpperCase() + buttons[i].slice(1) + ' chart';
-            
+
             buttonElement.onclick = () => {
                 new chrt(buttons[i], this.col1data, this.col2data,
                     this.shadow.getElementById('col1Label').textContent,
@@ -423,6 +402,28 @@ class TableObjToolbar extends HTMLElement {
         });
 
         return form;
+    }
+
+    async updateSelectedColumns() {
+        // Get the data type of the selected columns
+        const dataType = await getColumnsToPlot();
+
+        if (dataType){
+            // Update the selected option in the select menu
+            this.shadow.getElementById('col1Name').value = dataType[0][1];
+            this.shadow.getElementById('col2Name').value = dataType[1][1];
+
+            // Update the labels for the input fields to be the column names
+            this.shadow.getElementById('col1Label').innerHTML = dataType[0][0];
+            this.shadow.getElementById('col2Label').innerHTML = dataType[1][0];
+
+            // Update the available graphs
+            this.updateAvailableGraphs(dataType[0][1], dataType[1][1]);
+
+            // Update the data
+            this.col1data = dataType[0][2];
+            this.col2data = dataType[1][2];
+        }
     }
 
     updateAvailableGraphs(type1, type2) {
