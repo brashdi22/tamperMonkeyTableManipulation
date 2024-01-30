@@ -65,7 +65,7 @@ class TableObjToolbar extends HTMLElement {
                 margin: 0;
                 padding: 5px;
                 width: 300px;
-                height: 200px;
+                height: 240px;
                 background-color: #f8f8f8;
                 top: -1px;
                 left: -2px;
@@ -77,6 +77,13 @@ class TableObjToolbar extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 gap: 5px;
+                margin-bottom: 25px;
+            }
+
+            form button {
+                margin: 10px 10px 0px;
+                background-color: white;
+                border: 1px solid black;
             }
 
             .inputFieldContainer {
@@ -354,7 +361,7 @@ class TableObjToolbar extends HTMLElement {
         // create a label for the input field
         const label1 = document.createElement('label');
         label1.id = 'col1Label';
-        label1.innerHTML = 'Column 1';
+        label1.innerHTML = 'Column 1 (x)';
 
         // Add the select options ('numerical', 'textual', 'ordinal', 'nominal')
         const options = ['numerical', 'textual', 'ordinal', 'nominal'];
@@ -378,7 +385,7 @@ class TableObjToolbar extends HTMLElement {
         // create a label for the input field
         const label2 = document.createElement('label');
         label2.id = 'col2Label';
-        label2.innerHTML = 'Column 2';
+        label2.innerHTML = 'Column 2 (y)';
 
         // Add the select options ('numerical', 'textual', 'ordinal', 'nominal')
         options.forEach(option => {
@@ -401,6 +408,38 @@ class TableObjToolbar extends HTMLElement {
             this.updateAvailableGraphs(input1.value, input2.value);
         });
 
+        // Add a button to swap the 2 columns
+        const swapButton = document.createElement('button');
+        swapButton.type = 'button';
+        swapButton.id = 'swapButton';
+        swapButton.innerText = 'Swap x and y';
+        swapButton.onclick = () => {
+            // Swap the values of the input fields
+            let temp = this.shadow.getElementById('col1Name').value;
+            this.shadow.getElementById('col1Name').value = this.shadow.getElementById('col2Name').value;
+            this.shadow.getElementById('col2Name').value = temp;
+
+            // Swap the labels except for the (x) and (y) parts
+            // Get the labels without the last 3 characters
+            let col1Label = this.shadow.getElementById('col1Label').innerHTML.slice(0, -3);
+            let col2Label = this.shadow.getElementById('col2Label').innerHTML.slice(0, -3);
+            // Swap the labels
+            temp = col1Label;
+            col1Label = col2Label;
+            col2Label = temp;
+            // Add the last 3 characters back
+            this.shadow.getElementById('col1Label').innerHTML = col1Label + '(x)';
+            this.shadow.getElementById('col2Label').innerHTML = col2Label + '(y)';
+
+            // Swap the data
+            temp = this.col1data;
+            this.col1data = this.col2data;
+            this.col2data = temp;
+
+            this.updateAvailableGraphs(this.shadow.getElementById('col1Name').value, this.shadow.getElementById('col2Name').value);
+        };
+        form.appendChild(swapButton);
+
         return form;
     }
 
@@ -414,8 +453,8 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col2Name').value = dataType[1][1];
 
             // Update the labels for the input fields to be the column names
-            this.shadow.getElementById('col1Label').innerHTML = dataType[0][0];
-            this.shadow.getElementById('col2Label').innerHTML = dataType[1][0];
+            this.shadow.getElementById('col1Label').innerHTML = dataType[0][0] + ' (x)';
+            this.shadow.getElementById('col2Label').innerHTML = dataType[1][0] + ' (y)';
 
             // Update the available graphs
             this.updateAvailableGraphs(dataType[0][1], dataType[1][1]);
