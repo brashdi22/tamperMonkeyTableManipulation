@@ -116,12 +116,19 @@ class TableObjToolbar extends HTMLElement {
                 background-color: white;
                 border: 1px solid black;
                 border-radius: 5px;
-                padding: 5px;
-                width: 200px;
-                height: 100px;
+                padding: 10px 5px;
+                width: 220px;
+                height: 170px;
+                font-size: 12px;
                 transform: translateX(-100%);
                 top: 0;
                 left: -1px;
+                z-index: 1;
+            }
+
+            .tooltip p {
+                margin: 0;
+                margin-bottom: 10px;
             }
 
             #graphOptionsContainer .buttonsDiv {
@@ -290,7 +297,12 @@ class TableObjToolbar extends HTMLElement {
         // Create a tooltip
         const tooltip = document.createElement('div');
         tooltip.className = 'tooltip';
-        tooltip.textContent = 'This is some info about the data types';
+        tooltip.innerHTML = `
+            <p><b>Numerical Data</b> - integers and decimals. Could include some special characters like $, %, …</p>
+            <p><b>Nominal Data</b> - unordered groups. E.g., classifying items into fruits, vegetables and other.</p>
+            <p><b>Ordinal Data</b> - ordered groups. E.g., poor, good, excellent.</p>
+            <p><b>Textual Data</b> - all data that does not fall into one of the above categories.</p>
+        `;
         // Hide the tooltip by default
         tooltip.style.display = 'none';
 
@@ -336,9 +348,22 @@ class TableObjToolbar extends HTMLElement {
                 buttonElement.title = buttons[i].charAt(0).toUpperCase() + buttons[i].slice(1) + ' chart';
 
             buttonElement.onclick = () => {
-                new chrt(buttons[i], this.col1data, this.col2data,
-                    this.shadow.getElementById('col1Label').textContent,
-                    this.shadow.getElementById('col2Label').textContent);
+                // If the data type is numerical, remove any non-numerical characters (like $, %, etc.)
+                let col1data = [];
+                let col2data = [];
+                if (this.shadow.getElementById('col1Name').value === 'numerical')
+                    col1data = this.cleanNumericalData(this.col1data);
+                else
+                    col1data = this.col1data;
+                if (this.shadow.getElementById('col2Name').value === 'numerical')
+                    col2data = this.cleanNumericalData(this.col2data);
+                else
+                    col2data = this.col2data;
+
+                // Plot the graph
+                new chart(buttons[i], col1data, col2data,
+                    this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+                    this.shadow.getElementById('col2Label').textContent.slice(0, -3));
             };
             buttonsDiv.appendChild(buttonElement);
         }
@@ -417,29 +442,7 @@ class TableObjToolbar extends HTMLElement {
         swapButton.disabled = true;
         swapButton.innerText = 'Swap x and y';
         swapButton.onclick = () => {
-            // Swap the values of the input fields
-            let temp = this.shadow.getElementById('col1Name').value;
-            this.shadow.getElementById('col1Name').value = this.shadow.getElementById('col2Name').value;
-            this.shadow.getElementById('col2Name').value = temp;
-
-            // Swap the labels except for the (x) and (y) parts
-            // Get the labels without the last 3 characters
-            let col1Label = this.shadow.getElementById('col1Label').innerHTML.slice(0, -3);
-            let col2Label = this.shadow.getElementById('col2Label').innerHTML.slice(0, -3);
-            // Swap the labels
-            temp = col1Label;
-            col1Label = col2Label;
-            col2Label = temp;
-            // Add the last 3 characters back
-            this.shadow.getElementById('col1Label').innerHTML = col1Label + '(x)';
-            this.shadow.getElementById('col2Label').innerHTML = col2Label + '(y)';
-
-            // Swap the data
-            temp = this.col1data;
-            this.col1data = this.col2data;
-            this.col2data = temp;
-
-            this.updateAvailableGraphs(this.shadow.getElementById('col1Name').value, this.shadow.getElementById('col2Name').value);
+            this.swapXandY();
         };
         form.appendChild(swapButton);
 
@@ -470,6 +473,12 @@ class TableObjToolbar extends HTMLElement {
             ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
                 this.shadow.getElementById(id).disabled = false;
             });
+
+            // If there one column is numerical and the other is textual, ensure the
+            // the textual column is the x column.
+            if (dataType[1][1] === 'textual' && dataType[0][1] === 'numerical') {
+                this.swapXandY();
+            }
         }
         else {
             this.updateAvailableGraphs('', '');
@@ -509,5 +518,49 @@ class TableObjToolbar extends HTMLElement {
         disable.forEach(button => {
             this.shadow.getElementById(`${button}Button`).disabled = true;
         });
+    }
+
+    /**
+     * Removes any non-numerical characters.
+     * 
+     * @param {Array} data An array of strings
+     * @returns {cleanedData} The data with only numerical characters
+     */
+    cleanNumericalData(data){
+        const cleanedData = [];
+        data.forEach(row => {
+            row = row.replace(/[^0-9.]/g, '');
+            cleanedData.push(row);
+        });
+        return cleanedData;
+    }
+
+    /** 
+     * Swaps the x and y columns.
+     */
+    swapXandY() {
+        // Swap the values of the input fields
+        let temp = this.shadow.getElementById('col1Name').value;
+        this.shadow.getElementById('col1Name').value = this.shadow.getElementById('col2Name').value;
+        this.shadow.getElementById('col2Name').value = temp;
+
+        // Swap the labels except for the (x) and (y) parts
+        // Get the labels without the last 3 characters
+        let col1Label = this.shadow.getElementById('col1Label').innerHTML.slice(0, -3);
+        let col2Label = this.shadow.getElementById('col2Label').innerHTML.slice(0, -3);
+        // Swap the labels
+        temp = col1Label;
+        col1Label = col2Label;
+        col2Label = temp;
+        // Add the last 3 characters back
+        this.shadow.getElementById('col1Label').innerHTML = col1Label + '(x)';
+        this.shadow.getElementById('col2Label').innerHTML = col2Label + '(y)';
+
+        // Swap the data
+        temp = this.col1data;
+        this.col1data = this.col2data;
+        this.col2data = temp;
+
+        this.updateAvailableGraphs(this.shadow.getElementById('col1Name').value, this.shadow.getElementById('col2Name').value);
     }
 }

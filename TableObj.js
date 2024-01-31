@@ -927,7 +927,8 @@ class TableObj {
     }
 
     documentClick(event){
-        if (!event.target.closest('#TableObjToolbar')){
+        if (!event.target.closest('#TableObjToolbar')
+            && !event.target.closest('#chartContainer')){
             // Update the graphs options if the graphs tab is open
             const toolbar = document.getElementById('TableObjToolbar');
             if (!toolbar.graphOptionsHidden)
