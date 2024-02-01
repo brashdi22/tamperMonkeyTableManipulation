@@ -330,13 +330,14 @@ class TableObjToolbar extends HTMLElement {
         const buttonsDiv = document.createElement('div');
         buttonsDiv.className = 'buttonsDiv';
         // Create the buttons
-        const buttons = ['scatter', 'line', 'bar', 'histogram'];
+        const buttons = ['scatter', 'line', 'bar', 'histogram', 'pie'];
         const buttonsIcons = ['<svg width="23px" height="23px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="#000" d="M1 15v-15h-1v16h16v-1h-15z"></path> <path fill="#000" d="M5 11c0 0.552-0.448 1-1 1s-1-0.448-1-1c0-0.552 0.448-1 1-1s1 0.448 1 1z"></path> <path fill="#000" d="M8 6c0 0.552-0.448 1-1 1s-1-0.448-1-1c0-0.552 0.448-1 1-1s1 0.448 1 1z"></path> <path fill="#000" d="M14 5c0 0.552-0.448 1-1 1s-1-0.448-1-1c0-0.552 0.448-1 1-1s1 0.448 1 1z"></path> <path fill="#000" d="M11 10c0 0.552-0.448 1-1 1s-1-0.448-1-1c0-0.552 0.448-1 1-1s1 0.448 1 1z"></path> </g></svg>',
                               '<svg width="25px" height="25px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M21 21H4.6C4.03995 21 3.75992 21 3.54601 20.891C3.35785 20.7951 3.20487 20.6422 3.10899 20.454C3 20.2401 3 19.9601 3 19.4V3M20 8L16.0811 12.1827C15.9326 12.3412 15.8584 12.4204 15.7688 12.4614C15.6897 12.4976 15.6026 12.5125 15.516 12.5047C15.4179 12.4958 15.3215 12.4458 15.1287 12.3457L11.8713 10.6543C11.6785 10.5542 11.5821 10.5042 11.484 10.4953C11.3974 10.4875 11.3103 10.5024 11.2312 10.5386C11.1416 10.5796 11.0674 10.6588 10.9189 10.8173L7 15" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>',
                               '<svg fill="#000000" width="30px" height="30px" viewBox="0 -8 72 72" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Layer_5" data-name="Layer 5"> <path d="M61,49.12c0,1-.27,1.88-1.57,1.88H13.35A2.36,2.36,0,0,1,11,48.65V5.22c0-1.3.85-1.57,1.88-1.57s1.88.27,1.88,1.57V44.89a2.36,2.36,0,0,0,2.35,2.35H59.43C60.73,47.24,61,48.08,61,49.12Z"></path> </g> <path d="M22.13,44h3.12a1.55,1.55,0,0,0,1.55-1.56V26.8a1.55,1.55,0,0,0-1.55-1.56H22.13a1.56,1.56,0,0,0-1.56,1.56V42.39A1.56,1.56,0,0,0,22.13,44Z"></path> <path d="M31.37,43.63h3.26A1.63,1.63,0,0,0,36.26,42V12.65A1.63,1.63,0,0,0,34.63,11H31.37a1.63,1.63,0,0,0-1.63,1.63V42A1.63,1.63,0,0,0,31.37,43.63Z"></path> <path d="M41.15,43.63h3.27A1.63,1.63,0,0,0,46.05,42V32.21a1.63,1.63,0,0,0-1.63-1.63H41.15a1.63,1.63,0,0,0-1.63,1.63V42A1.63,1.63,0,0,0,41.15,43.63Z"></path> <path d="M50.94,43.63H54.2A1.63,1.63,0,0,0,55.83,42V19.17a1.63,1.63,0,0,0-1.63-1.63H50.94a1.63,1.63,0,0,0-1.63,1.63V42A1.63,1.63,0,0,0,50.94,43.63Z"></path> </g></svg>',
-                              '<svg width="23px" height="23px" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><defs><style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.91px;}</style></defs><polyline class="cls-1" points="23.5 22.5 1.5 22.5 1.5 0.5"></polyline><rect class="cls-1" x="6.28" y="11.98" width="4.78" height="10.52"></rect><rect class="cls-1" x="15.85" y="8.15" width="4.78" height="14.35"></rect><rect class="cls-1" x="11.07" y="3.37" width="4.78" height="19.13"></rect></g></svg>'];
+                              '<svg width="23px" height="23px" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><defs><style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.91px;}</style></defs><polyline class="cls-1" points="23.5 22.5 1.5 22.5 1.5 0.5"></polyline><rect class="cls-1" x="6.28" y="11.98" width="4.78" height="10.52"></rect><rect class="cls-1" x="15.85" y="8.15" width="4.78" height="14.35"></rect><rect class="cls-1" x="11.07" y="3.37" width="4.78" height="19.13"></rect></g></svg>',
+                              '<svg fill="#000000" width="25px" height="25px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M22,10.972H13.028V2A10.026,10.026,0,0,1,22,10.972ZM5.682,19.736A10.023,10.023,0,0,0,22,12.977H12.44Zm5.341-8.176V2A10.023,10.023,0,0,0,4.264,18.318Z"></path></g></svg>'];
 
-        const buttonsFunctions = [this.generalTwoColChart, this.generalTwoColChart, this.barChart, this.histogram];
+        const buttonsFunctions = [this.generalTwoColChart, this.generalTwoColChart, this.barChart, this.histogram, this.pieChart];
         for (let i = 0; i < buttons.length; i++) {
             const buttonElement = document.createElement('button');
             buttonElement.type = 'button';
@@ -540,31 +541,31 @@ class TableObjToolbar extends HTMLElement {
 
         if (typeof type2 === 'undefined') {     // Only 1 column selected, so only enable the relevant graphs for 1 dataset
             if (type1 === 'numerical') {
-                enable = ['histogram'];
+                enable = ['histogram', 'pie'];
                 disable = ['bar', 'line', 'scatter'];
             }
             else if (type1 === 'nominal' || type1 === 'ordinal') {
-                enable = ['bar'];
+                enable = ['bar', 'pie'];
                 disable = ['line', 'scatter', 'histogram'];
             }
             else
-                disable = ['bar', 'line', 'scatter', 'histogram'];
+                disable = ['bar', 'line', 'scatter', 'histogram', 'pie'];
         }
         else {      // 2 columns selected
             if (type1 === 'numerical' && type2 === 'numerical') {
                 enable = ['scatter', 'line'];
-                disable = ['bar', 'histogram'];
+                disable = ['bar', 'histogram', 'pie'];
             }
             else if (type1 === 'textual' && type2 === 'numerical') {
                 enable = ['bar', 'line', 'scatter'];
-                disable = ['histogram'];
+                disable = ['histogram', 'pie'];
             }
             else if (type2 === 'numerical' && (type1 === 'ordinal' || type1 === 'nominal')) {
                 enable = ['bar'];
-                disable = ['line', 'scatter', 'histogram'];
+                disable = ['line', 'scatter', 'histogram', 'pie'];
             }
             else
-                disable = ['bar', 'line', 'scatter', 'histogram'];
+                disable = ['bar', 'line', 'scatter', 'histogram', 'pie'];
         }
         
         // Enable
@@ -737,7 +738,7 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             this.shadow.getElementById('col1Name').value,
-            this.shadow.getElementById('col2Name').value);
+            'numerical');
     }
 
     twoColBarChart(x, y){
@@ -771,6 +772,22 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             'ordinal',
-            this.shadow.getElementById('col2Name').value);
+            'numerical');
+    }
+
+    pieChart(){
+        let categories = [];
+        let frequencies = [];
+        if (this.shadow.getElementById('col1Name').value === 'numerical')
+            [categories, frequencies] = this.calculateFrequency(this.col1data);
+        else
+            [categories, frequencies] = this.getOccurences(this.col1data);
+
+        // Plot the graph
+        new chart('pie', categories, frequencies,
+            this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+            'Percentage',
+            'nominal',
+            'numerical');
     }
 }

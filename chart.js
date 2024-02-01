@@ -56,8 +56,10 @@ class chart {
         // Insert a canvas element inside the chart container
         const canvas = document.createElement('canvas');
         canvas.id = 'chartCanvas';
-        canvas.width = chartContainer.style.width;
-        canvas.height = chartContainer.style.height;
+        canvas.width = parseInt(chartContainer.style.width, 10);
+        canvas.height = parseInt(chartContainer.style.height, 10);
+        canvas.style.display = 'block';
+        canvas.style.margin = 'auto';
         chartContainer.appendChild(canvas);
     
         chartContainer.appendChild(closeButton);
@@ -131,6 +133,38 @@ class chart {
                             beginAtZero: true,
                             ticks: {
                                 precision: 0 // Only whole numbers
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: this.data.map(e => e.x),
+                    datasets: [{
+                        label: 'Set 1',
+                        data: this.data.map(e => e.y)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: context => {
+                                    let label = context.label || '';
+            
+                                    if (label) label += ': ';
+                                    if (context.parsed !== null) {
+                                        const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
+                                        const percentage = (context.parsed * 100 / total).toFixed(2) + '%';
+                                        label += percentage;
+                                    }
+                                    return label;
+                                }
                             }
                         }
                     }
