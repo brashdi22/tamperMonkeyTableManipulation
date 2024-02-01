@@ -389,6 +389,123 @@ async function classifyColumn(column) {
     return results[session.outputNames[0]].data[0];
 }
 
+// async function getColumnsToPlot2(){
+//     const columns = document.querySelectorAll('table thead tr:nth-child(2) th.selectedTableObjCell');
+
+//     let col1Header, col2Header;
+//     let col1ContentArray = [], col2ContentArray = [];
+
+//     if (columns.length === 0){
+//         const temp = getSelectedCellsAsColumns();
+//         if (!temp) return;
+//         [col1Header, col1ContentArray, col2Header, col2ContentArray] = temp;
+//     }
+//     else {
+//         let col1, col2;
+//         const table = columns[0].parentElement.parentElement.parentElement; // table -> thead -> tr -> th
+    
+//         if (columns.length === 1 && columns[0].cellIndex !== 2){
+//             col1 = 2;
+//             col2 = columns[0].cellIndex;
+    
+//             // Select the second column as well
+//             const cells = table.querySelectorAll(`th:nth-child(3), td:nth-child(3)`);
+//             for (let i = 1; i < cells.length; i++) {
+//                 cells[i].classList.add('selectedTableObjCell');
+//             }
+//         }
+//         else if (columns.length === 1 && columns[0].cellIndex === 2){
+//             col1 = 1;     // this is the index column
+//             col2 = 2;
+    
+//             // Select the first column as well
+//             const cells = table.querySelectorAll(`th:nth-child(2), td:nth-child(2)`);
+//             for (let i = 1; i < cells.length; i++) {
+//                 cells[i].classList.add('selectedTableObjCell');
+//             }
+//         }
+//         else {
+//             col1 = columns[0].cellIndex;
+//             col2 = columns[1].cellIndex;
+//         }
+
+//         table.querySelectorAll(`tbody td:nth-child(${col1 + 1})`).forEach(cell => {
+//             col1ContentArray.push(cell.textContent);
+//         });
+
+//         table.querySelectorAll(`tbody td:nth-child(${col2 + 1})`).forEach(cell => {
+//             col2ContentArray.push(cell.textContent);
+//         });
+
+//         col1Header = table.rows[1].cells[col1].textContent;
+//         col2Header = table.rows[1].cells[col2].textContent;
+//     }
+    
+//     const col1DataType = await classifyColumn(col1ContentArray);
+//     const col2DataType = await classifyColumn(col2ContentArray);
+
+//     return [[col1Header, col1DataType, col1ContentArray],
+//             [col2Header, col2DataType, col2ContentArray]];
+    
+// }
+
+// function getSelectedCellsAsColumns2(){
+//     const selectedCells = Array.from(document.querySelectorAll('.selectedTableObjCell'));
+//     if (selectedCells.length === 0) return;
+
+//     const table = selectedCells[0].parentElement.parentElement.parentElement; // table -> tbody -> tr -> td
+
+//     // Get the index of the first column. This is the lowest index of the selected cells
+//     let col1Index = selectedCells.reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
+    
+//     // Get the first cell that is not in the same column
+//     // const col2 = selectedCells.find(cell => cell.cellIndex !== col1Index);
+//     const col2 = selectedCells
+//         .filter(cell => cell.cellIndex !== col1Index)
+//         .reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
+
+//     // Get the selected cells in the first column
+//     const col1Cells = selectedCells.filter(cell => cell.cellIndex === col1Index);
+//     const col1ContentArray = col1Cells.map(cell => cell.textContent);
+
+//     // Set the index of the second column
+//     let col2Index;
+//     if (col2 === Infinity && col1Index !== 2){
+//         col2Index = 2;
+//         col1Cells.forEach(cell1 => {
+//             // Highlight the cell in the second column
+//             const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];    
+//             cell2.classList.add('selectedTableObjCell');
+//         });
+//     }
+//     else if (col2 === Infinity && col1Index === 2){
+//         col2Index = 1;
+//         col1Cells.forEach(cell1 => {
+//             // Highlight the cell in the second column
+//             const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];    
+//             cell2.classList.add('selectedTableObjCell');
+//         });
+//     }
+//     else
+//         col2Index = col2;
+
+//     // Get the selected cells in the second column that are in the same row as the selected cells in the first column
+//     const col2ContentArray = [];
+//     col1Cells.forEach(cell1 => {
+//         const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];
+//         col2ContentArray.push(cell2.textContent);
+//     });
+
+//     // Get the header cells
+//     const col1Header = table.rows[1].cells[col1Index].textContent;
+//     const col2Header = table.rows[1].cells[col2Index].textContent;
+
+//     if (col1Index > col2Index)
+//         return [col2Header, col2ContentArray, col1Header, col1ContentArray];
+//     else
+//         return [col1Header, col1ContentArray, col2Header, col2ContentArray];
+// }
+
 async function getColumnsToPlot(){
     const columns = document.querySelectorAll('table thead tr:nth-child(2) th.selectedTableObjCell');
 
@@ -404,49 +521,38 @@ async function getColumnsToPlot(){
         let col1, col2;
         const table = columns[0].parentElement.parentElement.parentElement; // table -> thead -> tr -> th
     
-        if (columns.length === 1 && columns[0].cellIndex !== 2){
-            col1 = 2;
-            col2 = columns[0].cellIndex;
-    
-            // Select the second column as well
-            const cells = table.querySelectorAll(`th:nth-child(3), td:nth-child(3)`);
-            for (let i = 1; i < cells.length; i++) {
-                cells[i].classList.add('selectedTableObjCell');
-            }
-        }
-        else if (columns.length === 1 && columns[0].cellIndex === 2){
-            col1 = 1;     // this is the index column
-            col2 = 2;
-    
-            // Select the first column as well
-            const cells = table.querySelectorAll(`th:nth-child(2), td:nth-child(2)`);
-            for (let i = 1; i < cells.length; i++) {
-                cells[i].classList.add('selectedTableObjCell');
-            }
+        if (columns.length === 1){
+            col1 = columns[0].cellIndex;
+            col2 = null;
         }
         else {
             col1 = columns[0].cellIndex;
             col2 = columns[1].cellIndex;
         }
-
+        
         table.querySelectorAll(`tbody td:nth-child(${col1 + 1})`).forEach(cell => {
             col1ContentArray.push(cell.textContent);
         });
 
-        table.querySelectorAll(`tbody td:nth-child(${col2 + 1})`).forEach(cell => {
-            col2ContentArray.push(cell.textContent);
-        });
-
+        if (col2){
+            table.querySelectorAll(`tbody td:nth-child(${col2 + 1})`).forEach(cell => {
+                col2ContentArray.push(cell.textContent);
+            });
+            col2Header = table.rows[1].cells[col2].textContent;
+        }
         col1Header = table.rows[1].cells[col1].textContent;
-        col2Header = table.rows[1].cells[col2].textContent;
     }
     
     const col1DataType = await classifyColumn(col1ContentArray);
+
+    if (typeof col2Header === 'undefined')
+        return [[col1Header, col1DataType, col1ContentArray],
+                 null];
+    
     const col2DataType = await classifyColumn(col2ContentArray);
 
     return [[col1Header, col1DataType, col1ContentArray],
-            [col2Header, col2DataType, col2ContentArray]];
-    
+            [col2Header, col2DataType, col2ContentArray]]; 
 }
 
 function getSelectedCellsAsColumns(){
@@ -456,52 +562,37 @@ function getSelectedCellsAsColumns(){
     const table = selectedCells[0].parentElement.parentElement.parentElement; // table -> tbody -> tr -> td
 
     // Get the index of the first column. This is the lowest index of the selected cells
-    let col1Index = selectedCells.reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
-    
-    // Get the first cell that is not in the same column
-    // const col2 = selectedCells.find(cell => cell.cellIndex !== col1Index);
-    const col2 = selectedCells
-        .filter(cell => cell.cellIndex !== col1Index)
-        .reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
+    const col1Index = selectedCells.reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
 
     // Get the selected cells in the first column
     const col1Cells = selectedCells.filter(cell => cell.cellIndex === col1Index);
     const col1ContentArray = col1Cells.map(cell => cell.textContent);
 
-    // Set the index of the second column
-    let col2Index;
-    if (col2 === Infinity && col1Index !== 2){
-        col2Index = 2;
-        col1Cells.forEach(cell1 => {
-            // Highlight the cell in the second column
-            const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];    
-            cell2.classList.add('selectedTableObjCell');
-        });
-    }
-    else if (col2 === Infinity && col1Index === 2){
-        col2Index = 1;
-        col1Cells.forEach(cell1 => {
-            // Highlight the cell in the second column
-            const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];    
-            cell2.classList.add('selectedTableObjCell');
-        });
-    }
-    else
-        col2Index = col2;
-
-    // Get the selected cells in the second column that are in the same row as the selected cells in the first column
-    const col2ContentArray = [];
-    col1Cells.forEach(cell1 => {
-        const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];
-        col2ContentArray.push(cell2.textContent);
-    });
-
-    // Get the header cells
+    // Get the header cell of the first column
     const col1Header = table.rows[1].cells[col1Index].textContent;
-    const col2Header = table.rows[1].cells[col2Index].textContent;
 
-    if (col1Index > col2Index)
-        return [col2Header, col2ContentArray, col1Header, col1ContentArray];
-    else
-        return [col1Header, col1ContentArray, col2Header, col2ContentArray];
+    // Get the first cell that is not in the same column
+    const col2Index = selectedCells
+        .filter(cell => cell.cellIndex !== col1Index)
+        .reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
+
+    if (col2Index === Infinity){
+        return [col1Header, col1ContentArray, undefined, undefined];
+    }
+    else {
+        // Get the selected cells in the second column that are in the same row as the selected cells in the first column
+        const col2ContentArray = [];
+        col1Cells.forEach(cell1 => {
+            const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];
+            col2ContentArray.push(cell2.textContent);
+        });
+
+        // Get the header cell of the second column
+        const col2Header = table.rows[1].cells[col2Index].textContent;
+
+        if (col1Index > col2Index)
+            return [col2Header, col2ContentArray, col1Header, col1ContentArray];
+        else
+            return [col1Header, col1ContentArray, col2Header, col2ContentArray];
+    }
 }

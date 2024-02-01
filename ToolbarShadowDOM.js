@@ -429,7 +429,10 @@ class TableObjToolbar extends HTMLElement {
         // Add event listeners to the input fields to update
         // the available graph types.
         input1.addEventListener('change', () => {
-            this.updateAvailableGraphs(input1.value, input2.value);
+            if (input2.disabled)
+                this.updateAvailableGraphs(input1.value, undefined);
+            else
+                this.updateAvailableGraphs(input1.value, input2.value);
         });
         input2.addEventListener('change', () => {
             this.updateAvailableGraphs(input1.value, input2.value);
@@ -449,36 +452,100 @@ class TableObjToolbar extends HTMLElement {
         return form;
     }
 
+    // async updateSelectedColumns1() {
+    //     // Get the data type of the selected columns
+    //     const dataType = await getColumnsToPlot();
+
+    //     if (dataType){
+    //         // Update the selected option in the select menu
+    //         this.shadow.getElementById('col1Name').value = dataType[0][1];
+    //         this.shadow.getElementById('col2Name').value = dataType[1][1];
+
+    //         // Update the labels for the input fields to be the column names
+    //         this.shadow.getElementById('col1Label').innerHTML = dataType[0][0] + ' (x)';
+    //         this.shadow.getElementById('col2Label').innerHTML = dataType[1][0] + ' (y)';
+
+    //         // Update the available graphs
+    //         this.updateAvailableGraphs(dataType[0][1], dataType[1][1]);
+
+    //         // Update the data
+    //         this.col1data = dataType[0][2];
+    //         this.col2data = dataType[1][2];
+
+    //         // Enable the 2 select elements and the swap button
+    //         ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
+    //             this.shadow.getElementById(id).disabled = false;
+    //         });
+
+    //         // If there one column is numerical and the other is textual, ensure the
+    //         // the textual column is the x column.
+    //         if (dataType[1][1] === 'textual' && dataType[0][1] === 'numerical') {
+    //             this.swapXandY();
+    //         }
+    //     }
+    //     else {
+    //         this.updateAvailableGraphs('', '');
+    //         // Disable the 2 select elements and the swap button
+    //         ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
+    //             this.shadow.getElementById(id).disabled = true;
+    //         });
+    //     }
+    // }
+
     async updateSelectedColumns() {
-        // Get the data type of the selected columns
-        const dataType = await getColumnsToPlot();
+        const data = await getColumnsToPlot();
+        if (data){
+            let col1, col2, col1Header, col1Type, col1Data, col2Header, col2Type, col2Data;
 
-        if (dataType){
+            [col1, col2] = data;
+            [col1Header, col1Type, col1Data] = col1;
+
             // Update the selected option in the select menu
-            this.shadow.getElementById('col1Name').value = dataType[0][1];
-            this.shadow.getElementById('col2Name').value = dataType[1][1];
+            this.shadow.getElementById('col1Name').value = col1Type;
 
-            // Update the labels for the input fields to be the column names
-            this.shadow.getElementById('col1Label').innerHTML = dataType[0][0] + ' (x)';
-            this.shadow.getElementById('col2Label').innerHTML = dataType[1][0] + ' (y)';
-
-            // Update the available graphs
-            this.updateAvailableGraphs(dataType[0][1], dataType[1][1]);
+            // Update the label for the input field to be the column name
+            this.shadow.getElementById('col1Label').innerHTML = col1Header + ' (x)';
 
             // Update the data
-            this.col1data = dataType[0][2];
-            this.col2data = dataType[1][2];
+            this.col1data = col1Data;
 
-            // Enable the 2 select elements and the swap button
-            ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
-                this.shadow.getElementById(id).disabled = false;
-            });
+            // Enable the first select element
+            this.shadow.getElementById('col1Name').disabled = false;
 
-            // If there one column is numerical and the other is textual, ensure the
-            // the textual column is the x column.
-            if (dataType[1][1] === 'textual' && dataType[0][1] === 'numerical') {
-                this.swapXandY();
+            if (col2){
+                [col2Header, col2Type, col2Data] = col2;
+                console.log(col2Header);
+
+                // Update the selected option in the select menu
+                this.shadow.getElementById('col1Name').value = col2Type;
+
+                // Update the label for the input field to be the column name
+                this.shadow.getElementById('col2Label').innerHTML = col2Header + ' (y)';
+
+                // Update the data
+                this.col2data = col2Data;
+
+                // Enable the second select element and the swap button
+                ['col2Name', 'swapButton'].forEach(id => {
+                    this.shadow.getElementById(id).disabled = false;
+                });
+
+                // If there one column is numerical and the other is textual, ensure the
+                // the textual column is the x column.
+                if (col2Type === 'textual' && col1Type === 'numerical') {
+                    this.swapXandY();
+                }
             }
+            else {
+                // Disable the second select element and the swap button
+                ['col2Name', 'swapButton'].forEach(id => {
+                    this.shadow.getElementById(id).disabled = true;
+                });
+            }
+
+            // Update the available graphs
+            this.updateAvailableGraphs(col1Type, col2Type);
+
         }
         else {
             this.updateAvailableGraphs('', '');
@@ -493,22 +560,35 @@ class TableObjToolbar extends HTMLElement {
         let enable = [];
         let disable = [];
 
-        if (type1 === 'numerical' && type2 === 'numerical') {
-            enable = ['scatter', 'line'];
-            disable = ['bar', 'histogram'];
+        if (typeof type2 === 'undefined') {     // Only 1 column selected, so only enable the relevant graphs for 1 dataset
+            if (type1 === 'numerical' || type1 === 'ordinal') {
+                enable = ['histogram'];
+                disable = ['bar', 'line', 'scatter'];
+            }
+            else if (type1 === 'nominal') {
+                enable = ['bar'];
+                disable = ['line', 'scatter', 'histogram'];
+            }
+            else
+                disable = ['bar', 'line', 'scatter', 'histogram'];
         }
-        else if (type1 === 'textual' && type2 === 'numerical') {
-            enable = ['bar', 'line', 'scatter'];
-            disable = ['histogram'];
+        else {      // 2 columns selected
+            if (type1 === 'numerical' && type2 === 'numerical') {
+                enable = ['scatter', 'line'];
+                disable = ['bar', 'histogram'];
+            }
+            else if (type1 === 'textual' && type2 === 'numerical') {
+                enable = ['bar', 'line', 'scatter'];
+                disable = ['histogram'];
+            }
+            else if (type2 === 'numerical' && (type1 === 'ordinal' || type1 === 'nominal')) {
+                enable = ['bar'];
+                disable = ['line', 'scatter', 'histogram'];
+            }
+            else
+                disable = ['bar', 'line', 'scatter', 'histogram'];
         }
-        else if (type1 === 'numerical' && (type2 === 'ordinal' || type2 === 'nominal') || type2 === 'numerical' && (type1 === 'ordinal' || type1 === 'nominal')) {
-            enable = ['bar', 'histogram'];
-            disable = ['line', 'scatter'];
-        }
-        else {
-            disable = ['bar', 'line', 'scatter', 'histogram'];
-        }
-
+        
         // Enable
         enable.forEach(button => {
             this.shadow.getElementById(`${button}Button`).disabled = false;
