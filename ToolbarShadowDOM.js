@@ -336,6 +336,7 @@ class TableObjToolbar extends HTMLElement {
                               '<svg fill="#000000" width="30px" height="30px" viewBox="0 -8 72 72" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Layer_5" data-name="Layer 5"> <path d="M61,49.12c0,1-.27,1.88-1.57,1.88H13.35A2.36,2.36,0,0,1,11,48.65V5.22c0-1.3.85-1.57,1.88-1.57s1.88.27,1.88,1.57V44.89a2.36,2.36,0,0,0,2.35,2.35H59.43C60.73,47.24,61,48.08,61,49.12Z"></path> </g> <path d="M22.13,44h3.12a1.55,1.55,0,0,0,1.55-1.56V26.8a1.55,1.55,0,0,0-1.55-1.56H22.13a1.56,1.56,0,0,0-1.56,1.56V42.39A1.56,1.56,0,0,0,22.13,44Z"></path> <path d="M31.37,43.63h3.26A1.63,1.63,0,0,0,36.26,42V12.65A1.63,1.63,0,0,0,34.63,11H31.37a1.63,1.63,0,0,0-1.63,1.63V42A1.63,1.63,0,0,0,31.37,43.63Z"></path> <path d="M41.15,43.63h3.27A1.63,1.63,0,0,0,46.05,42V32.21a1.63,1.63,0,0,0-1.63-1.63H41.15a1.63,1.63,0,0,0-1.63,1.63V42A1.63,1.63,0,0,0,41.15,43.63Z"></path> <path d="M50.94,43.63H54.2A1.63,1.63,0,0,0,55.83,42V19.17a1.63,1.63,0,0,0-1.63-1.63H50.94a1.63,1.63,0,0,0-1.63,1.63V42A1.63,1.63,0,0,0,50.94,43.63Z"></path> </g></svg>',
                               '<svg width="23px" height="23px" viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><defs><style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.91px;}</style></defs><polyline class="cls-1" points="23.5 22.5 1.5 22.5 1.5 0.5"></polyline><rect class="cls-1" x="6.28" y="11.98" width="4.78" height="10.52"></rect><rect class="cls-1" x="15.85" y="8.15" width="4.78" height="14.35"></rect><rect class="cls-1" x="11.07" y="3.37" width="4.78" height="19.13"></rect></g></svg>'];
 
+        const buttonsFunctions = [this.generalTwoColChart, this.generalTwoColChart, this.barChart, this.histogram];
         for (let i = 0; i < buttons.length; i++) {
             const buttonElement = document.createElement('button');
             buttonElement.type = 'button';
@@ -348,23 +349,9 @@ class TableObjToolbar extends HTMLElement {
                 buttonElement.title = buttons[i].charAt(0).toUpperCase() + buttons[i].slice(1) + ' chart';
 
             buttonElement.onclick = () => {
-                // If the data type is numerical, remove any non-numerical characters (like $, %, etc.)
-                let col1data = [];
-                let col2data = [];
-                if (this.shadow.getElementById('col1Name').value === 'numerical')
-                    col1data = this.cleanNumericalData(this.col1data);
-                else
-                    col1data = this.col1data;
-                if (this.shadow.getElementById('col2Name').value === 'numerical')
-                    col2data = this.cleanNumericalData(this.col2data);
-                else
-                    col2data = this.col2data;
-
-                // Plot the graph
-                new chart(buttons[i], col1data, col2data,
-                    this.shadow.getElementById('col1Label').textContent.slice(0, -3),
-                    this.shadow.getElementById('col2Label').textContent.slice(0, -3));
+                buttonsFunctions[i].bind(this)(buttons[i]);
             };
+
             buttonsDiv.appendChild(buttonElement);
         }
 
@@ -452,47 +439,39 @@ class TableObjToolbar extends HTMLElement {
         return form;
     }
 
-    // async updateSelectedColumns1() {
-    //     // Get the data type of the selected columns
-    //     const dataType = await getColumnsToPlot();
+    /** 
+     * Swaps the x and y columns.
+     */
+    swapXandY() {
+        // Swap the values of the input fields
+        let temp = this.shadow.getElementById('col1Name').value;
+        this.shadow.getElementById('col1Name').value = this.shadow.getElementById('col2Name').value;
+        this.shadow.getElementById('col2Name').value = temp;
 
-    //     if (dataType){
-    //         // Update the selected option in the select menu
-    //         this.shadow.getElementById('col1Name').value = dataType[0][1];
-    //         this.shadow.getElementById('col2Name').value = dataType[1][1];
+        // Swap the labels except for the (x) and (y) parts
+        // Get the labels without the last 3 characters
+        let col1Label = this.shadow.getElementById('col1Label').innerHTML.slice(0, -3);
+        let col2Label = this.shadow.getElementById('col2Label').innerHTML.slice(0, -3);
+        // Swap the labels
+        temp = col1Label;
+        col1Label = col2Label;
+        col2Label = temp;
+        // Add the last 3 characters back
+        this.shadow.getElementById('col1Label').innerHTML = col1Label + '(x)';
+        this.shadow.getElementById('col2Label').innerHTML = col2Label + '(y)';
 
-    //         // Update the labels for the input fields to be the column names
-    //         this.shadow.getElementById('col1Label').innerHTML = dataType[0][0] + ' (x)';
-    //         this.shadow.getElementById('col2Label').innerHTML = dataType[1][0] + ' (y)';
+        // Swap the data
+        temp = this.col1data;
+        this.col1data = this.col2data;
+        this.col2data = temp;
 
-    //         // Update the available graphs
-    //         this.updateAvailableGraphs(dataType[0][1], dataType[1][1]);
-
-    //         // Update the data
-    //         this.col1data = dataType[0][2];
-    //         this.col2data = dataType[1][2];
-
-    //         // Enable the 2 select elements and the swap button
-    //         ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
-    //             this.shadow.getElementById(id).disabled = false;
-    //         });
-
-    //         // If there one column is numerical and the other is textual, ensure the
-    //         // the textual column is the x column.
-    //         if (dataType[1][1] === 'textual' && dataType[0][1] === 'numerical') {
-    //             this.swapXandY();
-    //         }
-    //     }
-    //     else {
-    //         this.updateAvailableGraphs('', '');
-    //         // Disable the 2 select elements and the swap button
-    //         ['col1Name', 'col2Name', 'swapButton'].forEach(id => {
-    //             this.shadow.getElementById(id).disabled = true;
-    //         });
-    //     }
-    // }
+        this.updateAvailableGraphs(this.shadow.getElementById('col1Name').value, this.shadow.getElementById('col2Name').value);
+    }
 
     async updateSelectedColumns() {
+        // Reset the data
+        this.col1data = [];
+        this.col2data = [];
         const data = await getColumnsToPlot();
         if (data){
             let col1, col2, col1Header, col1Type, col1Data, col2Header, col2Type, col2Data;
@@ -514,10 +493,9 @@ class TableObjToolbar extends HTMLElement {
 
             if (col2){
                 [col2Header, col2Type, col2Data] = col2;
-                console.log(col2Header);
 
                 // Update the selected option in the select menu
-                this.shadow.getElementById('col1Name').value = col2Type;
+                this.shadow.getElementById('col2Name').value = col2Type;
 
                 // Update the label for the input field to be the column name
                 this.shadow.getElementById('col2Label').innerHTML = col2Header + ' (y)';
@@ -561,11 +539,11 @@ class TableObjToolbar extends HTMLElement {
         let disable = [];
 
         if (typeof type2 === 'undefined') {     // Only 1 column selected, so only enable the relevant graphs for 1 dataset
-            if (type1 === 'numerical' || type1 === 'ordinal') {
+            if (type1 === 'numerical') {
                 enable = ['histogram'];
                 disable = ['bar', 'line', 'scatter'];
             }
-            else if (type1 === 'nominal') {
+            else if (type1 === 'nominal' || type1 === 'ordinal') {
                 enable = ['bar'];
                 disable = ['line', 'scatter', 'histogram'];
             }
@@ -615,32 +593,184 @@ class TableObjToolbar extends HTMLElement {
         return cleanedData;
     }
 
-    /** 
-     * Swaps the x and y columns.
+    /**
+     * Returns the number of occurences of each unique value in the data.
+     * 
+     * @param {Array<string>} data An array of strings
+     * @returns {Array<Array>} An array of 2 arrays. The first array contains the unique values, and the second array contains the number of occurences of each unique value.
      */
-    swapXandY() {
-        // Swap the values of the input fields
-        let temp = this.shadow.getElementById('col1Name').value;
-        this.shadow.getElementById('col1Name').value = this.shadow.getElementById('col2Name').value;
-        this.shadow.getElementById('col2Name').value = temp;
+    getOccurences(data) {
+        // Get the unique values
+        const uniqueValues = [...new Set(data)];
 
-        // Swap the labels except for the (x) and (y) parts
-        // Get the labels without the last 3 characters
-        let col1Label = this.shadow.getElementById('col1Label').innerHTML.slice(0, -3);
-        let col2Label = this.shadow.getElementById('col2Label').innerHTML.slice(0, -3);
-        // Swap the labels
-        temp = col1Label;
-        col1Label = col2Label;
-        col2Label = temp;
-        // Add the last 3 characters back
-        this.shadow.getElementById('col1Label').innerHTML = col1Label + '(x)';
-        this.shadow.getElementById('col2Label').innerHTML = col2Label + '(y)';
+        // Create a map of the unique values and their occurences
+        const occurences = new Map();
+        uniqueValues.forEach(value => {
+            occurences.set(value, 0);
+        });
 
-        // Swap the data
-        temp = this.col1data;
-        this.col1data = this.col2data;
-        this.col2data = temp;
+        data.forEach(row => {
+            occurences.set(row, occurences.get(row) + 1);
+        });
 
-        this.updateAvailableGraphs(this.shadow.getElementById('col1Name').value, this.shadow.getElementById('col2Name').value);
+        // Convert the map to 2 arrays
+        const uniqueValuesArray = [];
+        const occurencesArray = [];
+        occurences.forEach((value, key) => {
+            uniqueValuesArray.push(key);
+            occurencesArray.push(value);
+        });
+
+        return [uniqueValuesArray, occurencesArray];
+    }
+
+    /** 
+     * Calculates the average y value for each unique category x.
+     * 
+     * @param {Array<string>} x An array of categories 
+     * @param {Array<number>} y An array of numbers
+     * @returns {Array<Array>} An array of 2 arrays. The first array contains the unique categories, and the second array contains the average y value for each unique category.
+    */
+    getAveragePerCategory(x, y) {
+        // Get the unique values of the x column and calculate the average y value for each unique x value
+        // Get the unique values
+        const uniqueValues = [...new Set(x)];
+
+        // Create a map of the unique values, their occurences and their sum
+        const averages = new Map();
+        uniqueValues.forEach(category => {
+            averages.set(category, [0, 0]);   // [sum, count]
+        });
+
+        // Calculate the sum of the y values for each unique x value
+        for (let i = 0; i < x.length; i++) {
+            averages.set(x[i], [averages.get(x[i])[0] + +y[i], averages.get(x[i])[1] + 1]);
+        }
+
+        // Calculate the average y value for each unique x value
+        averages.forEach((value, key) => {
+            averages.set(key, value[0] / value[1]);
+        });
+
+        // Convert the map to 2 arrays
+        const uniqueValuesArray = [];
+        const averagesArray = [];
+        averages.forEach((value, key) => {
+            uniqueValuesArray.push(key);
+            averagesArray.push(value);
+        });
+
+        return [uniqueValuesArray, averagesArray];
+    }
+
+    /** 
+     * Divides the given numerical data into ranges then calculates the frequency of each range.
+     * 
+     * @param {Array<number>} data An array of numbers
+     * @param {number} numberOfBins The number of ranges to divide the data into
+     * @returns {Array<Array>} An array of 2 arrays. The first array contains the ranges, and the second array contains the frequency of each range.
+    */
+    calculateFrequency(data, numberOfBins=6) {
+        if (data.length === 0 || numberOfBins <= 0) {
+            return new Map();
+        }
+    
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const rangeSize = (max - min) / numberOfBins;
+    
+        let frequency = new Map();
+    
+        // Initialize frequency map with ranges
+        for (let i = 0; i < numberOfBins; i++) {
+            const rangeStart = min + i * rangeSize;
+            const rangeEnd = rangeStart + rangeSize;
+            frequency.set(`${rangeStart.toFixed(2)}-${rangeEnd.toFixed(2)}`, 0);
+        }
+    
+        // Count frequencies
+        for (let num of data) {
+            const index = Math.min(Math.floor((num - min) / rangeSize), numberOfBins - 1);
+            const rangeStart = min + index * rangeSize;
+            const rangeEnd = rangeStart + rangeSize;
+            const key = `${rangeStart.toFixed(2)}-${rangeEnd.toFixed(2)}`;
+            frequency.set(key, frequency.get(key) + 1);
+        }
+
+        // Convert the map to 2 arrays
+        const uniqueValues = [];
+        const frequencies = [];
+        frequency.forEach((value, key) => {
+            uniqueValues.push(key);
+            frequencies.push(value);
+        });
+    
+        return [uniqueValues, frequencies];
+    }
+
+    generalTwoColChart(chartType){
+        // If the data type is numerical, remove any non-numerical characters (like $, %, etc.)
+        let col1data = [];
+        let col2data = [];
+        if (this.shadow.getElementById('col1Name').value === 'numerical')
+            col1data = this.cleanNumericalData(this.col1data);
+        else
+            col1data = this.col1data;
+        if (this.shadow.getElementById('col2Name').value === 'numerical')
+            col2data = this.cleanNumericalData(this.col2data);
+        else
+            col2data = this.col2data;
+
+        // Plot the graph
+        new chart(chartType, col1data, col2data,
+            this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+            this.shadow.getElementById('col2Label').textContent.slice(0, -3),
+            this.shadow.getElementById('col1Name').value,
+            this.shadow.getElementById('col2Name').value);
+    }
+
+    oneColBarChart(){
+        const [categories, occurences] = this.getOccurences(this.col1data);
+
+        // Plot the graph
+        new chart('bar', categories, occurences,
+            this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+            'Frequency',
+            this.shadow.getElementById('col1Name').value,
+            this.shadow.getElementById('col2Name').value);
+    }
+
+    twoColBarChart(x, y){
+        // This is drawn if x is categorial and y is numerical
+        // Get the unique values of the x column and calculate the average y value for each unique x value
+        const [categories, averages] = this.getAveragePerCategory(x, y);
+
+        // Plot the graph
+        new chart('bar', categories, averages,
+            this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+            'Average ' + this.shadow.getElementById('col2Label').textContent.slice(0, -3),
+            this.shadow.getElementById('col1Name').value,
+            this.shadow.getElementById('col2Name').value);
+    }
+
+    barChart(chartType='bar'){
+        if (this.col2data.length === 0)
+            this.oneColBarChart();
+        else
+            this.twoColBarChart(this.col1data, this.col2data);
+    }
+
+    histogram(chartType='histogram'){
+        const [col1data, col2data] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
+
+        console.log(col1data);
+        console.log(col2data);
+
+        // Plot the graph
+        new chart('histogram', col1data, col2data,
+            this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+            'Frequency',
+            'ordinal',
+            this.shadow.getElementById('col2Name').value);
     }
 }
