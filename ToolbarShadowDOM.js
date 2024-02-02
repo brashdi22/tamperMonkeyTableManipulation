@@ -440,9 +440,6 @@ class TableObjToolbar extends HTMLElement {
         return form;
     }
 
-    /** 
-     * Swaps the x and y columns.
-     */
     swapXandY() {
         // Swap the values of the input fields
         let temp = this.shadow.getElementById('col1Name').value;
@@ -469,6 +466,11 @@ class TableObjToolbar extends HTMLElement {
         this.updateAvailableGraphs(this.shadow.getElementById('col1Name').value, this.shadow.getElementById('col2Name').value);
     }
 
+    /** 
+     * Updates the selected columns, their data types and the available graphs.
+     * Disables the select elements and the swap button based on the number of
+     * columns selected. 
+    */
     async updateSelectedColumns() {
         // Reset the data
         this.col1data = [];
@@ -709,6 +711,11 @@ class TableObjToolbar extends HTMLElement {
         return [uniqueValues, frequencies];
     }
 
+    /** 
+     * Draws a scatter or line charts.
+     * 
+     * @param {string} chartType The type of chart to draw. Either 'scatter' or 'line'.
+     */
     generalTwoColChart(chartType){
         // If the data type is numerical, remove any non-numerical characters (like $, %, etc.)
         let col1data = [];
@@ -730,20 +737,33 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col2Name').value);
     }
 
+    /**
+     * Draws a bar chart from one dataset.
+     * 
+     * The frequency of each unique value (category) is calculated, then
+     * the frequency (y) is plotted against the category (x).
+     */
     oneColBarChart(){
-        const [categories, occurences] = this.getOccurences(this.col1data);
+        const [categories, frequency] = this.getOccurences(this.col1data);
 
         // Plot the graph
-        new chart('bar', categories, occurences,
+        new chart('bar', categories, frequency,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             this.shadow.getElementById('col1Name').value,
             'numerical');
     }
 
+    /** 
+     * Draws a bar chart from two datasets.
+     * 
+     * Get the unique values of the x column and calculate the average y 
+     * value for each unique x value.
+     * 
+     * @param {Array<string>} x An array of categories
+     * @param {Array<number>} y An array of numbers
+    */
     twoColBarChart(x, y){
-        // This is drawn if x is categorial and y is numerical
-        // Get the unique values of the x column and calculate the average y value for each unique x value
         const [categories, averages] = this.getAveragePerCategory(x, y);
 
         // Plot the graph
@@ -761,11 +781,14 @@ class TableObjToolbar extends HTMLElement {
             this.twoColBarChart(this.col1data, this.col2data);
     }
 
+    /** 
+     * Draws a histogram from a single numerical dataset.
+     * 
+     * The data is divided into ranges, then the frequency of each range is calculated.
+     * The frequency (y) is plotted against the range (x).
+    */
     histogram(chartType='histogram'){
         const [col1data, col2data] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
-
-        console.log(col1data);
-        console.log(col2data);
 
         // Plot the graph
         new chart('histogram', col1data, col2data,
@@ -775,6 +798,13 @@ class TableObjToolbar extends HTMLElement {
             'numerical');
     }
 
+    /** 
+     * Draws a pie chart from a single dataset. 
+     * - If the data type is numerical, the data is divided into ranges, 
+     *   then the frequency of each range is calculated.
+     * - If the data type is nominal or ordinal, the frequency of each 
+     *   unique value is calculated.
+    */
     pieChart(){
         let categories = [];
         let frequencies = [];

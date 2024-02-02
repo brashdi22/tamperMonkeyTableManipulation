@@ -21,8 +21,15 @@ class chart {
 
     }
 
+    /**
+     * Parses the data into an array of objects with x and y properties.
+     * 
+     * @param {Array} xData 
+     * @param {Array} yData 
+     * @returns {object} an array with n objects, each with an x and y property. 
+     *                   object[i].x = xData[i], object[i].y = yData[i].
+     */
     parseData(xData, yData){
-        // Create an array of objects from xData and yData
         return xData.map((e, i) => {
             return {x: e, y: yData[i]};
         });
@@ -32,10 +39,12 @@ class chart {
         // Delete the existing chart container if it exists
         const oldContainer = document.getElementById('chartContainer');
         if (oldContainer) oldContainer.remove();
-    
+        
+        // Create a new chart container
         const chartContainer = document.createElement('div');
         chartContainer.id = 'chartContainer';
         
+        // Create a close button
         const closeButton = document.createElement('button');
         closeButton.id = 'chartCloseButton';
         closeButton.textContent = 'x';
@@ -62,6 +71,7 @@ class chart {
         canvas.style.margin = 'auto';
         chartContainer.appendChild(canvas);
     
+        // Insert the close button and chart container into the DOM
         chartContainer.appendChild(closeButton);
         document.body.appendChild(chartContainer);
     }
