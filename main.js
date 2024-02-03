@@ -268,7 +268,7 @@ function copySelectedCellsAsTSV() {
 
     // Put the text content of the selected cells in the 2D array
     for (const cell of selectedCells) {
-        rows[cell.parentNode.rowIndex - minRowIndex][cell.cellIndex - minColIndex] = cell.textContent;
+        rows[cell.parentNode.rowIndex - minRowIndex][cell.cellIndex - minColIndex] = cell.textContent.replace(/[\n\t]/g, "");
     }
 
     // Convert the 2D array to TSV format (Tab-Separated Values)

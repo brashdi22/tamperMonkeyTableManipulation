@@ -697,7 +697,7 @@ class TableObj {
         for (let i = 0; i < this.selectedHeaders.length; i++){
             if (this.selectedHeaders[i]){
                 const cells = this.tbody.querySelectorAll(`td:nth-child(${i+1})`);
-                for (let j = 1; j < cells.length; j++) {
+                for (let j = 0; j < cells.length; j++) {
                     if (!cells[j].classList.contains('selectedTableObjCell')) {
                         this.selectedHeaders[i] = false;
                         this.thead.rows[0].cells[i].classList.remove('selectedTableObjCell');
@@ -783,10 +783,10 @@ class TableObj {
             }
         } 
         else {
+            this.mouseDownH = true;
             if (this.endCell.cellIndex === 1)
                 this.selecetWholeTable();
             else if (this.endCell.cellIndex !== 0){
-                this.mouseDownH = true;
                 this.selectColumns();
             }
         }
@@ -895,8 +895,9 @@ class TableObj {
         this.mouseDownH = false;
         this.mouseDownR = false;
 
-        this.checkAllCellsInColumnSelected();
         this.checkAllCellsInRowSelected();
+        this.checkAllCellsInColumnSelected();
+        
         
         // window.removeEventListener("mousemove", handleMousemove);
     }
