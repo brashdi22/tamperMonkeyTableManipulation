@@ -515,6 +515,9 @@ class TableObjToolbar extends HTMLElement {
                 // the textual column is the x column.
                 if (col2Type === 'textual' && col1Type === 'numerical') {
                     this.swapXandY();
+                    const temp = col1Type;
+                    col1Type = col2Type;
+                    col2Type = temp;
                 }
             }
             else {

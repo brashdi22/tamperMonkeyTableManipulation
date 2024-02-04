@@ -751,14 +751,15 @@ class TableObj {
     }
 
     addTableSpecificEventListeners(){
-        this.thead.addEventListener("mousedown", this.theadMouseDown.bind(this));
-        this.tbody.addEventListener("mousedown", this.tbodyMouseDown.bind(this));
+        this.thead.addEventListener("mousedown", this.theadMouseDown.bind(this), true);
+        this.tbody.addEventListener("mousedown", this.tbodyMouseDown.bind(this), true);
         this.addRowDragHandlesListeners();
         this.addColumnDragHandlesListeners();
     }
 
     // ====================================== Event Listeners' Functions ======================================
     theadMouseDown(event){
+        event.stopPropagation();
         if (!event.ctrlKey){
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                 cell.classList.remove('selectedTableObjCell'));
