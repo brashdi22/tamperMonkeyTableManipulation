@@ -14,11 +14,13 @@ class TableObj {
         this.table.tabIndex = 0;
 
         this.ensureTheadCellsAreThs();
+        // this.replaceHeaders();
         this.addTableId();
         this.addRowSelectors();
         this.showColNameOnHover();
         this.addRowDragHandles();
         this.addColumnDragHandles();
+        this.addSortButtons();
         this.addTableSettingsMenu();
         
         // this.table.className = "";
@@ -70,6 +72,19 @@ class TableObj {
         thead.appendChild(headerRow.cloneNode(true));
         this.tbody.removeChild(this.tbody.rows[0]);
         this.thead = thead;
+    }
+
+    /**
+     * Replaces the headers with a clone of their selves.
+     * This is to remove any existing event listeners.
+     */
+    replaceHeaders(){
+        // Get the last row of the thead
+        const headers = Array.from(this.thead.rows[this.thead.rows.length - 1]);
+        headers.forEach(header => {
+            const newHeader = header.cloneNode(true);
+            header.parentNode.replaceChild(newHeader, header);
+        });
     }
 
     /**
@@ -195,6 +210,23 @@ class TableObj {
             handle.addEventListener('dragstart', (event) => {
                 this.sourceColumn = event.target.cellIndex;
             });
+        });
+    }
+
+    addSortButtons(){
+        // Get the last row of the thead
+        const row = this.thead.rows[this.thead.rows.length - 1];
+        const cells = Array.from(row.cells);
+        cells.shift();
+        // Add a button to each cell
+        cells.forEach(cell => {
+            const button = document.createElement('button');
+            button.innerHTML = 'Sort';
+            button.className = 'sortButton';
+            button.onclick = () => {
+                sortTableByColumn(this.tbody, cell.cellIndex, true);
+            }
+            cell.appendChild(button);
         });
     }
 

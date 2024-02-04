@@ -71,7 +71,6 @@ setTimeout(function() {
         };
     });
 
-    // console.log(await classifyColumn(['Minor planet designation', '(162058) 1997 AE12', '846 Lipperta', '2440 Educatio', '2056 Nancy', '912 Maritima', '9165 Raup', '1235 Schorria', '50719 Elizabethgriffin', '(75482) 1999 XC173', '288 Glauke', '(39546) 1992 DT5', '496 Gryphia', '4524 Barklajdetolli', '2675 Tolkien', '(219774) 2001 YY145', '(38063) 1999 FH', '(86106) 1999 RP113', '14436 Morishita', '(87231) 2000 OB43', '(58651) 1997 WL42', '9000 Hal', '(42843) 1999 RV11', '3233 Krisbarons', '(37586) 1991 BP2', '831 Stateira', '2974 Holden', '(391033) 2005 TR15', '(29733) 1999 BA4', '2672 Písek', '12867 Joeloic', '2862 Vavilov', '(22166) 2000 WX154', '8109 Danielwilliam', '(47069) 1998 XC73', '1663 van den Bos', '4902 Thessandrus', 'textual']));
 }, 1);
 
 let classifierPromise;
@@ -492,4 +491,47 @@ function getSelectedCellsAsColumns(){
         else
             return [col1Header, col1ContentArray, col2Header, col2ContentArray];
     }
+}
+
+function sortTableByColumn(tbody, columnIndex, ascending = true) {
+    const rows = Array.from(tbody.rows);
+
+    const compareFunction = (rowA, rowB) => {
+        const cellA = rowA.cells[columnIndex].textContent.trim();
+        const cellB = rowB.cells[columnIndex].textContent.trim();
+        let valueA, valueB;
+
+        if (!isNaN(cellA) && !isNaN(cellB)){  // Both cells contain numbers
+            valueA = +cellA;
+            valueB = +cellB;
+        }
+        else {
+            // Attempt to convert cell content to a date
+            let dateA = new Date(cellA);
+            let dateB = new Date(cellB);
+
+            // Check if both dates are valid
+            let isDateAValid = !isNaN(dateA.getTime());
+            let isDateBValid = !isNaN(dateB.getTime());
+
+            if (isDateAValid && isDateBValid) {
+                valueA = dateA;
+                valueB = dateB;
+            } else {
+                valueA = cellA.toLowerCase();
+                valueB = cellB.toLowerCase();
+            }
+        }
+
+        if (valueA < valueB) return ascending ? -1 : 1;
+        if (valueA > valueB) return ascending ? 1 : -1;
+        return 0;
+    };
+
+    // Sort rows
+    const sortedRows = rows.sort(compareFunction);
+
+    // Re-add rows to tbody
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    sortedRows.forEach(row => tbody.appendChild(row));
 }
