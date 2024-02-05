@@ -493,9 +493,33 @@ function getSelectedCellsAsColumns(){
     }
 }
 
-function sortTableByColumn(tbody, columnIndex, ascending = true) {
+/** 
+ * Toggle the sort direction stored in the header
+ * 
+ * @param {HTMLTableCellElement} header the header cell to toggle
+ * @returns {Boolean} true if the sort direction is ascending, false if descending
+ */
+function toggleSortDirection(header) {
+    const isAscending = header.getAttribute('TableObj-col-sort-asc') === 'true';
+    header.setAttribute('TableObj-col-sort-asc', !isAscending);
+    return isAscending;
+}
+
+/** 
+ * Sort the table by the selected column
+ * 
+ * @param {HTMLTableElement} table the table to sort
+ * @param {Number} columnIndex the index of the column to sort by
+*/
+function sortTableByColumn(table, columnIndex) {
+    // Get the sort direction from the header
+    const header = table.tHead.rows[table.tHead.rows.length - 1].cells[columnIndex];
+    ascending = toggleSortDirection(header);
+
+    const tbody = table.tBodies[0];
     const rows = Array.from(tbody.rows);
 
+    // This function compares two rows based on the content of the selected column
     const compareFunction = (rowA, rowB) => {
         const cellA = rowA.cells[columnIndex].textContent.trim();
         const cellB = rowB.cells[columnIndex].textContent.trim();

@@ -14,7 +14,7 @@ class TableObj {
         this.table.tabIndex = 0;
 
         this.ensureTheadCellsAreThs();
-        // this.replaceHeaders();
+        this.replaceHeaders();
         this.addTableId();
         this.addRowSelectors();
         this.showColNameOnHover();
@@ -22,6 +22,7 @@ class TableObj {
         this.addColumnDragHandles();
         this.addSortButtons();
         this.addTableSettingsMenu();
+        
         
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
@@ -80,10 +81,11 @@ class TableObj {
      */
     replaceHeaders(){
         // Get the last row of the thead
-        const headers = Array.from(this.thead.rows[this.thead.rows.length - 1]);
+        const headers = Array.from(this.thead.rows[this.thead.rows.length - 1].cells);
         headers.forEach(header => {
             const newHeader = header.cloneNode(true);
             header.parentNode.replaceChild(newHeader, header);
+            
         });
     }
 
@@ -220,11 +222,13 @@ class TableObj {
         cells.shift();
         // Add a button to each cell
         cells.forEach(cell => {
+            // Add default sort direction
+            cell.setAttribute('TableObj-col-sort-asc', 'true');
             const button = document.createElement('button');
             button.innerHTML = 'Sort';
             button.className = 'sortButton';
             button.onclick = () => {
-                sortTableByColumn(this.tbody, cell.cellIndex, true);
+                sortTableByColumn(this.table, cell.cellIndex);
             }
             cell.appendChild(button);
         });
@@ -791,7 +795,6 @@ class TableObj {
 
     // ====================================== Event Listeners' Functions ======================================
     theadMouseDown(event){
-        event.stopPropagation();
         if (!event.ctrlKey){
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                 cell.classList.remove('selectedTableObjCell'));

@@ -812,7 +812,7 @@ class TableObjToolbar extends HTMLElement {
         let categories = [];
         let frequencies = [];
         if (this.shadow.getElementById('col1Name').value === 'numerical')
-            [categories, frequencies] = this.calculateFrequency(this.col1data);
+            [categories, frequencies] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
         else
             [categories, frequencies] = this.getOccurences(this.col1data);
 
