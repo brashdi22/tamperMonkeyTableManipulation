@@ -1,4 +1,191 @@
+// setTimeout(function() {
+//     'use strict';
+
+//     // This try-catch block is used to catch errors when the script is injected directly
+//     // into the page (during testing) rather than using Tampermonkey.  
+//     try{
+//         // Get the CSS text from the imported CSS file
+//         const styleSheet = GM_getResourceText("IMPORTED_CSS");
+
+//         // Add the stylesheet to the page
+//         GM_addStyle(styleSheet);
+        
+//     } catch (e) {console.log(e);}
+
+//     // Add ONNX Runtime Web script to the page
+//     const ortScript = document.createElement('script');
+//     ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js';
+//     document.head.appendChild(ortScript);
+
+//     // Add chart.js to the page
+//     const chartjsScript = document.createElement('script');
+//     chartjsScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+//     document.head.appendChild(chartjsScript);
+
+//     // Retrieve the tables from the page
+//     const tables = document.getElementsByTagName("table");
+//     let tableObjects = [];
+
+//     // Create an instance of TableObj for each table
+//     Array.from(tables).forEach(table => tableObjects.push(new TableObj(table)));
+
+
+//     // Define the custom toolbar element using the TableObjToolbar class
+//     customElements.define('table-obj-toolbar', TableObjToolbar);
+    
+//     // Create the toolbar and add to the page
+//     const toolbar = document.createElement('table-obj-toolbar');
+//     toolbar.id = 'TableObjToolbar';
+//     document.body.appendChild(toolbar);
+
+
+//     // Add an event listener to copy the selected cells to the clipboard
+//     document.addEventListener('keydown', (event) => {
+//         if (event.ctrlKey && event.key === 'c') {
+//             if (document.activeElement.closest('.lib-tabl'))
+//                 copySelectedCellsAsTSV();
+//             else
+//                 document.execCommand('copy');
+//         }
+//     });
+    
+//     // Create a promise to load the onnx model(column data type classifier) after 
+//     // the ONNX Runtime Web script has loaded.
+//     classifierPromise = new Promise((resolve, reject) => {
+//         ortScript.onload = async function() {
+//             // Fetch the ONNX model from the userscripts resources
+//             const modelUrl = GM_getResourceURL("ONNX_MODEL");
+//             const response = await fetch(modelUrl);
+
+//             // Create a buffer for the model file
+//             const onnxFileBuffer = await response.arrayBuffer();
+
+//             // Use the buffer to create an ONNX Runtime Web session (this is the classifier)
+//             const session = await ort.InferenceSession.create(onnxFileBuffer)
+
+//             resolve(session);
+//         };
+    
+//         ortScript.onerror = function() {
+//             reject("Script failed to load");
+//         };
+//     });
+
+// }, 1);
+
+
+// setTimeout(function() {
+//     let somethingChanged = false;
+//     let mainCalled = false;
+//     // Select the target table to observe for mutations
+//     targetTable = document.getElementsByTagName("table")[0];
+
+//     // // wait for 1 second then check if something changed
+//     // setTimeout(function() {
+//     //     if (somethingChanged) {
+//     //         console.log('Something changed');
+//     //     }
+//     // }, 1000);
+
+//     // Debounce function to delay execution of main until after a delay of no changes
+//     let debounceTimeout = null;
+//     const debounceDelay = 1000; // Delay in milliseconds, adjust as needed
+
+//     function debounceMainCall() {
+//         if (debounceTimeout) clearTimeout(debounceTimeout); // Reset the timer on every call
+//         debounceTimeout = setTimeout(() => {
+//             main(); // Call main() after the delay period if no more mutations
+//             observer.disconnect();
+//         }, debounceDelay);
+//     }
+
+//     function callMainOnce(){
+//         if (!mainCalled){
+//             main();
+//             mainCalled = true;
+//         } 
+//     }
+
+//     // Set an initial delay for execution
+//     const initialDelay = 1000;
+//     let timeoutId = setTimeout(callMainOnce, initialDelay);
+
+//     // Create a callback function to execute when mutations are observed
+//     const callback = function(mutationsList, observer) {
+//         // for (let mutation of mutationsList) {
+//         //     if (mutation.type === 'childList') {
+//         //         // Detects child elements being added or removed
+//         //         console.log('A child node has been added or removed.');
+//         //     } else if (mutation.type === 'attributes') {
+//         //         // Detects changes to attributes of the table or its descendants
+//         //         console.log(`The ${mutation.attributeName} attribute was modified.`);
+//         //     }
+//         //     debounceMainCall();
+//         // }
+//         clearTimeout(timeoutId);
+//         timeoutId = setTimeout(callMainOnce, initialDelay);
+//         // debounceMainCall();
+//         // somethingChanged = true;
+//     };
+
+//     // Create an instance of MutationObserver with the callback function
+//     const observer = new MutationObserver(callback);
+
+//     // Options for the observer (which mutations to observe)
+//     const config = { 
+//         attributes: true, // Set to true if you want to observe attribute changes
+//         childList: true, // Observe direct children additions/removals
+//         subtree: true, // Observe all descendants (not just direct children)
+//         attributeOldValue: true, // Include the previous value of the attribute
+//         characterData: true, // Observe changes to text content or node data
+//         characterDataOldValue: true // Include the previous data of the changed node
+//     };
+
+//     // Start observing the target table for configured mutations
+//     if (targetTable)
+//         observer.observe(targetTable, config);
+
+// }, 2000);
+
 setTimeout(function() {
+    // Select the target table to observe for mutations
+    targetTable = document.getElementsByTagName("table")[0];
+
+    function callMainOnce(){
+        main();
+        observer.disconnect();     // Stop observing the target table for mutations
+    }
+
+    // Set an initial delay for execution
+    const initialDelay = 1000;
+    let timeoutId = setTimeout(callMainOnce, initialDelay);
+
+    // Create a callback function to execute when mutations are observed
+    const callback = function(mutationsList, observer) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(callMainOnce, initialDelay);
+    };
+
+    // Create an instance of MutationObserver with the callback function
+    const observer = new MutationObserver(callback);
+
+    // Options for the observer (which mutations to observe)
+    const config = { 
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeOldValue: true,
+        characterData: true,
+        characterDataOldValue: true
+    };
+
+    // Start observing the target table for configured mutations
+    if (targetTable)
+        observer.observe(targetTable, config);
+
+}, 1000);
+
+function main() {
     'use strict';
 
     // This try-catch block is used to catch errors when the script is injected directly
@@ -71,7 +258,7 @@ setTimeout(function() {
         };
     });
 
-}, 1);
+}
 
 let classifierPromise;
 const coloursMap = {
