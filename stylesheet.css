@@ -51,14 +51,14 @@ table.lib-table th {
     background-color: #9bd49e !important;
 }
 
+.cursor-crosshair {
+    cursor: crosshair;
+}
+
 .rowDragHandle, .columnDragHandle{
     cursor: move !important;
-    /* align the content in the middle vertically and horizontally*/
-    /* display: flex;
-    justify-content: center;
-    align-items: center; */
-
 }
+
 .dragSVG {
     display: flex;
     justify-content: center;

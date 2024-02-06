@@ -829,6 +829,9 @@ class TableObj {
     // ====================================== Event Listeners' Functions ======================================
     theadMouseDown(event){
         if (event.target.closest(".sortButton")) return;
+        
+        document.body.classList.add('cursor-crosshair');
+
         if (!event.ctrlKey){
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                 cell.classList.remove('selectedTableObjCell'));
@@ -863,6 +866,7 @@ class TableObj {
     }
 
     tbodyMouseDown(event){
+        document.body.classList.add('cursor-crosshair');
         if (!event.ctrlKey){
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                 cell.classList.remove('selectedTableObjCell'));
@@ -942,6 +946,7 @@ class TableObj {
 
     documentMouseUp(){
         if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
+        document.body.classList.remove('cursor-crosshair');
 
         // Update selected columns
         const cells = this.thead.rows[1].cells;
