@@ -491,11 +491,13 @@ class TableObj {
     
             // Loop through rows
             for (let i = minRow; i <= maxRow; i++) {
+                if (rows[i].style.display === 'none') continue;
                 const cells = rows[i].getElementsByTagName("td");
     
                 // Loop through cells in the row
                 for (let j = minCol; j < maxCol + 1; j++) {
-                    cells[j].classList.add("selectedTableObjCell");
+                    if (cells[j].style.display !== 'none')
+                        cells[j].classList.add("selectedTableObjCell");
                 }
             }
         } 
@@ -530,7 +532,8 @@ class TableObj {
             for (let i = minCol; i < maxCol + 1; i++){
                 const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), thead tr:nth-child(n+2) th:nth-child(${i+1})`);
                 for (let i = 0; i < cells.length; i++) {
-                    cells[i].classList.add('selectedTableObjCell');
+                    if (cells[i].style.display !== 'none')
+                        cells[i].classList.add('selectedTableObjCell');
                 }
             }
 
@@ -565,8 +568,10 @@ class TableObj {
         if (this.toggleSelect){    
             for (let i = minRow; i <= maxRow; i++){
                 const row = this.table.rows[i];
-                for (let j = 1; j < row.cells.length; j++) {
-                    row.cells[j].classList.add("selectedTableObjCell");
+                if (row.style.display !== 'none'){
+                    for (let j = 1; j < row.cells.length; j++) {
+                        row.cells[j].classList.add("selectedTableObjCell");
+                    }
                 }
             }
 
@@ -599,7 +604,8 @@ class TableObj {
     selecetWholeTable(){
         if (this.toggleSelect){
             this.table.querySelectorAll('tbody td:nth-child(n+2), thead tr:nth-child(n+2) th:nth-child(n+2)').forEach(cell => {
-                cell.classList.add('selectedTableObjCell');
+                if (cell.style.display !== 'none' && cell.parentElement.style.display !== 'none')
+                    cell.classList.add('selectedTableObjCell');
             });
         }
         else {
@@ -698,7 +704,8 @@ class TableObj {
             if (this.selectedHeaders[i]){
                 const cells = this.tbody.querySelectorAll(`td:nth-child(${i+1})`);
                 for (let j = 0; j < cells.length; j++) {
-                    if (!cells[j].classList.contains('selectedTableObjCell')) {
+                    if (!cells[j].classList.contains('selectedTableObjCell')
+                        && cells[j].parentElement.style.display !== 'none') {
                         this.selectedHeaders[i] = false;
                         this.thead.rows[0].cells[i].classList.remove('selectedTableObjCell');
                         this.thead.rows[1].cells[i].classList.remove('selectedTableObjCell');
@@ -724,7 +731,8 @@ class TableObj {
             const row = this.table.rows[this.selectedRows[i]];
             let selected = true;
             for (let j = 1; j < row.cells.length; j++) {
-                if (!row.cells[j].classList.contains('selectedTableObjCell')) {
+                if (!row.cells[j].classList.contains('selectedTableObjCell')
+                    && row.cells[j].style.display !== 'none') {
                     this.table.rows[this.selectedRows[i]].cells[0].classList.remove('selectedTableObjCell');
                     this.table.rows[this.selectedRows[i]].cells[1].classList.remove('selectedTableObjCell');
                     selected = false;
