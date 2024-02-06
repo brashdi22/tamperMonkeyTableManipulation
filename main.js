@@ -201,7 +201,7 @@ function main() {
 
     // Add ONNX Runtime Web script to the page
     const ortScript = document.createElement('script');
-    ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js';
+    ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0/dist/ort.min.js';
     document.head.appendChild(ortScript);
 
     // Add chart.js to the page
