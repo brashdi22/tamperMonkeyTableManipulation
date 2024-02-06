@@ -692,6 +692,30 @@ function toggleSortDirection(header) {
     return isAscending;
 }
 
+function updateSortArrows(thead, columnIndex, isAscending){
+    // Get the cells in the header
+    const cells = Array.from(thead.rows[thead.rows.length - 1].cells);    
+    
+    // Get the sort button inside the clicked header
+    const sortButton = cells[columnIndex].querySelector('.sortButton');
+    if (isAscending)        // Set the sort button to the ascending state
+        sortButton.innerHTML = '<span class="arrow" style="transform: rotate(-90deg); display: block;">&gt;</span>';
+    else                    // set the sort button to the descending state
+        sortButton.innerHTML = '<span class="arrow" style="transform: rotate(-90deg); display: block;">&lt;</span>';
+
+    // Remove the clicked cell from the array then set the sort button to the default state
+    cells.splice(columnIndex, 1);
+    cells.forEach(cell => {
+        const sortButton = cell.querySelector('.sortButton');
+        if (sortButton)
+            sortButton.innerHTML = `
+            <span class="arrow" style="transform: rotate(-90deg); display: block;">&gt;</span>
+            <span class="arrow" style="transform: rotate(-90deg); display: block;">&lt;</span>`;
+
+        cell.setAttribute('TableObj-col-sort-asc', 'true');
+    });
+}
+
 /** 
  * Sort the table by the selected column
  * 
@@ -702,6 +726,7 @@ function sortTableByColumn(table, columnIndex) {
     // Get the sort direction from the header
     const header = table.tHead.rows[table.tHead.rows.length - 1].cells[columnIndex];
     ascending = toggleSortDirection(header);
+    updateSortArrows(table.tHead, columnIndex, ascending)
 
     const tbody = table.tBodies[0];
     const rows = Array.from(tbody.rows);
