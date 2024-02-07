@@ -265,10 +265,25 @@ function copySelectedCellsAsTSV() {
 
     // Create a 2D array with empty strings
     const rows = Array.from({ length: maxRowIndex - minRowIndex + 1 }, () => Array(maxColIndex - minColIndex + 1).fill(''));
-
+    
     // Put the text content of the selected cells in the 2D array
     for (const cell of selectedCells) {
         rows[cell.parentNode.rowIndex - minRowIndex][cell.cellIndex - minColIndex] = cell.textContent.replace(/[\n\t]/g, "");
+    }
+
+    // Get the hidden rows and columns
+    const table = selectedCells[0].parentElement.parentElement.parentElement;
+    const hiddenRows = Array.from(table.querySelectorAll('tbody td.hiddenRow')).map(cell => cell.parentElement.rowIndex);
+    const hiddenCols = Array.from(table.querySelectorAll('thead th.hiddenColumn')).map(cell => cell.cellIndex);
+
+    // Exclude the hidden rows and columns from the 2D array
+    for (let i = 0; i < hiddenRows.length; i++){
+        rows.splice(hiddenRows[i] - minRowIndex - i, 1);
+    }
+    for (let i = 0; i < hiddenCols.length; i++){
+        rows.forEach(row => {
+            row.splice(hiddenCols[i] - minColIndex - i, 1);
+        });
     }
 
     // Convert the 2D array to TSV format (Tab-Separated Values)
