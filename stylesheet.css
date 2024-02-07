@@ -2,6 +2,10 @@
     user-select: none;
 }
 
+.lib-tabl th:hover, .lib-tabl td:hover {
+    cursor: crosshair;
+}
+
 .lib-table {
     border-collapse: collapse;
     width: 100%;
@@ -47,8 +51,18 @@ table.lib-table th {
     background-color: #9bd49e !important;
 }
 
+.cursor-crosshair {
+    cursor: crosshair;
+}
+
 .rowDragHandle, .columnDragHandle{
-    cursor: move;
+    cursor: move !important;
+}
+
+.dragSVG {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .magnify-on-hover:hover {
@@ -148,6 +162,20 @@ table.lib-table th {
     right: 0;
     top: 0;
     cursor: pointer;
+}
+
+.sortButton {
+    line-height: 0.65;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 2px;
+    margin: 0px 3px;
+}
+
+.sortButton:hover {
+    background-color: #e8e8e8;
 }
 
 

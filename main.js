@@ -1,4 +1,191 @@
+// setTimeout(function() {
+//     'use strict';
+
+//     // This try-catch block is used to catch errors when the script is injected directly
+//     // into the page (during testing) rather than using Tampermonkey.  
+//     try{
+//         // Get the CSS text from the imported CSS file
+//         const styleSheet = GM_getResourceText("IMPORTED_CSS");
+
+//         // Add the stylesheet to the page
+//         GM_addStyle(styleSheet);
+        
+//     } catch (e) {console.log(e);}
+
+//     // Add ONNX Runtime Web script to the page
+//     const ortScript = document.createElement('script');
+//     ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js';
+//     document.head.appendChild(ortScript);
+
+//     // Add chart.js to the page
+//     const chartjsScript = document.createElement('script');
+//     chartjsScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+//     document.head.appendChild(chartjsScript);
+
+//     // Retrieve the tables from the page
+//     const tables = document.getElementsByTagName("table");
+//     let tableObjects = [];
+
+//     // Create an instance of TableObj for each table
+//     Array.from(tables).forEach(table => tableObjects.push(new TableObj(table)));
+
+
+//     // Define the custom toolbar element using the TableObjToolbar class
+//     customElements.define('table-obj-toolbar', TableObjToolbar);
+    
+//     // Create the toolbar and add to the page
+//     const toolbar = document.createElement('table-obj-toolbar');
+//     toolbar.id = 'TableObjToolbar';
+//     document.body.appendChild(toolbar);
+
+
+//     // Add an event listener to copy the selected cells to the clipboard
+//     document.addEventListener('keydown', (event) => {
+//         if (event.ctrlKey && event.key === 'c') {
+//             if (document.activeElement.closest('.lib-tabl'))
+//                 copySelectedCellsAsTSV();
+//             else
+//                 document.execCommand('copy');
+//         }
+//     });
+    
+//     // Create a promise to load the onnx model(column data type classifier) after 
+//     // the ONNX Runtime Web script has loaded.
+//     classifierPromise = new Promise((resolve, reject) => {
+//         ortScript.onload = async function() {
+//             // Fetch the ONNX model from the userscripts resources
+//             const modelUrl = GM_getResourceURL("ONNX_MODEL");
+//             const response = await fetch(modelUrl);
+
+//             // Create a buffer for the model file
+//             const onnxFileBuffer = await response.arrayBuffer();
+
+//             // Use the buffer to create an ONNX Runtime Web session (this is the classifier)
+//             const session = await ort.InferenceSession.create(onnxFileBuffer)
+
+//             resolve(session);
+//         };
+    
+//         ortScript.onerror = function() {
+//             reject("Script failed to load");
+//         };
+//     });
+
+// }, 1);
+
+
+// setTimeout(function() {
+//     let somethingChanged = false;
+//     let mainCalled = false;
+//     // Select the target table to observe for mutations
+//     targetTable = document.getElementsByTagName("table")[0];
+
+//     // // wait for 1 second then check if something changed
+//     // setTimeout(function() {
+//     //     if (somethingChanged) {
+//     //         console.log('Something changed');
+//     //     }
+//     // }, 1000);
+
+//     // Debounce function to delay execution of main until after a delay of no changes
+//     let debounceTimeout = null;
+//     const debounceDelay = 1000; // Delay in milliseconds, adjust as needed
+
+//     function debounceMainCall() {
+//         if (debounceTimeout) clearTimeout(debounceTimeout); // Reset the timer on every call
+//         debounceTimeout = setTimeout(() => {
+//             main(); // Call main() after the delay period if no more mutations
+//             observer.disconnect();
+//         }, debounceDelay);
+//     }
+
+//     function callMainOnce(){
+//         if (!mainCalled){
+//             main();
+//             mainCalled = true;
+//         } 
+//     }
+
+//     // Set an initial delay for execution
+//     const initialDelay = 1000;
+//     let timeoutId = setTimeout(callMainOnce, initialDelay);
+
+//     // Create a callback function to execute when mutations are observed
+//     const callback = function(mutationsList, observer) {
+//         // for (let mutation of mutationsList) {
+//         //     if (mutation.type === 'childList') {
+//         //         // Detects child elements being added or removed
+//         //         console.log('A child node has been added or removed.');
+//         //     } else if (mutation.type === 'attributes') {
+//         //         // Detects changes to attributes of the table or its descendants
+//         //         console.log(`The ${mutation.attributeName} attribute was modified.`);
+//         //     }
+//         //     debounceMainCall();
+//         // }
+//         clearTimeout(timeoutId);
+//         timeoutId = setTimeout(callMainOnce, initialDelay);
+//         // debounceMainCall();
+//         // somethingChanged = true;
+//     };
+
+//     // Create an instance of MutationObserver with the callback function
+//     const observer = new MutationObserver(callback);
+
+//     // Options for the observer (which mutations to observe)
+//     const config = { 
+//         attributes: true, // Set to true if you want to observe attribute changes
+//         childList: true, // Observe direct children additions/removals
+//         subtree: true, // Observe all descendants (not just direct children)
+//         attributeOldValue: true, // Include the previous value of the attribute
+//         characterData: true, // Observe changes to text content or node data
+//         characterDataOldValue: true // Include the previous data of the changed node
+//     };
+
+//     // Start observing the target table for configured mutations
+//     if (targetTable)
+//         observer.observe(targetTable, config);
+
+// }, 2000);
+
 setTimeout(function() {
+    // Select the target table to observe for mutations
+    targetTable = document.getElementsByTagName("table")[0];
+
+    function callMainOnce(){
+        main();
+        observer.disconnect();     // Stop observing the target table for mutations
+    }
+
+    // Set an initial delay for execution
+    const initialDelay = 1000;
+    let timeoutId = setTimeout(callMainOnce, initialDelay);
+
+    // Create a callback function to execute when mutations are observed
+    const callback = function(mutationsList, observer) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(callMainOnce, initialDelay);
+    };
+
+    // Create an instance of MutationObserver with the callback function
+    const observer = new MutationObserver(callback);
+
+    // Options for the observer (which mutations to observe)
+    const config = { 
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeOldValue: true,
+        characterData: true,
+        characterDataOldValue: true
+    };
+
+    // Start observing the target table for configured mutations
+    if (targetTable)
+        observer.observe(targetTable, config);
+
+}, 1000);
+
+function main() {
     'use strict';
 
     // This try-catch block is used to catch errors when the script is injected directly
@@ -14,7 +201,7 @@ setTimeout(function() {
 
     // Add ONNX Runtime Web script to the page
     const ortScript = document.createElement('script');
-    ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js';
+    ortScript.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0/dist/ort.min.js';
     document.head.appendChild(ortScript);
 
     // Add chart.js to the page
@@ -71,8 +258,7 @@ setTimeout(function() {
         };
     });
 
-    // console.log(await classifyColumn(['Minor planet designation', '(162058) 1997 AE12', '846 Lipperta', '2440 Educatio', '2056 Nancy', '912 Maritima', '9165 Raup', '1235 Schorria', '50719 Elizabethgriffin', '(75482) 1999 XC173', '288 Glauke', '(39546) 1992 DT5', '496 Gryphia', '4524 Barklajdetolli', '2675 Tolkien', '(219774) 2001 YY145', '(38063) 1999 FH', '(86106) 1999 RP113', '14436 Morishita', '(87231) 2000 OB43', '(58651) 1997 WL42', '9000 Hal', '(42843) 1999 RV11', '3233 Krisbarons', '(37586) 1991 BP2', '831 Stateira', '2974 Holden', '(391033) 2005 TR15', '(29733) 1999 BA4', '2672 Písek', '12867 Joeloic', '2862 Vavilov', '(22166) 2000 WX154', '8109 Danielwilliam', '(47069) 1998 XC73', '1663 van den Bos', '4902 Thessandrus', 'textual']));
-}, 1);
+}
 
 let classifierPromise;
 const coloursMap = {
@@ -507,4 +693,94 @@ function getSelectedCellsAsColumns(){
         else
             return [col1Header, col1ContentArray, col2Header, col2ContentArray];
     }
+}
+
+/** 
+ * Toggle the sort direction stored in the header
+ * 
+ * @param {HTMLTableCellElement} header the header cell to toggle
+ * @returns {Boolean} true if the sort direction is ascending, false if descending
+ */
+function toggleSortDirection(header) {
+    const isAscending = header.getAttribute('TableObj-col-sort-asc') === 'true';
+    header.setAttribute('TableObj-col-sort-asc', !isAscending);
+    return isAscending;
+}
+
+function updateSortArrows(thead, columnIndex, isAscending){
+    // Get the cells in the header
+    const cells = Array.from(thead.rows[thead.rows.length - 1].cells);    
+    
+    // Get the sort button inside the clicked header
+    const sortButton = cells[columnIndex].querySelector('.sortButton');
+    if (isAscending)        // Set the sort button to the ascending state
+        sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M182.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8H288c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-128-128z"/></svg>';
+    else                    // set the sort button to the descending state
+        sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M182.6 470.6c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128z"/></svg>';
+
+    // Remove the clicked cell from the array then set the sort button to the default state
+    cells.splice(columnIndex, 1);
+    cells.forEach(cell => {
+        const sortButton = cell.querySelector('.sortButton');
+        if (sortButton)
+            sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M137.4 41.4c12.5-12.5 32.8-12.5 45.3 0l128 128c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8H32c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l128-128zm0 429.3l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128c-12.5 12.5-32.8 12.5-45.3 0z"/></svg>';
+
+        cell.setAttribute('TableObj-col-sort-asc', 'true');
+    });
+}
+
+/** 
+ * Sort the table by the selected column
+ * 
+ * @param {HTMLTableElement} table the table to sort
+ * @param {Number} columnIndex the index of the column to sort by
+*/
+function sortTableByColumn(table, columnIndex) {
+    // Get the sort direction from the header
+    const header = table.tHead.rows[table.tHead.rows.length - 1].cells[columnIndex];
+    ascending = toggleSortDirection(header);
+    updateSortArrows(table.tHead, columnIndex, ascending)
+
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+
+    // This function compares two rows based on the content of the selected column
+    const compareFunction = (rowA, rowB) => {
+        const cellA = rowA.cells[columnIndex].textContent.trim();
+        const cellB = rowB.cells[columnIndex].textContent.trim();
+        let valueA, valueB;
+
+        if (!isNaN(cellA) && !isNaN(cellB)){  // Both cells contain numbers
+            valueA = +cellA;
+            valueB = +cellB;
+        }
+        else {
+            // Attempt to convert cell content to a date
+            let dateA = new Date(cellA);
+            let dateB = new Date(cellB);
+
+            // Check if both dates are valid
+            let isDateAValid = !isNaN(dateA.getTime());
+            let isDateBValid = !isNaN(dateB.getTime());
+
+            if (isDateAValid && isDateBValid) {
+                valueA = dateA;
+                valueB = dateB;
+            } else {
+                valueA = cellA.toLowerCase();
+                valueB = cellB.toLowerCase();
+            }
+        }
+
+        if (valueA < valueB) return ascending ? -1 : 1;
+        if (valueA > valueB) return ascending ? 1 : -1;
+        return 0;
+    };
+
+    // Sort rows
+    const sortedRows = rows.sort(compareFunction);
+
+    // Re-add rows to tbody
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    sortedRows.forEach(row => tbody.appendChild(row));
 }

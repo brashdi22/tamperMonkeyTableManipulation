@@ -14,12 +14,15 @@ class TableObj {
         this.table.tabIndex = 0;
 
         this.ensureTheadCellsAreThs();
+        this.replaceHeaders();
         this.addTableId();
         this.addRowSelectors();
         this.showColNameOnHover();
         this.addRowDragHandles();
         this.addColumnDragHandles();
+        this.addSortButtons();
         this.addTableSettingsMenu();
+        
         
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
@@ -70,6 +73,20 @@ class TableObj {
         thead.appendChild(headerRow.cloneNode(true));
         this.tbody.removeChild(this.tbody.rows[0]);
         this.thead = thead;
+    }
+
+    /**
+     * Replaces the headers with a clone of their selves.
+     * This is to remove any existing event listeners.
+     */
+    replaceHeaders(){
+        // Get the last row of the thead
+        const headers = Array.from(this.thead.rows[this.thead.rows.length - 1].cells);
+        headers.forEach(header => {
+            const newHeader = header.cloneNode(true);
+            header.parentNode.replaceChild(newHeader, header);
+            
+        });
     }
 
     /**
@@ -141,14 +158,23 @@ class TableObj {
      */
     addRowDragHandles(){
         const th = document.createElement("th");
+        th.style.cursor = 'default';
         this.thead.rows[0].insertBefore(th, this.thead.rows[0].firstElementChild);
         const rows = Array.from(this.tbody.rows);
 
         for (let i = 0; i < rows.length; i++){
+            // Create a cell
             const cell = rows[i].insertCell(0);
-            cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="10" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 32H32C14.3 32 0 46.3 0 64v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zm0 160H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm0 160H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM288 32h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zm0 160h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm0 160h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
             cell.className = 'rowDragHandle';
             cell.draggable = true;
+
+            // Create a div to hold the drag icon, this is so we can centre the icon
+            const div = document.createElement('div');
+            div.className = 'dragSVG';
+            div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="10" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 32H32C14.3 32 0 46.3 0 64v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zm0 160H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm0 160H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM288 32h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zm0 160h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm0 160h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
+            
+            // Append the div to the cell
+            cell.appendChild(div);
         }
     }
 
@@ -159,17 +185,29 @@ class TableObj {
     addColumnDragHandles(){
         const tr = document.createElement("tr");
         this.thead.insertBefore(tr, this.thead.rows[0]);
-        tr.appendChild(document.createElement("th"));
-        tr.appendChild(document.createElement("th"));
+
+        for (let i = 0; i < 2; i++){
+            const cell = document.createElement("th");
+            cell.style.cursor = 'default';
+            tr.appendChild(cell);
+        }
 
         const numOfCols = this.thead.rows[1].cells.length;
-
         for (let i = 0; i < numOfCols-2; i++){
+            // Create a cell
             const cell = document.createElement("th");
-            cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 288H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM96 96H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
             cell.className = 'columnDragHandle';
+            cell.draggable = true; 
+
+            // Create a div to hold the drag icon, this is so we can centre the icon
+            const div = document.createElement("div");
+            div.className = 'dragSVG';
+            div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M96 288H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zM96 96H32c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm160 0h-64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>';
+            
+            // Append the div to the cell, then the cell to the row
+            cell.appendChild(div);
             tr.appendChild(cell);
-            cell.draggable = true;  
+             
         }
     }
 
@@ -196,6 +234,36 @@ class TableObj {
                 this.sourceColumn = event.target.cellIndex;
             });
         });
+    }
+
+    addSortButtons(){
+        // Get the last row of the thead
+        const row = this.thead.rows[this.thead.rows.length - 1];
+        const cells = Array.from(row.cells);
+        cells.shift();
+        // Add a button to each cell
+        cells.forEach(cell => {
+            const button = document.createElement('button');
+            button.className = 'sortButton';
+            cell.appendChild(button);
+        });
+    }
+
+    addFunctionsToSortButtons(){
+        const buttons = this.table.querySelectorAll('.sortButton');
+        buttons.forEach(button => {
+            const cell = button.parentElement;
+            cell.setAttribute('TableObj-col-sort-asc', 'true');
+            button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M137.4 41.4c12.5-12.5 32.8-12.5 45.3 0l128 128c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8H32c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l128-128zm0 429.3l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128c-12.5 12.5-32.8 12.5-45.3 0z"/></svg>';
+            button.onclick = () => {
+                sortTableByColumn(this.table, cell.cellIndex);
+            }
+        });
+
+        // change the innerHTML of the 'index' column to indicate that it the
+        // table is sorted by this column by default
+        buttons[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M182.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8H288c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-128-128z"/></svg>';
+        buttons[0].parentElement.setAttribute('TableObj-col-sort-asc', 'false');
     }
 
     /**
@@ -763,11 +831,15 @@ class TableObj {
         this.tbody.addEventListener("mousedown", this.tbodyMouseDown.bind(this), true);
         this.addRowDragHandlesListeners();
         this.addColumnDragHandlesListeners();
+        this.addFunctionsToSortButtons();
     }
 
     // ====================================== Event Listeners' Functions ======================================
     theadMouseDown(event){
-        event.stopPropagation();
+        if (event.target.closest(".sortButton")) return;
+        
+        document.body.classList.add('cursor-crosshair');
+
         if (!event.ctrlKey){
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                 cell.classList.remove('selectedTableObjCell'));
@@ -802,6 +874,7 @@ class TableObj {
     }
 
     tbodyMouseDown(event){
+        document.body.classList.add('cursor-crosshair');
         if (!event.ctrlKey){
             this.table.querySelectorAll('.selectedTableObjCell').forEach(cell =>
                 cell.classList.remove('selectedTableObjCell'));
@@ -881,6 +954,7 @@ class TableObj {
 
     documentMouseUp(){
         if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
+        document.body.classList.remove('cursor-crosshair');
 
         // Update selected columns
         const cells = this.thead.rows[1].cells;

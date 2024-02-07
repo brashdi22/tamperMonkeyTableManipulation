@@ -767,14 +767,24 @@ class TableObjToolbar extends HTMLElement {
      * @param {Array<number>} y An array of numbers
     */
     twoColBarChart(x, y){
-        const [categories, averages] = this.getAveragePerCategory(x, y);
-
-        // Plot the graph
-        new chart('bar', categories, averages,
+        if (this.shadow.getElementById('col1Name').value === 'textual'){
+            // Plot the graph
+            new chart('bar', x, this.cleanNumericalData(y),
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
-            'Average ' + this.shadow.getElementById('col2Label').textContent.slice(0, -3),
+            this.shadow.getElementById('col2Label').textContent.slice(0, -3),
             this.shadow.getElementById('col1Name').value,
             this.shadow.getElementById('col2Name').value);
+        }
+        else{
+            const [categories, averages] = this.getAveragePerCategory(x, this.cleanNumericalData(y));
+
+            // Plot the graph
+            new chart('bar', categories, averages,
+                this.shadow.getElementById('col1Label').textContent.slice(0, -3),
+                'Average ' + this.shadow.getElementById('col2Label').textContent.slice(0, -3),
+                this.shadow.getElementById('col1Name').value,
+                this.shadow.getElementById('col2Name').value);
+        }
     }
 
     barChart(chartType='bar'){
@@ -812,7 +822,7 @@ class TableObjToolbar extends HTMLElement {
         let categories = [];
         let frequencies = [];
         if (this.shadow.getElementById('col1Name').value === 'numerical')
-            [categories, frequencies] = this.calculateFrequency(this.col1data);
+            [categories, frequencies] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
         else
             [categories, frequencies] = this.getOccurences(this.col1data);
 
