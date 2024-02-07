@@ -716,6 +716,10 @@ class TableObj {
      * @returns {HTMLTableCellElement} HTMLTableCellElement, either a th or a td
      */
     findClosestCol(x, cells) {
+        // Remove the hidden cells
+        cells = cells.filter(cell => cell.style.display !== 'none');
+
+        // Do a binary search to find the closest cell
         while (cells.length > 1) {
             const midIndex = Math.floor(cells.length / 2);
             const midCell = cells[midIndex];
@@ -730,7 +734,6 @@ class TableObj {
             else
                 return midCell;
         }
-        
         return cells[0];
     }
 
@@ -741,6 +744,10 @@ class TableObj {
      * @returns {HTMLTableRowElement} HTMLTableRowElement
      */
     findClosestRow(y, rows) {
+        // Remove the hidden rows
+        rows = rows.filter(row => row.style.display !== 'none');
+
+        // Do a binary search to find the closest row
         while (rows.length > 1) {
             const midIndex = Math.floor(rows.length / 2);
             const midRow = rows[midIndex];
@@ -757,7 +764,6 @@ class TableObj {
             else
                 return midRow;
         }
-    
         return rows[0];
     }
 
