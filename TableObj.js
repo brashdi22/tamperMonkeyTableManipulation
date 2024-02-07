@@ -14,19 +14,19 @@ class TableObj {
 
         this.addTableId();
         this.ensureTheadCellsAreThs();
-        this.replaceHeaders();
-        this.addRowSelectors();
-        this.showColNameOnHover();
-        this.addRowDragHandles();
         this.addColumnDragHandles();
 
         this.headerRowIndex = this.thead.rows.length - 1;
         this.colDragHandlesRowIndex = this.thead.rows.length - 2;
-        
+
+        this.replaceHeaders();
+        this.addRowSelectors();
+        this.showColNameOnHover();
+        this.addRowDragHandles();
         this.addSortButtons();
         this.addTableSettingsMenu();
         
-        
+
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
 
@@ -88,7 +88,7 @@ class TableObj {
      */
     replaceHeaders(){
         // Get the last row of the thead
-        const headers = Array.from(this.thead.rows[this.thead.rows.length - 1].cells);
+        const headers = Array.from(this.thead.rows[this.headerRowIndex].cells);
         headers.forEach(header => {
             const newHeader = header.cloneNode(true);
             header.parentNode.replaceChild(newHeader, header);
@@ -131,19 +131,26 @@ class TableObj {
      * When this cell is selected, the whole row will be selected.
      */
     addRowSelectors(){
+        // Add an empty cell to the left of the row for every row in the thead except the headers row
+        for (let i = 0; i < this.thead.rows.length - 1; i++){
+            const th = document.createElement("th");
+            th.style.cursor = 'default';
+            this.thead.rows[i].insertBefore(th, this.thead.rows[i].firstElementChild);
+        }
+
+        // Add the 'Index' header cell to the headers row
         const th = document.createElement("th");
         th.className = "rowSelector";
         th.textContent = "Index";
-        this.thead.rows[this.thead.rows.length - 1].insertBefore(th, this.thead.rows[this.thead.rows.length - 1].firstElementChild);
+        this.thead.rows[this.headerRowIndex].insertBefore(th, this.thead.rows[this.headerRowIndex].firstElementChild);
 
+        // Add row selectors to the tbody
         const rows = Array.from(this.tbody.rows);
-
         for (let i = 0; i < rows.length; i++){
             const cell = rows[i].insertCell(0);
             cell.textContent = i + 1;
             cell.className = "rowSelector";
         }
-        
     }
 
     /** 
@@ -153,7 +160,7 @@ class TableObj {
         for (let i = 0; i < this.table.rows.length; i++) {
             const row = this.table.rows[i];
             for (let j = 0; j < row.cells.length; j++) {
-                row.cells[j].title = this.thead.rows[this.thead.rows.length - 1].cells[j].textContent;
+                row.cells[j].title = this.thead.rows[this.headerRowIndex].cells[j].textContent;
             }
         }
     }
@@ -163,11 +170,15 @@ class TableObj {
      * and adds event listeners to the cells.
      */
     addRowDragHandles(){
-        const th = document.createElement("th");
-        th.style.cursor = 'default';
-        this.thead.rows[this.thead.rows.length - 1].insertBefore(th, this.thead.rows[this.thead.rows.length - 1].firstElementChild);
-        const rows = Array.from(this.tbody.rows);
+        // Add an empty cell to the left of the row for every row in the thead
+        for (let i = 0; i < this.thead.rows.length; i++){
+            const th = document.createElement("th");
+            th.style.cursor = 'default';
+            this.thead.rows[i].insertBefore(th, this.thead.rows[i].firstElementChild);
+        }
 
+        // Add row drag handles to the tbody
+        const rows = Array.from(this.tbody.rows);
         for (let i = 0; i < rows.length; i++){
             // Create a cell
             const cell = rows[i].insertCell(0);
@@ -192,14 +203,8 @@ class TableObj {
         const tr = document.createElement("tr");
         this.thead.insertBefore(tr, this.thead.rows[this.thead.rows.length - 1]);
 
-        for (let i = 0; i < 2; i++){
-            const cell = document.createElement("th");
-            cell.style.cursor = 'default';
-            tr.appendChild(cell);
-        }
-
         const numOfCols = this.thead.rows[this.thead.rows.length - 1].cells.length;
-        for (let i = 0; i < numOfCols-2; i++){
+        for (let i = 0; i < numOfCols; i++){
             // Create a cell
             const cell = document.createElement("th");
             cell.className = 'columnDragHandle';
