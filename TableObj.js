@@ -7,19 +7,22 @@ class TableObj {
 
         this.tbody = this.table.tBodies[0];
         this.thead = this.table.tHead;
+        this.table.tabIndex = 0;
 
         if (this.thead === null)
             this.createThead();
 
-        this.table.tabIndex = 0;
-
+        this.addTableId();
         this.ensureTheadCellsAreThs();
         this.replaceHeaders();
-        this.addTableId();
         this.addRowSelectors();
         this.showColNameOnHover();
         this.addRowDragHandles();
         this.addColumnDragHandles();
+
+        this.headerRowIndex = this.thead.rows.length - 1;
+        this.colDragHandlesRowIndex = this.thead.rows.length - 2;
+        
         this.addSortButtons();
         this.addTableSettingsMenu();
         
@@ -57,7 +60,7 @@ class TableObj {
         this.OldEndCell = null;
 
         this.selectedCells = [];
-        this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
+        this.selectedHeaders = new Array(this.thead.rows[this.headerRowIndex].cells.length).fill(false);
         this.selectedRows = [];
 
         this.toggleSelect = true;
@@ -89,7 +92,6 @@ class TableObj {
         headers.forEach(header => {
             const newHeader = header.cloneNode(true);
             header.parentNode.replaceChild(newHeader, header);
-            
         });
     }
 
@@ -132,7 +134,7 @@ class TableObj {
         const th = document.createElement("th");
         th.className = "rowSelector";
         th.textContent = "Index";
-        this.thead.rows[0].insertBefore(th, this.thead.rows[0].firstElementChild);
+        this.thead.rows[this.thead.rows.length - 1].insertBefore(th, this.thead.rows[this.thead.rows.length - 1].firstElementChild);
 
         const rows = Array.from(this.tbody.rows);
 
@@ -151,7 +153,7 @@ class TableObj {
         for (let i = 0; i < this.table.rows.length; i++) {
             const row = this.table.rows[i];
             for (let j = 0; j < row.cells.length; j++) {
-                row.cells[j].title = this.thead.rows[0].cells[j].textContent;
+                row.cells[j].title = this.thead.rows[this.thead.rows.length - 1].cells[j].textContent;
             }
         }
     }
@@ -163,7 +165,7 @@ class TableObj {
     addRowDragHandles(){
         const th = document.createElement("th");
         th.style.cursor = 'default';
-        this.thead.rows[0].insertBefore(th, this.thead.rows[0].firstElementChild);
+        this.thead.rows[this.thead.rows.length - 1].insertBefore(th, this.thead.rows[this.thead.rows.length - 1].firstElementChild);
         const rows = Array.from(this.tbody.rows);
 
         for (let i = 0; i < rows.length; i++){
@@ -188,7 +190,7 @@ class TableObj {
      */
     addColumnDragHandles(){
         const tr = document.createElement("tr");
-        this.thead.insertBefore(tr, this.thead.rows[0]);
+        this.thead.insertBefore(tr, this.thead.rows[this.thead.rows.length - 1]);
 
         for (let i = 0; i < 2; i++){
             const cell = document.createElement("th");
@@ -196,7 +198,7 @@ class TableObj {
             tr.appendChild(cell);
         }
 
-        const numOfCols = this.thead.rows[1].cells.length;
+        const numOfCols = this.thead.rows[this.thead.rows.length - 1].cells.length;
         for (let i = 0; i < numOfCols-2; i++){
             // Create a cell
             const cell = document.createElement("th");
@@ -242,7 +244,7 @@ class TableObj {
 
     addSortButtons(){
         // Get the last row of the thead
-        const row = this.thead.rows[this.thead.rows.length - 1];
+        const row = this.thead.rows[this.headerRowIndex];
         const cells = Array.from(row.cells);
         cells.shift();
         // Add a button to each cell
@@ -297,7 +299,7 @@ class TableObj {
         li.textContent = 'Show/Hide Columns';
         let submenue = document.createElement('ul');
         submenue.className = 'TableObjSubMenu';
-        let columns = Array.from(this.thead.rows[0].cells).slice(1);
+        let columns = Array.from(this.thead.rows[this.colDragHandlesRowIndex].cells).slice(1);
         // Add an 'li' and a checkbox for the first column (whole table selector)
         let nestedLi = document.createElement('li');
         let checkbox = document.createElement('input');
@@ -322,7 +324,7 @@ class TableObj {
         submenue.appendChild(nestedLi);
 
 
-        columns = Array.from(this.thead.rows[1].cells).slice(1);
+        columns = Array.from(this.thead.rows[this.headerRowIndex].cells).slice(1);
 
         columns.forEach((column, index) => {
             let nestedLi = document.createElement('li');
@@ -380,13 +382,13 @@ class TableObj {
                     }
                     else {
                         if (checkbox.checked){
-                            showCol(this.thead.rows[0].cells[checkbox.value]);
+                            showCol(this.thead.rows[this.colDragHandlesRowIndex].cells[checkbox.value]);
                             if (this.allColumnCheckboxesChecked()){
                                 document.getElementById(`${this.table.id}-col0`).checked = true;
                             }
                         }
                         else {
-                            hideCol(this.thead.rows[0].cells[checkbox.value]);
+                            hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[checkbox.value]);
                             if (!this.allColumnCheckboxesChecked()){
                                 document.getElementById(`${this.table.id}-col0`).checked = false;
                             }
@@ -508,13 +510,13 @@ class TableObj {
         for (let i = 0; i < checkboxes.length; i++){
             // If the checkbox is not checked, show the column and check the box
             if (!checkboxes[i].checked){
-                showCol(this.thead.rows[0].cells[i+1]);
+                showCol(this.thead.rows[this.colDragHandlesRowIndex].cells[i+1]);
                 checkboxes[i].checked = true;
             }
         }
 
         // Show the first column (rowSelectors)
-        showCol(this.thead.rows[0].cells[0]);
+        showCol(this.thead.rows[this.colDragHandlesRowIndex].cells[0]);
     }
 
     /**
@@ -525,13 +527,13 @@ class TableObj {
         for (let i = 0; i < checkboxes.length; i++){
             // If the checkbox is checked, hide the column and uncheck the box
             if (checkboxes[i].checked){
-                hideCol(this.thead.rows[0].cells[i+1]);
+                hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[i+1]);
                 checkboxes[i].checked = false;
             }
         }
 
         // Hide the first column (rowSelectors)
-        hideCol(this.thead.rows[0].cells[0]);
+        hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[0]);
     }
 
     /**
@@ -779,8 +781,8 @@ class TableObj {
                     if (!cells[j].classList.contains('selectedTableObjCell')
                         && cells[j].parentElement.style.display !== 'none') {
                         this.selectedHeaders[i] = false;
-                        this.thead.rows[0].cells[i].classList.remove('selectedTableObjCell');
-                        this.thead.rows[1].cells[i].classList.remove('selectedTableObjCell');
+                        this.thead.rows[this.colDragHandlesRowIndex].cells[i].classList.remove('selectedTableObjCell');
+                        this.thead.rows[this.headerRowIndex].cells[i].classList.remove('selectedTableObjCell');
                         changed = true;
                         break;
                     }
@@ -916,7 +918,7 @@ class TableObj {
         if (this.mouseDownH) {
             if (event.target.closest("thead") !== this.thead){
                 this.OldEndCell = this.endCell;
-                this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells));
+                this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[this.colDragHandlesRowIndex].cells));
             } 
             else {
                 this.OldEndCell = this.endCell;
@@ -961,7 +963,7 @@ class TableObj {
         document.body.classList.remove('cursor-crosshair');
 
         // Update selected columns
-        const cells = this.thead.rows[1].cells;
+        const cells = this.thead.rows[this.headerRowIndex].cells;
         for (let i = 0; i < cells.length; i++){
             this.selectedHeaders[i] = cells[i].classList.contains("selectedTableObjCell") ? true : false;
         }
@@ -996,7 +998,7 @@ class TableObj {
                                                                 cell.classList.remove('selectedTableObjCell'));
             
             this.selectedCells = [];
-            this.selectedHeaders = new Array(this.thead.rows[0].cells.length).fill(false);
+            this.selectedHeaders = new Array(this.thead.rows[this.colDragHandlesRowIndex].cells.length).fill(false);
             this.selectedRows = [];
         }
 
@@ -1108,7 +1110,7 @@ class TableObj {
             this.allowDrag = false;
 
             // Get the headers and remove the first 2 cells
-            const headers = Array.from(this.thead.rows[0].cells);
+            const headers = Array.from(this.thead.rows[this.colDragHandlesRowIndex].cells);
             headers.shift(); headers.shift();
 
             // Remove the line drawn by the previous drag
