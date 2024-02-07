@@ -125,6 +125,88 @@ class TableObj {
         }
     }
 
+    /** 
+     * Returns a map of the possible indices to the actual indices. So if a 
+     * thead has 2 rows and the first row of the table has 4 cells, the possible 
+     * indices will be [(0,0), (0,1), (0,2), (0,3), (1,0), (1,1), (1,2), (1,3)].
+     * 
+     * In complex theads, cells can have rowspan and colspan, so the actual
+     * indices will be different from the possible indices. 
+     * 
+     * Assume the first cell in the first row in the actual thead has rowspan=2,
+     * in this case (0,0) and (1,0) should be mapped to (0,0). Assume the second
+     * cell in the first row in the actual thead has colspan=2, in this case (0,1)
+     * and (0,2) should be mapped to (0,1).
+     * 
+     * @returns {Map<string, string>} A map of string => string. Each string is an index in the form '(row,col)'.
+    */
+    mapTableHeaderIndices() {
+        const rows = this.thead.rows;
+        let matrix = [];
+        let mapping = new Map();
+
+        // Initialize matrix to accommodate for all rows and theoretical columns
+        for (let i = 0; i < rows.length; i++) {
+            matrix[i] = [];
+        }
+
+        // Populate the matrix with actual header positions, considering rowspan and colspan
+        for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+            let actualColIndex = 0; // Correctly scope actualColIndex for each row
+            for (let colIndex = 0; colIndex < rows[rowIndex].cells.length; colIndex++) {
+                while (matrix[rowIndex][actualColIndex] !== undefined) {
+                    actualColIndex++;
+                }
+                const cell = rows[rowIndex].cells[colIndex];
+                const rowspan = cell.rowSpan;
+                const colspan = cell.colSpan;
+
+                for (let i = 0; i < rowspan; i++) {
+                    for (let j = 0; j < colspan; j++) {
+                        // Ensure the target row in the matrix exists before assignment
+                        if (matrix[rowIndex + i] !== undefined) {
+                            matrix[rowIndex + i][actualColIndex + j] = `${rowIndex},${colIndex}`;
+                            // Direct mapping for each cell's position
+                            mapping.set(`(${rowIndex + i},${actualColIndex + j})`, `(${rowIndex},${colIndex})`);
+                        }
+                    }
+                }
+                actualColIndex += colspan; // Increment to move past the current cell, including its colspan
+            }
+        }
+
+        return mapping;
+    }
+
+    /**
+     * Finds the column header for a given cell in a table, considering headers with colspan.
+     * 
+     * @param {HTMLTableCellElement} cell - The table cell (td) whose header you want to find.
+     * @return {string} The text content of the header cell.
+    */
+    findColumnHeader(cell) {
+        const headerRow = this.thead.rows[this.headerRowIndex];
+        
+        // Calculate the effective column index of the cell, accounting for any colspans.
+        let columnIndex = 0;
+        for (let i = 0; i < cell.cellIndex; i++) {
+            const previousCell = cell.parentElement.cells[i];
+            columnIndex += previousCell.colSpan || 1;
+        }
+        
+        // Iterate through headers to find the one that matches the columnIndex, considering colspans.
+        let cumulativeIndex = 0;
+        for (const headerCell of headerRow.cells) {
+            const colspan = headerCell.colSpan || 1;
+            if (columnIndex >= cumulativeIndex && columnIndex < cumulativeIndex + colspan) {
+                return headerCell.textContent.trim();
+            }
+            cumulativeIndex += colspan;
+        }
+        
+        return '';
+    }
+
     /**
      * Adds an extra cell to the left of each row to be used as a row selector.
      * 
@@ -157,10 +239,10 @@ class TableObj {
      * Adds a title attribute to each cell to show the column name on hover
     */
     showColNameOnHover(){
-        for (let i = 0; i < this.table.rows.length; i++) {
-            const row = this.table.rows[i];
-            for (let j = 0; j < row.cells.length; j++) {
-                row.cells[j].title = this.thead.rows[this.headerRowIndex].cells[j].textContent;
+        for (let i = 0; i < this.tbody.rows[0].cells.length; i++) {
+            const headerOfColI = this.findColumnHeader(this.tbody.rows[0].cells[i]);
+            for (let j = 0; j < this.tbody.rows.length; j++) {
+                this.tbody.rows[j].cells[i].title = headerOfColI;
             }
         }
     }
