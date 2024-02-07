@@ -65,7 +65,7 @@ class TableObjToolbar extends HTMLElement {
                 margin: 0;
                 padding: 5px;
                 width: 300px;
-                height: 240px;
+                height: 250px;
                 background-color: #f8f8f8;
                 top: -1px;
                 left: -2px;
@@ -684,6 +684,9 @@ class TableObjToolbar extends HTMLElement {
         const min = Math.min(...data);
         const max = Math.max(...data);
         const rangeSize = (max - min) / numberOfBins;
+
+        if (rangeSize === 0)
+            return [[max], [data.length]];
     
         let frequency = new Map();
     
