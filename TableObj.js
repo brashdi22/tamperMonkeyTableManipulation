@@ -45,6 +45,10 @@ class TableObj {
         this.sourceRow = null;
         this.sourceColumn = null;
 
+        this.targetRow = null;
+        this.targetColumn = null;
+        this.allowDrag = true;
+
         this.mouseDown = false;
         this.mouseDownH = false;
         this.mouseDownR = false;
@@ -908,7 +912,7 @@ class TableObj {
 
     documentMouseMove(event){
         if (!this.mouseDownH && !this.mouseDownR && !this.mouseDown) return;
-            
+        
         if (this.mouseDownH) {
             if (event.target.closest("thead") !== this.thead){
                 this.OldEndCell = this.endCell;
@@ -974,9 +978,7 @@ class TableObj {
         if (!toolbar.graphOptionsHidden)
             toolbar.updateSelectedColumns();
 
-        this.mouseDown = false;
-        this.mouseDownH = false;
-        this.mouseDownR = false;
+        this.mouseDown = this.mouseDownH = this.mouseDownR = false;
 
         this.checkAllCellsInRowSelected();
         this.checkAllCellsInColumnSelected();
@@ -1021,8 +1023,50 @@ class TableObj {
     }
 
     documentDragEnd(){
-        this.sourceRow = null;
-        this.sourceColumn = null;
+        if (this.sourceRow && this.targetRow){        // Move the source row to the target row
+            if (this.sourceRow !== this.targetRow){
+                if (this.targetRow.classList.contains('rowDragLineTop'))
+                    this.targetRow.before(this.sourceRow);
+                else
+                    this.targetRow.after(this.sourceRow);
+            }
+
+            this.targetRow.classList.remove('rowDragLineTop');
+            this.targetRow.classList.remove('rowDragLineBottom');
+            this.sourceRow = this.targetRow = null;
+        }
+        else if (this.sourceColumn && this.targetColumn){
+            if (this.sourceColumn !== this.targetColumn.cellIndex){
+                const targetColumnIndex = this.targetColumn.cellIndex;
+
+                const rows = this.table.rows;
+                if (this.targetColumn.classList.contains('columnDragLineRight')){
+                    for (let i = 0; i < rows.length; i++){
+                        const cell1 = rows[i].cells[this.sourceColumn];
+                        const cell2 = rows[i].cells[targetColumnIndex];
+        
+                        // Move the source cell to the new position
+                        const removedCell = rows[i].removeChild(cell1);
+                        cell2.after(removedCell);
+                    }
+                }
+                else {
+                    for (let i = 0; i < rows.length; i++){
+                        const cell1 = rows[i].cells[this.sourceColumn];
+                        const cell2 = rows[i].cells[targetColumnIndex];
+        
+                        // Move the source cell to the new position
+                        const removedCell = rows[i].removeChild(cell1);
+                        cell2.before(removedCell);
+                    }                    
+                }
+            }
+
+            this.targetColumn.classList.remove('columnDragLineLeft');
+            this.targetColumn.classList.remove('columnDragLineRight');
+            this.sourceColumn = this.targetColumn = null;
+        }
+        
     }
 
     documentDragOver(event){
@@ -1031,35 +1075,68 @@ class TableObj {
         event.preventDefault();
 
         if (this.sourceRow){
-            let targetRow = this.findClosestRow(event.clientY, Array.from(this.tbody.rows));
+            if (!this.allowDrag) return;
+            this.allowDrag = false;
 
-            if (this.sourceRow.rowIndex !== targetRow.rowIndex){
-                if (targetRow.rowIndex > this.sourceRow.rowIndex)
-                    targetRow.after(this.sourceRow);
-                else
-                    targetRow.before(this.sourceRow);
+            // Remove the line drawn by the previous drag
+            if (this.targetRow){
+                this.targetRow.classList.remove('rowDragLineTop');
+                this.targetRow.classList.remove('rowDragLineBottom');
             }
+            
+            // Update the target row
+            this.targetRow = this.findClosestRow(event.clientY, Array.from(this.tbody.rows));
+
+            // Get the centre of the target row
+            const targetRowBounds = this.targetRow.getBoundingClientRect();
+            const targetRowCentre = (targetRowBounds.top + targetRowBounds.bottom) / 2;
+
+            // Draw a line at the top or bottom of the target row
+            if (event.clientY < targetRowCentre) {
+                this.targetRow.classList.add('rowDragLineTop');
+            } else {
+                this.targetRow.classList.add('rowDragLineBottom');
+            }
+
+            // This is to prevent the event from firing multiple times
+            setTimeout(() => {
+                this.allowDrag = true;
+            }, 10);
         }
         else {
-            const targetColumn = this.findClosestCol(event.clientX, Array.from(this.thead.rows[0].cells)).cellIndex;
+            if (!this.allowDrag) return;
+            this.allowDrag = false;
 
-            if (this.sourceColumn !== targetColumn && targetColumn > 1){
-                const rows = this.table.rows;
-                for (let i = 0; i < rows.length; i++){
-                    const cell1 = rows[i].cells[this.sourceColumn];
-                    const cell2 = rows[i].cells[targetColumn];
+            // Get the headers and remove the first 2 cells
+            const headers = Array.from(this.thead.rows[0].cells);
+            headers.shift(); headers.shift();
 
-                    // Remove the source cell from the row
-                    const removedCell = rows[i].removeChild(cell1);
-                    if (targetColumn > this.sourceColumn)
-                        cell2.after(removedCell);
-                    else
-                        cell2.before(removedCell);
-                }
-                this.sourceColumn = targetColumn;
+            // Remove the line drawn by the previous drag
+            if (this.targetColumn){
+                this.targetColumn.classList.remove('columnDragLineLeft');
+                this.targetColumn.classList.remove('columnDragLineRight');
             }
+            
+            // Update the target column
+            this.targetColumn = this.findClosestCol(event.clientX, headers);
+
+            // Get the centre of the target column
+            const targetColumnBounds = this.targetColumn.getBoundingClientRect();
+            const targetColumnCentre = (targetColumnBounds.left + targetColumnBounds.right) / 2;
+
+            // Draw a line to the left or right of the target column
+            if (event.clientX < targetColumnCentre) {
+                this.targetColumn.classList.add('columnDragLineLeft');
+            } else {
+                this.targetColumn.classList.add('columnDragLineRight');
+            }
+
+            // This is to prevent the event from firing multiple times
+            setTimeout(() => {
+                this.allowDrag = true;
+            }, 10);
         }
+        
     }
     // ====================================== Event Listeners' Functions ======================================
-
 }

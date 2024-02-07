@@ -2,7 +2,7 @@ const {Builder, By, Key} = require('selenium-webdriver');
 const assert = require('assert');
 const fs = require('fs');
 
-describe('Check main functionality', function(){
+describe('Drag functionality tests', function(){
     let driver;
     let tables;
 
@@ -49,16 +49,18 @@ describe('Check main functionality', function(){
         const dropLocation = await tbody.findElement(By.css('tr:nth-child(4) td:nth-child(1)'));
 
         // Drag the first row to the forth row
+        // This should insert the first row between the third and forth row (it becomes the third row)
         await driver.actions()
             .move({origin: dragHandle}).press()
             .move({origin: dropLocation}).release()
             .perform();
 
-        // Get the forth row
-        const fourthRow = await tbody.findElement(By.css('tr:nth-child(4)'));
 
-        // Verify that the forth row = first row
-        assert.equal(await fourthRow.getText(), await firstRow.getText());
+        // Get the third row
+        const thirdthRow = await tbody.findElement(By.css('tr:nth-child(3)'));
+
+        // Verify that the thirdthRow row = first row
+        assert.equal(await thirdthRow.getText(), await firstRow.getText());
 
     });
 
