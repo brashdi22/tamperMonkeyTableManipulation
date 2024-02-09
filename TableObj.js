@@ -21,8 +21,13 @@ class TableObj {
 
         this.replaceHeaders();
         this.addRowSelectors();
-        this.showColNameOnHover();
         this.addRowDragHandles();
+        this.headerMapping = this.mapTableHeaderIndices();
+        this.inverseHeaderMapping = this.invertMap(this.headerMapping);
+        this.ensureAllColumnsHaveHeaders();
+
+        this.showColNameOnHover();
+        
         this.addSortButtons();
         this.addTableSettingsMenu();
         
@@ -62,9 +67,6 @@ class TableObj {
         this.selectedCells = [];
         this.selectedHeaders = new Array(this.thead.rows[this.headerRowIndex].cells.length).fill(false);
         this.selectedRows = [];
-
-        this.headerMapping = this.mapTableHeaderIndices();
-        this.inverseHeaderMapping = this.invertMap(this.headerMapping);
 
         this.toggleSelect = true;
         // this.scrollInterval = null;
@@ -110,10 +112,40 @@ class TableObj {
                     const th = document.createElement('th');
                     th.innerHTML = cell.innerHTML;
                     th.style.cssText = cell.style.cssText;
+
+                    // Copy all attributes from the original cell to the new 'th' element
+                    for (let i = 0; i < cell.attributes.length; i++) {
+                        let attr = cell.attributes[i];
+                        th.setAttribute(attr.name, attr.value);
+                    }
                     row.replaceChild(th, cell);
                 }
             });
         });
+    }
+
+    /**
+     * Ensures all columns in the tbody have a header cell in the thead.
+     */
+    ensureAllColumnsHaveHeaders(){
+        // Get the length of the first row in the tbody
+        const numOfCols = this.tbody.rows[0].cells.length;
+        // Starting from the last cell in the row, decrement the index by 1
+        for (let i = numOfCols - 1; i >= 0; i--){
+            // For each index, try to get the header cell from the thead.
+            // Use the headerMapping to get the actual index of the header cell.
+            const headerCell = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: i}));
+            // If the header cell does not exist, create a new one, and update the headerMapping
+            if (!headerCell){
+                const th = document.createElement('th');
+                this.thead.rows[this.headerRowIndex].appendChild(th);
+                const index = JSON.stringify({row: this.headerRowIndex, col: i});
+                this.headerMapping.set(index, index);
+                this.inverseHeaderMapping.set(index, index);
+            }
+            else
+                break;
+        }
     }
 
     /**
@@ -236,18 +268,18 @@ class TableObj {
                 const newIndex = JSON.stringify({row: row, col: cellIndex.col});
 
                 // Get the actual index of the cell in the tbody
-                cellsSet.add(headerMapping.get(newIndex));
+                cellsSet.add(this.headerMapping.get(newIndex));
 
                 row++;
             }
         });
 
         // Get the cells from the set of indices
-        const cells = getCellsFromObjectIndices(Array.from(cellsSet));
+        const cells = this.getCellsFromObjectIndices(Array.from(cellsSet));
 
         // Get the cells in the tbody using the column indices in the columns set
         columns.forEach((col) => {
-            cells.push([...getCellsInColumn(col)]);
+            cells.push(...this.getCellsInColumn(col));
         });
 
         return cells;
@@ -286,62 +318,15 @@ class TableObj {
     }
 
     /**
-     * Finds the column header for a given cell in a table, considering headers with colspan.
+     * Finds the column header for a given cell in a table.
      * 
      * @param {HTMLTableCellElement} cell - The table cell (td) whose header you want to find.
      * @return {string} The text content of the header cell.
     */
     findColumnHeader(cell) {
-        const headerRow = this.thead.rows[this.headerRowIndex];
-        
-        // Calculate the effective column index of the cell, accounting for any colspans.
-        let columnIndex = 0;
-        for (let i = 0; i < cell.cellIndex; i++) {
-            const previousCell = cell.parentElement.cells[i];
-            columnIndex += previousCell.colSpan || 1;
-        }
-        
-        // Iterate through headers to find the one that matches the columnIndex, considering colspans.
-        let cumulativeIndex = 0;
-        for (const headerCell of headerRow.cells) {
-            const colspan = headerCell.colSpan || 1;
-            if (columnIndex >= cumulativeIndex && columnIndex < cumulativeIndex + colspan) {
-                return headerCell.textContent.trim();
-            }
-            cumulativeIndex += colspan;
-        }
-        
-        return '';
-    }
-
-    /** 
-     * Given a cell, returns the cells that are under it.
-    */
-    getCellsUnder(cell){
-        // let queue = [cell];
-        // let currentRow = cell.parentElement.rowIndex;
-        // while (currentRow <= this.thead.rows.length){
-        //     const coveredIndeces = this.inverseHeaderMapping.get(`(${currentRow},${cell.cellIndex})`);
-
-
-        //     currentRow++;
-        // }
-        
-        const cellIndex = `(${cell.parentElement.rowIndex},${cell.cellIndex})`
-        const InitialCoveredIndices = this.inverseHeaderMapping.get(cellIndex);
-        let queue = [...InitialCoveredIndices];
-
-        let visitedCells = [cellIndex];
-
-        while (queue.length > 0){
-            const currentCellIndex = queue.shift();
-            const coveredIndices = this.inverseHeaderMapping.get(currentCellIndex);
-            if (coveredIndices){
-                queue.push(...coveredIndices);
-            }
-
-            visitedCells.push(currentCellIndex);
-        }
+        let headerIndex = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: cell.cellIndex}));
+        headerIndex = JSON.parse(headerIndex);
+        return this.thead.rows[headerIndex.row].cells[headerIndex.col].textContent.trim();
     }
 
     /**
@@ -379,7 +364,9 @@ class TableObj {
         for (let i = 0; i < this.tbody.rows[0].cells.length; i++) {
             const headerOfColI = this.findColumnHeader(this.tbody.rows[0].cells[i]);
             for (let j = 0; j < this.tbody.rows.length; j++) {
-                this.tbody.rows[j].cells[i].title = headerOfColI;
+                try {
+                    this.tbody.rows[j].cells[i].title = headerOfColI;
+                } catch (e) {}
             }
         }
     }
@@ -472,11 +459,17 @@ class TableObj {
     }
 
     addSortButtons(){
-        // Get the last row of the thead
-        const row = this.thead.rows[this.headerRowIndex];
-        const cells = Array.from(row.cells);
-        cells.shift();
-        // Add a button to each cell
+        // Get the length of the first row in the tbody
+        const numOfCols = this.tbody.rows[0].cells.length;
+
+        // Create a set of cells that a button will be added to
+        let cells = new Set();
+        for (let i = 1; i < numOfCols; i++){
+            const index = JSON.stringify({row: this.headerRowIndex, col: i});
+            cells.add(this.headerMapping.get(index));
+        }
+
+        cells = this.getCellsFromObjectIndices(Array.from(cells));
         cells.forEach(cell => {
             const button = document.createElement('button');
             button.className = 'sortButton';
@@ -487,15 +480,21 @@ class TableObj {
     addFunctionsToSortButtons(){
         const buttons = this.table.querySelectorAll('.sortButton');
         buttons.forEach(button => {
-            const cell = button.parentElement;
-            cell.setAttribute('TableObj-col-sort-asc', 'true');
+            const header = button.parentElement;
+            const cellIndex = JSON.stringify({row: header.parentElement.rowIndex, col: header.cellIndex});
+
+            // Get the index of the column in the tbody that the button is supposed to sort
+            const coveredIndices = this.inverseHeaderMapping.get(cellIndex);
+            const colIndex = JSON.parse(coveredIndices[0]).col;
+
+            header.setAttribute('TableObj-col-sort-asc', 'true');
             button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M137.4 41.4c12.5-12.5 32.8-12.5 45.3 0l128 128c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8H32c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l128-128zm0 429.3l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128c-12.5 12.5-32.8 12.5-45.3 0z"/></svg>';
             button.onclick = () => {
-                sortTableByColumn(this.table, cell.cellIndex);
+                sortTableByColumn(this.table, colIndex, header);
             }
         });
 
-        // change the innerHTML of the 'index' column to indicate that it the
+        // change the innerHTML of the 'index' column to indicate that the
         // table is sorted by this column by default
         buttons[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M182.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8H288c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-128-128z"/></svg>';
         buttons[0].parentElement.setAttribute('TableObj-col-sort-asc', 'false');
@@ -827,18 +826,22 @@ class TableObj {
     selectColumns() {
         if (!this.startCell || !this.endCell) return;
 
-        // First 2 headers should be excluded from column selection.
+        // First 2 headers should be excluded from column selection (row darg handles and index columns).
         const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 2);
-        const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);            
+        const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
 
+        
+        const rowIndex = this.startCell.parentElement.rowIndex;
         if (this.toggleSelect){
             for (let i = minCol; i < maxCol + 1; i++){
                 const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), thead tr:nth-child(n+2) th:nth-child(${i+1})`);
+                // const cells = this.getCellsUnderHeader(this.thead.rows[rowIndex].cells[i]);
                 for (let i = 0; i < cells.length; i++) {
                     if (cells[i].style.display !== 'none')
                         cells[i].classList.add('selectedTableObjCell');
                 }
             }
+            // debugger;
 
             const cells = this.table.querySelectorAll('.selectedTableObjCell');
             for (let i = 0; i < cells.length; i++){

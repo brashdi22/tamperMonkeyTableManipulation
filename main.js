@@ -214,7 +214,10 @@ function main() {
     let tableObjects = [];
 
     // Create an instance of TableObj for each table
-    Array.from(tables).forEach(table => tableObjects.push(new TableObj(table)));
+    Array.from(tables).forEach(table => {
+        if (table.rows.length > 1)
+            tableObjects.push(new TableObj(table));
+    });
 
 
     // Define the custom toolbar element using the TableObjToolbar class
@@ -707,25 +710,28 @@ function toggleSortDirection(header) {
     return isAscending;
 }
 
-function updateSortArrows(thead, columnIndex, isAscending){
-    // Get the cells in the header
-    const cells = Array.from(thead.rows[thead.rows.length - 1].cells);    
+/**
+ * 
+ * @param {HTMLTableSectionElement} thead the thead of the table
+ * @param {HTMLTableCellElement} header the header cell that was clicked
+ * @param {boolean} isAscending a boolean indicating the sort direction
+ */
+function updateSortArrows(thead, header, isAscending){
+    // Get the sort buttons in the thead
+    const sortButtons = Array.from(thead.querySelectorAll('.sortButton'));
     
     // Get the sort button inside the clicked header
-    const sortButton = cells[columnIndex].querySelector('.sortButton');
+    const sortButton = header.querySelector('.sortButton');
     if (isAscending)        // Set the sort button to the ascending state
         sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M182.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8H288c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-128-128z"/></svg>';
     else                    // set the sort button to the descending state
         sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M182.6 470.6c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128z"/></svg>';
 
-    // Remove the clicked cell from the array then set the sort button to the default state
-    cells.splice(columnIndex, 1);
-    cells.forEach(cell => {
-        const sortButton = cell.querySelector('.sortButton');
-        if (sortButton)
-            sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M137.4 41.4c12.5-12.5 32.8-12.5 45.3 0l128 128c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8H32c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l128-128zm0 429.3l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128c-12.5 12.5-32.8 12.5-45.3 0z"/></svg>';
-
-        cell.setAttribute('TableObj-col-sort-asc', 'true');
+    // Remove the clicked button from the array then set the sort buttons to the default state
+    sortButtons.splice(sortButtons.indexOf(sortButton), 1);
+    sortButtons.forEach(sortButton => {
+        sortButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M137.4 41.4c12.5-12.5 32.8-12.5 45.3 0l128 128c9.2 9.2 11.9 22.9 6.9 34.9s-16.6 19.8-29.6 19.8H32c-12.9 0-24.6-7.8-29.6-19.8s-2.2-25.7 6.9-34.9l128-128zm0 429.3l-128-128c-9.2-9.2-11.9-22.9-6.9-34.9s16.6-19.8 29.6-19.8H288c12.9 0 24.6 7.8 29.6 19.8s2.2 25.7-6.9 34.9l-128 128c-12.5 12.5-32.8 12.5-45.3 0z"/></svg>';
+        sortButton.parentElement.setAttribute('TableObj-col-sort-asc', 'true');
     });
 }
 
@@ -733,13 +739,12 @@ function updateSortArrows(thead, columnIndex, isAscending){
  * Sort the table by the selected column
  * 
  * @param {HTMLTableElement} table the table to sort
- * @param {Number} columnIndex the index of the column to sort by
+ * @param {Number} columnIndex the index of the column in the tbody to sort by
+ * @param {HTMLTableCellElement} header the header cell that was clicked
 */
-function sortTableByColumn(table, columnIndex) {
-    // Get the sort direction from the header
-    const header = table.tHead.rows[table.tHead.rows.length - 1].cells[columnIndex];
-    ascending = toggleSortDirection(header);
-    updateSortArrows(table.tHead, columnIndex, ascending)
+function sortTableByColumn(table, columnIndex, header) {
+    const ascending = toggleSortDirection(header);
+    updateSortArrows(table.tHead, header, ascending)
 
     const tbody = table.tBodies[0];
     const rows = Array.from(tbody.rows);
