@@ -63,6 +63,9 @@ class TableObj {
         this.selectedHeaders = new Array(this.thead.rows[this.headerRowIndex].cells.length).fill(false);
         this.selectedRows = [];
 
+        this.headerMapping = this.mapTableHeaderIndices();
+        this.inverseHeaderMapping = this.invertMap(this.headerMapping);
+
         this.toggleSelect = true;
         // this.scrollInterval = null;
 
@@ -165,9 +168,9 @@ class TableObj {
                     for (let j = 0; j < colspan; j++) {
                         // Ensure the target row in the matrix exists before assignment
                         if (matrix[rowIndex + i] !== undefined) {
-                            matrix[rowIndex + i][actualColIndex + j] = `${rowIndex},${colIndex}`;
+                            matrix[rowIndex + i][actualColIndex + j] = { row: rowIndex, col: colIndex };
                             // Direct mapping for each cell's position
-                            mapping.set(`(${rowIndex + i},${actualColIndex + j})`, `(${rowIndex},${colIndex})`);
+                            mapping.set(JSON.stringify({ row: rowIndex + i, col: actualColIndex + j }), JSON.stringify({ row: rowIndex, col: colIndex }));
                         }
                     }
                 }
@@ -176,6 +179,110 @@ class TableObj {
         }
 
         return mapping;
+    }
+
+    /**
+     * Returns inverse of an input map. Given map<a, b> returns map<b, a>.
+     * 
+     * @param {Map<string, string>} map - The map to be inversed.
+     * @returns {Map<string, string>} The inversed map.
+     */
+    invertMap(originalMap) {
+        let inverseMap = new Map();
+        for (let [key, value] of originalMap.entries()) {
+            if (!inverseMap.has(value)) {
+                inverseMap.set(value, [key]);
+            } else {
+                inverseMap.get(value).push(key);
+            }
+        }
+        return inverseMap;
+    }
+
+    /**
+     * Given a header cell (possibly with row or col span), returns the cells that are under it.
+     * 
+     * @param {HTMLTableCellElement} headerCell 
+     * @returns {Array<HTMLTableCellElement>} An array of the header and all cells beneath it.
+     */
+    getCellsUnderHeader(headerCell){
+        // Turn the index of the header cell into a string to be used as a key in the inverseHeaderMapping
+        const headerCellIndex = JSON.stringify({row: headerCell.parentElement.rowIndex, col: headerCell.cellIndex});
+        // Get the theoritical indices that the header cell is spanning over.
+        // If the header is located at (0,0) and has rowspan=2, the covered indices will be (0,0) and (1,0).
+        const InitialCoveredIndices = this.inverseHeaderMapping.get(headerCellIndex);
+
+        // Create a set to hold the indices of the cells that are under the header cell inside the thead
+        const cellsSet = new Set();
+        // Add the header cell index to the set
+        cellsSet.add(headerCellIndex);
+
+        // Create a set to hold the column indices that the header cell is spanning over
+        const columns = new Set();
+
+        // For each theoretical index that the header cell is spanning over
+        InitialCoveredIndices.forEach((index) => {
+            // Parse the index from a string to an object
+            const cellIndex = JSON.parse(index);
+
+            // Add the column index to the columns array
+            columns.add(cellIndex.col);
+
+            // Increment the row index by 1 so we move to the next row
+            let row = cellIndex.row + 1;
+            // While the row is less than the number of rows in the thead
+            while (row < this.thead.rows.length){
+                // Create a new index in the form of a string (this is a theoretical index)
+                const newIndex = JSON.stringify({row: row, col: cellIndex.col});
+
+                // Get the actual index of the cell in the tbody
+                cellsSet.add(headerMapping.get(newIndex));
+
+                row++;
+            }
+        });
+
+        // Get the cells from the set of indices
+        const cells = getCellsFromObjectIndices(Array.from(cellsSet));
+
+        // Get the cells in the tbody using the column indices in the columns set
+        columns.forEach((col) => {
+            cells.push([...getCellsInColumn(col)]);
+        });
+
+        return cells;
+    }
+
+    /**
+     * Takes an array of indices in the form of strings, parses into objects and
+     * returns the HTMLTable cells in these indices.
+     * 
+     * @param {Array<string>} indices Strings produced by JSON.stringify({row: number, col: number}).
+     * @returns {Array<HTMLTableCellElement>} An array of HTMLTableCellElements.
+     */
+    getCellsFromObjectIndices(indices){
+        const cells = [];
+        indices.forEach((index) => {
+            const obj = JSON.parse(index);
+            const cell = this.table.rows[obj.row].cells[obj.col];
+            cells.push(cell);
+        });
+        return cells;
+    }
+
+    /**
+     * Returns the HTMLTableCellElements in the given column. Returns the cells in the 
+     * tbody only, not the whole table.
+     * 
+     * @param {number} colIndex 
+     * @returns {Array<HTMLTableCellElement>} An array of HTMLTableCellElements.
+     */
+    getCellsInColumn(colIndex){
+        const cells = [];
+        for (let i = 0; i < this.tbody.rows.length; i++){
+            cells.push(this.tbody.rows[i].cells[colIndex]);
+        }
+        return cells;
     }
 
     /**
@@ -205,6 +312,36 @@ class TableObj {
         }
         
         return '';
+    }
+
+    /** 
+     * Given a cell, returns the cells that are under it.
+    */
+    getCellsUnder(cell){
+        // let queue = [cell];
+        // let currentRow = cell.parentElement.rowIndex;
+        // while (currentRow <= this.thead.rows.length){
+        //     const coveredIndeces = this.inverseHeaderMapping.get(`(${currentRow},${cell.cellIndex})`);
+
+
+        //     currentRow++;
+        // }
+        
+        const cellIndex = `(${cell.parentElement.rowIndex},${cell.cellIndex})`
+        const InitialCoveredIndices = this.inverseHeaderMapping.get(cellIndex);
+        let queue = [...InitialCoveredIndices];
+
+        let visitedCells = [cellIndex];
+
+        while (queue.length > 0){
+            const currentCellIndex = queue.shift();
+            const coveredIndices = this.inverseHeaderMapping.get(currentCellIndex);
+            if (coveredIndices){
+                queue.push(...coveredIndices);
+            }
+
+            visitedCells.push(currentCellIndex);
+        }
     }
 
     /**
@@ -282,13 +419,18 @@ class TableObj {
      * and adds event listeners to the cells.
      */
     addColumnDragHandles(){
-        const tr = document.createElement("tr");
-        this.thead.insertBefore(tr, this.thead.rows[this.thead.rows.length - 1]);
+        // Get the cells in the first row of the thead
+        const cells = Array.from(this.thead.rows[0].cells);
 
-        const numOfCols = this.thead.rows[this.thead.rows.length - 1].cells.length;
+        const tr = document.createElement("tr");
+        // insert the row before the first row in the thead
+        this.thead.insertBefore(tr, this.thead.rows[0]);
+
+        const numOfCols = cells.length;
         for (let i = 0; i < numOfCols; i++){
             // Create a cell
             const cell = document.createElement("th");
+            cell.colSpan = cells[i].colSpan || 1;
             cell.className = 'columnDragHandle';
             cell.draggable = true; 
 
