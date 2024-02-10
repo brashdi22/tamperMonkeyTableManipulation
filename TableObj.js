@@ -274,15 +274,17 @@ class TableObj {
             }
         });
 
+        const headers = this.getCellsFromObjectIndices(Array.from(cellsSet));
+
         // Get the cells from the set of indices
-        const cells = this.getCellsFromObjectIndices(Array.from(cellsSet));
+        const cells = [];
 
         // Get the cells in the tbody using the column indices in the columns set
         columns.forEach((col) => {
             cells.push(...this.getCellsInColumn(col));
         });
 
-        return cells;
+        return [headers, cells];
     }
 
     /**
@@ -764,6 +766,106 @@ class TableObj {
         hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[0]);
     }
 
+    getMinAndMaxColIndices(startCell, endCell){
+        const coveredIndices1 = this.inverseHeaderMapping.get(JSON.stringify({row: startCell.parentElement.rowIndex, col: startCell.cellIndex}));
+        const coveredIndices2 = this.inverseHeaderMapping.get(JSON.stringify({row: endCell.parentElement.rowIndex, col: endCell.cellIndex}));
+
+        const colIndices = [];
+
+        [...coveredIndices1, ...coveredIndices2].forEach(index => {
+            colIndices.push(JSON.parse(index).col);
+        });
+
+        return [Math.min(...colIndices), Math.max(...colIndices)];
+    }
+
+    // getMinAndMaxRowColIndices(coveredIndices){
+    //     const rowIndices = new Set();
+    //     const colIndices = new Set();
+
+    //     coveredIndices.forEach(index => {
+    //         rowIndices.add(JSON.parse(index).row);
+    //         colIndices.add(JSON.parse(index).col);
+    //     });
+
+    //     return [Math.min(...rowIndices), Math.max(...rowIndices),
+    //             Math.min(...colIndices), Math.max(...colIndices)];
+    // }
+
+    // getCellsBetween2Headers(startCell, endCell){
+    //     // if startcell is 1,2 and endcell is 3,2
+    //     if (startCell.parentElement.rowIndex === 1 && startCell.cellIndex === 2
+    //         && endCell.parentElement.rowIndex === 3 && endCell.cellIndex === 2)
+    //         debugger;
+    //     const coveredIndices1 = this.inverseHeaderMapping.get(JSON.stringify({row: startCell.parentElement.rowIndex, col: startCell.cellIndex}));
+    //     const coveredIndices2 = this.inverseHeaderMapping.get(JSON.stringify({row: endCell.parentElement.rowIndex, col: endCell.cellIndex}));
+
+    //     let [minRow, maxRow, minCol, maxCol] = this.getMinAndMaxRowColIndices([...coveredIndices1, ...coveredIndices2]);
+
+    //     const cellsSet = new Set();
+    //     let newIndexFound = false;
+        
+
+    //     do {
+    //         newIndexFound = false;
+    //         for (let i = minRow; i <= maxRow; i++){
+    //             for (let j = minCol; j <= maxCol; j++){
+    //                 const newCell = this.headerMapping.get(JSON.stringify({row: i, col: j}));
+    //                 cellsSet.add(newCell);
+
+    //                 // // Check what indices the new cell is spanning over
+    //                 // const coveredIndices = this.inverseHeaderMapping.get(newCell);
+    //                 // const [NewMinRow, NewMaxRow, NewMinCol, NewMaxCol] = this.getMinAndMaxRowColIndices(coveredIndices);
+                    
+    //                 // // Update the minRow, maxRow, minCol and maxCol
+    //                 // if (NewMinRow < minRow){
+    //                 //     minRow = NewMinRow;
+    //                 //     newIndexFound = true;
+    //                 //     break;
+    //                 // }
+    //                 // if (NewMaxRow > maxRow){
+    //                 //     maxRow = NewMaxRow;
+    //                 //     newIndexFound = true;
+    //                 //     break;
+    //                 // }
+    //                 // if (NewMinCol < minCol){
+    //                 //     minCol = NewMinCol;
+    //                 //     newIndexFound = true;
+    //                 //     break;
+    //                 // }
+    //                 // if (NewMaxCol > maxCol){
+    //                 //     maxCol = NewMaxCol;
+    //                 //     newIndexFound = true;
+    //                 //     break;
+    //                 // }
+    //             }
+    //             if (newIndexFound) break;
+    //         }
+    //     } while (newIndexFound);
+        
+    //     return [minRow, maxRow, minCol, maxCol, this.getCellsFromObjectIndices(Array.from(cellsSet))];
+    // }
+
+    // getCellsBetween2Headers(minCol, maxCol, row){
+    //     const cellsSet = new Set();
+    //     for (let i = minCol; i <= maxCol; i++){
+    //         const newCell = this.headerMapping.get(JSON.stringify({row: row, col: i}));
+    //         cellsSet.add(newCell);
+    //     }
+    //     return this.getCellsFromObjectIndices(Array.from(cellsSet));
+    // }
+
+    getCellsBetween2Headers(minRow, maxRow, minCol, maxCol){
+        const cellsSet = new Set();
+        for (let i = minRow; i <= maxRow; i++){
+            for (let j = minCol; j <= maxCol; j++){
+                const newCell = this.headerMapping.get(JSON.stringify({row: i, col: j}));
+                cellsSet.add(newCell);
+            }
+        }
+        return this.getCellsFromObjectIndices(Array.from(cellsSet));
+    }
+
     /**
      * Selects the cells between startCell and the endCell.
      */
@@ -827,43 +929,116 @@ class TableObj {
         if (!this.startCell || !this.endCell) return;
 
         // First 2 headers should be excluded from column selection (row darg handles and index columns).
-        const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 2);
-        const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
+        const minCol = Math.max(Math.min(this.startCell.col, this.endCell.col), 2);
+        const maxCol = Math.max(this.startCell.col, this.endCell.col);
+        // Exclude the first row in the thead (column drag handles)
+        const minRow = Math.max(Math.min(this.startCell.row, this.endCell.row), 1);
+        const maxRow = Math.max(this.startCell.row, this.endCell.row);
 
-        
-        const rowIndex = this.startCell.parentElement.rowIndex;
+
+        const headersToCheck = this.getCellsBetween2Headers(minRow, maxRow, minCol, maxCol);
+        let theadCells = [];
+        let tbodyCells = [];
         if (this.toggleSelect){
-            for (let i = minCol; i < maxCol + 1; i++){
-                const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), thead tr:nth-child(n+2) th:nth-child(${i+1})`);
-                // const cells = this.getCellsUnderHeader(this.thead.rows[rowIndex].cells[i]);
+            headersToCheck.forEach(header => {
+                const [headers, cellsO] = this.getCellsUnderHeader(header);
+                theadCells.push(...headers);
+                tbodyCells.push(...cellsO);
+                const cells = [...headers, ...cellsO];
                 for (let i = 0; i < cells.length; i++) {
                     if (cells[i].style.display !== 'none')
                         cells[i].classList.add('selectedTableObjCell');
                 }
-            }
-            // debugger;
+            });
 
-            const cells = this.table.querySelectorAll('.selectedTableObjCell');
+
+            theadCells = Array.from(new Set(theadCells));
+            const selectedTheadCells = this.thead.querySelectorAll('.selectedTableObjCell');
+            for (let i = 0; i < selectedTheadCells.length; i++){
+                if (!this.selectedCells.includes(selectedTheadCells[i]) && !theadCells.includes(selectedTheadCells[i]))
+                    selectedTheadCells[i].classList.remove('selectedTableObjCell');
+            }
+
+            tbodyCells = Array.from(new Set(tbodyCells));
+            const cells = this.tbody.querySelectorAll('.selectedTableObjCell');
             for (let i = 0; i < cells.length; i++){
-                if (!this.selectedCells.includes(cells[i]) && (cells[i].cellIndex < minCol || cells[i].cellIndex > maxCol))
+                if (!this.selectedCells.includes(cells[i]) && !tbodyCells.includes(cells[i]))
                     cells[i].classList.remove('selectedTableObjCell');
             }
         }
         else {
-            for (let i = minCol; i < maxCol + 1; i++){
-                const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
-                for (let i = 0; i < cells.length; i++) {
-                    cells[i].classList.remove('selectedTableObjCell');
-                }
-            }
+            let allCells = [];
+            headersToCheck.forEach(header => {
+                const [headers, cellsO] = this.getCellsUnderHeader(header);
+                const cells = [...headers, ...cellsO];
+                allCells.push(...cells);
+                cells.forEach(cell => {
+                    cell.classList.remove('selectedTableObjCell');
+                });
+            });
 
+            allCells = Array.from(new Set(allCells));
             this.selectedCells.forEach(cell => {
-                if (cell.cellIndex < minCol || cell.cellIndex > maxCol){
+                if (!allCells.includes(cell)){
                     cell.classList.add('selectedTableObjCell');
                 }
             });
         }      
     }
+
+    // selectColumns() {
+    //     if (!this.startCell || !this.endCell) return;
+
+    //     // First 2 headers should be excluded from column selection (row darg handles and index columns).
+    //     const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 2);
+    //     const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
+
+        
+    //     const rowIndex = this.endCell.parentElement.rowIndex;
+    //     if (this.toggleSelect){
+    //         const theadCells = [];
+    //         for (let i = minCol; i < maxCol + 1; i++){
+    //             // const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), thead tr:nth-child(n+2) th:nth-child(${i+1})`);
+    //             theadCells.push(...this.getCellsUnderHeaderTheadOnly(this.thead.rows[rowIndex].cells[i]));
+    //             const cells = this.getCellsUnderHeader(this.thead.rows[rowIndex].cells[i]);
+    //             for (let i = 0; i < cells.length; i++) {
+    //                 if (cells[i].style.display !== 'none')
+    //                     cells[i].classList.add('selectedTableObjCell');
+    //             }
+    //         }
+
+    //         // const theadCells = this.getCellsUnderHeaderTheadOnly(this.thead.rows[rowIndex].cells[0]);
+    //         const selectedTheadCells = this.thead.querySelectorAll('.selectedTableObjCell');
+    //         for (let i = 0; i < selectedTheadCells.length; i++){
+    //             if (!this.selectedCells.includes(selectedTheadCells[i]) && !theadCells.includes(selectedTheadCells[i]))
+    //                 selectedTheadCells[i].classList.remove('selectedTableObjCell');
+    //         }
+
+    //         // Find the columns in the tbody located between the startCell and the endCell
+    //         const [minColT, maxColT] = this.getMinAndMaxColIndices(this.startCell, this.endCell);
+
+
+    //         const cells = this.tbody.querySelectorAll('.selectedTableObjCell');
+    //         for (let i = 0; i < cells.length; i++){
+    //             if (!this.selectedCells.includes(cells[i]) && (cells[i].cellIndex < minColT || cells[i].cellIndex > maxColT))
+    //                 cells[i].classList.remove('selectedTableObjCell');
+    //         }
+    //     }
+    //     else {
+    //         for (let i = minCol; i < maxCol + 1; i++){
+    //             const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
+    //             for (let i = 0; i < cells.length; i++) {
+    //                 cells[i].classList.remove('selectedTableObjCell');
+    //             }
+    //         }
+
+    //         this.selectedCells.forEach(cell => {
+    //             if (cell.cellIndex < minCol || cell.cellIndex > maxCol){
+    //                 cell.classList.add('selectedTableObjCell');
+    //             }
+    //         });
+    //     }      
+    // }
 
     selectRows() {
         if (!this.startCell || !this.endCell) return;
@@ -919,6 +1094,35 @@ class TableObj {
                 cell.classList.remove('selectedTableObjCell');
             });
         }
+    }
+
+    getSubCellPosition(originalCell, mouseEvent) {
+        const { left, top, width, height } = originalCell.getBoundingClientRect();
+        const colspan = originalCell.colSpan;
+        const rowspan = originalCell.rowSpan;
+    
+        // Calculate the size of each sub-cell
+        const subCellWidth = width / colspan;
+        const subCellHeight = height / rowspan;
+    
+        // Calculate mouse position relative to the original cell
+        const mouseXRelativeToCell = mouseEvent.clientX - left;
+        const mouseYRelativeToCell = mouseEvent.clientY - top;
+    
+        // Determine the sub-cell's column and row based on mouse position
+        const colIndex = Math.floor(mouseXRelativeToCell / subCellWidth);
+        const rowIndex = Math.floor(mouseYRelativeToCell / subCellHeight);
+
+        // Get the cells covered by the original cell
+        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: originalCell.parentElement.rowIndex, col: originalCell.cellIndex}));
+
+        // Get the top left cell
+        const originalCellIndex = JSON.parse(coveredIndices[0]);
+    
+        // Return the position of the sub-cell relative to the original cell
+        const subCellRow = originalCellIndex.row + rowIndex;
+        const subCellCol = originalCellIndex.col + colIndex;
+        return { row: subCellRow, col: subCellCol };
     }
 
     /**
@@ -992,6 +1196,16 @@ class TableObj {
                 return midRow;
         }
         return rows[0];
+    }
+
+    findClosestHeader(x, y) {
+        const row = this.findClosestRow(y, Array.from(this.thead.rows));
+        let cells = Array.from(this.tbody.rows[0].cells);
+        // Remove the first 2 cells (drag handles and row selectors)
+        cells.shift();
+        cells.shift();
+
+        return {row: row.rowIndex, col: this.findClosestCol(x, cells).cellIndex};
     }
 
     /**
@@ -1081,7 +1295,7 @@ class TableObj {
     // ====================================== Event Listeners' Functions ======================================
     theadMouseDown(event){
         if (event.target.closest(".sortButton")) return;
-        
+
         document.body.classList.add('cursor-crosshair');
 
         if (!event.ctrlKey){
@@ -1091,17 +1305,23 @@ class TableObj {
         }
         
         this.startCell = this.findParentCell(event.target, "TH");
-        this.endCell = this.startCell;
 
-        if (this.endCell.classList.contains("selectedTableObjCell"))
+        if (this.startCell.classList.contains("selectedTableObjCell"))
             this.toggleSelect = false;
         else
             this.toggleSelect = true;
+        const [minCol, maxCol] = this.getMinAndMaxColIndices(this.startCell, this.startCell);
+        const subCellIndex = this.getSubCellPosition(this.startCell, event);
+        this.startCell = {row: subCellIndex.row, col: minCol};
+        this.endCell = {row: this.startCell.row, col: maxCol};
 
-        if (this.endCell.parentElement.rowIndex === 0){
+        
+
+        if (this.endCell.row === 0){
             
-            if (this.endCell.cellIndex !== 0 && this.endCell.cellIndex !== 1){
-                const cells = this.table.querySelectorAll(`td:nth-child(${this.endCell.cellIndex+1}), th:nth-child(${this.endCell.cellIndex+1})`);
+            if (this.endCell.col !== 0 && this.endCell.col !== 1){
+                // fix this, should use the getCellsUnderHeader function
+                const cells = this.table.querySelectorAll(`td:nth-child(${this.endCell.col+1}), th:nth-child(${this.endCell.col+1})`);
                 for (let i = 0; i < cells.length; i++) {
                     cells[i].classList.add('selectedTableObjCell');
                 }
@@ -1109,9 +1329,9 @@ class TableObj {
         } 
         else {
             this.mouseDownH = true;
-            if (this.endCell.cellIndex === 1)
+            if (this.endCell.col === 1)
                 this.selecetWholeTable();
-            else if (this.endCell.cellIndex !== 0){
+            else if (this.endCell.col !== 0){
                 this.selectColumns();
             }
         }
@@ -1156,13 +1376,13 @@ class TableObj {
         if (this.mouseDownH) {
             if (event.target.closest("thead") !== this.thead){
                 this.OldEndCell = this.endCell;
-                this.endCell = this.findClosestCol(event.clientX, Array.from(this.thead.rows[this.colDragHandlesRowIndex].cells));
+                this.endCell = this.findClosestHeader(event.clientX, event.clientY);
             } 
             else {
                 this.OldEndCell = this.endCell;
-                this.endCell = this.findParentCell(event.target, "TH");
+                this.endCell = this.getSubCellPosition(this.findParentCell(event.target, "TH"), event);
             }
-                
+
             if (this.OldEndCell === this.endCell) return;
             this.selectColumns();
         }
@@ -1220,8 +1440,8 @@ class TableObj {
 
         this.mouseDown = this.mouseDownH = this.mouseDownR = false;
 
-        this.checkAllCellsInRowSelected();
-        this.checkAllCellsInColumnSelected();
+        // this.checkAllCellsInRowSelected();
+        // this.checkAllCellsInColumnSelected();
         
         
         // window.removeEventListener("mousemove", handleMousemove);
