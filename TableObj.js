@@ -22,15 +22,14 @@ class TableObj {
         this.replaceHeaders();
         this.addRowSelectors();
         this.addRowDragHandles();
+
         this.headerMapping = this.mapTableHeaderIndices();
         this.inverseHeaderMapping = this.invertMap(this.headerMapping);
-        this.ensureAllColumnsHaveHeaders();
 
+        this.ensureAllColumnsHaveHeaders();
         this.showColNameOnHover();
-        
         this.addSortButtons();
         this.addTableSettingsMenu();
-        
 
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
@@ -39,7 +38,6 @@ class TableObj {
         this.originalTable = this.table.cloneNode(true);
 
         this.addDocumentEventListeners();
-
         this.initialiseTableSpecificVariablesAndListeners();
 
     }
@@ -229,106 +227,6 @@ class TableObj {
             }
         }
         return inverseMap;
-    }
-
-    /**
-     * Given a header cell (possibly with row or col span), returns the cells that are under it.
-     * 
-     * @param {HTMLTableCellElement} headerCell 
-     * @returns {Array<HTMLTableCellElement>} An array of the header and all cells beneath it.
-     */
-    getCellsUnderHeader(headerCell){
-        // Turn the index of the header cell into a string to be used as a key in the inverseHeaderMapping
-        const headerCellIndex = JSON.stringify({row: headerCell.parentElement.rowIndex, col: headerCell.cellIndex});
-        // Get the virtual indices that the header cell is spanning over.
-        // If the header is located at (0,0) and has rowspan=2, the covered indices will be (0,0) and (1,0).
-        const InitialCoveredIndices = this.inverseHeaderMapping.get(headerCellIndex);
-
-        // Create a set to hold the indices of the cells that are under the header cell inside the thead
-        const cellsSet = new Set();
-        // Add the header cell index to the set
-        cellsSet.add(headerCellIndex);
-
-        // Create a set to hold the column indices that the header cell is spanning over
-        const columns = new Set();
-
-        // For each virtual index that the header cell is spanning over
-        InitialCoveredIndices.forEach((index) => {
-            // Parse the index from a string to an object
-            const cellIndex = JSON.parse(index);
-
-            // Add the column index to the columns array
-            columns.add(cellIndex.col);
-
-            // Increment the row index by 1 so we move to the next row
-            let row = cellIndex.row + 1;
-            // While the row is less than the number of rows in the thead
-            while (row < this.thead.rows.length){
-                // Create a new index in the form of a string (this is a virtual index)
-                const newIndex = JSON.stringify({row: row, col: cellIndex.col});
-
-                // Get the actual index of the cell in the tbody
-                cellsSet.add(this.headerMapping.get(newIndex));
-
-                row++;
-            }
-        });
-
-        const headers = this.getCellsFromObjectIndices(Array.from(cellsSet));
-
-        // Get the cells from the set of indices
-        const cells = [];
-
-        // Get the cells in the tbody using the column indices in the columns set
-        columns.forEach((col) => {
-            cells.push(...this.getCellsInColumn(col));
-        });
-
-        return [headers, cells];
-    }
-
-    /**
-     * Takes an array of indices in the form of strings, parses into objects and
-     * returns the HTMLTable cells in these indices.
-     * 
-     * @param {Array<string>} indices Strings produced by JSON.stringify({row: number, col: number}).
-     * @returns {Array<HTMLTableCellElement>} An array of HTMLTableCellElements.
-     */
-    getCellsFromObjectIndices(indices){
-        const cells = [];
-        indices.forEach((index) => {
-            const obj = JSON.parse(index);
-            const cell = this.table.rows[obj.row].cells[obj.col];
-            cells.push(cell);
-        });
-        return cells;
-    }
-
-    /**
-     * Returns the HTMLTableCellElements in the given column. Returns the cells in the 
-     * tbody only, not the whole table.
-     * 
-     * @param {number} colIndex 
-     * @returns {Array<HTMLTableCellElement>} An array of HTMLTableCellElements.
-     */
-    getCellsInColumn(colIndex){
-        const cells = [];
-        for (let i = 0; i < this.tbody.rows.length; i++){
-            cells.push(this.tbody.rows[i].cells[colIndex]);
-        }
-        return cells;
-    }
-
-    /**
-     * Finds the column header for a given cell in a table.
-     * 
-     * @param {HTMLTableCellElement} cell - The table cell (td) whose header you want to find.
-     * @return {string} The text content of the header cell.
-    */
-    findColumnHeader(cell) {
-        let headerIndex = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: cell.cellIndex}));
-        headerIndex = JSON.parse(headerIndex);
-        return this.thead.rows[headerIndex.row].cells[headerIndex.col].textContent.trim();
     }
 
     /**
@@ -766,34 +664,21 @@ class TableObj {
         hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[0]);
     }
 
-    /**
-     * Get the minimum and maximum virtual column indices of the given cell.
-     * E.g., if the cell is located at (0,0) and has colspan=2, the output will
-     * be min=0 and max=1.
-     * 
-     * @param {HTMLTableCellElement} cell a table header cell.
-     * @returns {number[]} An array of two numbers, min and max respectively.
-     */
-    getMinAndMaxColIndices(cell){
-        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cell.cellIndex}));
-
-        const colIndices = [];
-        coveredIndices.forEach(index => {
-            colIndices.push(JSON.parse(index).col);
-        });
-
-        return [Math.min(...colIndices), Math.max(...colIndices)];
+    addDocumentEventListeners(){
+        document.addEventListener("mousemove", this.documentMouseMove.bind(this));
+        document.addEventListener("mouseup", this.documentMouseUp.bind(this));
+        document.addEventListener("mousedown", this.documentMouseDown.bind(this));
+        document.addEventListener("dragend", this.documentDragEnd.bind(this));
+        document.addEventListener("dragover", this.documentDragOver.bind(this));
+        document.addEventListener("click", this.documentClick.bind(this));
     }
 
-    getCellsBetween2Headers(minRow, maxRow, minCol, maxCol){
-        const cellsSet = new Set();
-        for (let i = minRow; i <= maxRow; i++){
-            for (let j = minCol; j <= maxCol; j++){
-                const newCell = this.headerMapping.get(JSON.stringify({row: i, col: j}));
-                cellsSet.add(newCell);
-            }
-        }
-        return this.getCellsFromObjectIndices(Array.from(cellsSet));
+    addTableSpecificEventListeners(){
+        this.thead.addEventListener("mousedown", this.theadMouseDown.bind(this), true);
+        this.tbody.addEventListener("mousedown", this.tbodyMouseDown.bind(this), true);
+        this.addRowDragHandlesListeners();
+        this.addColumnDragHandlesListeners();
+        this.addFunctionsToSortButtons();
     }
 
     /**
@@ -972,6 +857,156 @@ class TableObj {
         }
     }
 
+    /**
+     * Given a header cell (possibly with row or col span), returns the cells that are under it.
+     * 
+     * @param {HTMLTableCellElement} headerCell 
+     * @returns {Array<HTMLTableCellElement>} An array of the header and all cells beneath it.
+     */
+    getCellsUnderHeader(headerCell){
+        // Turn the index of the header cell into a string to be used as a key in the inverseHeaderMapping
+        const headerCellIndex = JSON.stringify({row: headerCell.parentElement.rowIndex, col: headerCell.cellIndex});
+        // Get the virtual indices that the header cell is spanning over.
+        // If the header is located at (0,0) and has rowspan=2, the covered indices will be (0,0) and (1,0).
+        const InitialCoveredIndices = this.inverseHeaderMapping.get(headerCellIndex);
+
+        // Create a set to hold the indices of the cells that are under the header cell inside the thead
+        const cellsSet = new Set();
+        // Add the header cell index to the set
+        cellsSet.add(headerCellIndex);
+
+        // Create a set to hold the column indices that the header cell is spanning over
+        const columns = new Set();
+
+        // For each virtual index that the header cell is spanning over
+        InitialCoveredIndices.forEach((index) => {
+            // Parse the index from a string to an object
+            const cellIndex = JSON.parse(index);
+
+            // Add the column index to the columns array
+            columns.add(cellIndex.col);
+
+            // Increment the row index by 1 so we move to the next row
+            let row = cellIndex.row + 1;
+            // While the row is less than the number of rows in the thead
+            while (row < this.thead.rows.length){
+                // Create a new index in the form of a string (this is a virtual index)
+                const newIndex = JSON.stringify({row: row, col: cellIndex.col});
+
+                // Get the actual index of the cell in the tbody
+                cellsSet.add(this.headerMapping.get(newIndex));
+
+                row++;
+            }
+        });
+
+        const headers = this.getCellsFromObjectIndices(Array.from(cellsSet));
+
+        // Get the cells from the set of indices
+        const cells = [];
+
+        // Get the cells in the tbody using the column indices in the columns set
+        columns.forEach((col) => {
+            cells.push(...this.getCellsInColumn(col));
+        });
+
+        return [headers, cells];
+    }
+
+    /**
+     * Takes an array of indices in the form of strings, parses into objects and
+     * returns the HTMLTable cells in these indices.
+     * 
+     * @param {Array<string>} indices Strings produced by JSON.stringify({row: number, col: number}).
+     * @returns {Array<HTMLTableCellElement>} An array of HTMLTableCellElements.
+     */
+    getCellsFromObjectIndices(indices){
+        const cells = [];
+        indices.forEach((index) => {
+            const obj = JSON.parse(index);
+            const cell = this.table.rows[obj.row].cells[obj.col];
+            cells.push(cell);
+        });
+        return cells;
+    }
+
+    /**
+     * Returns the HTMLTableCellElements in the given column. Returns the cells in the 
+     * tbody only, not the whole table.
+     * 
+     * @param {number} colIndex 
+     * @returns {Array<HTMLTableCellElement>} An array of HTMLTableCellElements.
+     */
+    getCellsInColumn(colIndex){
+        const cells = [];
+        for (let i = 0; i < this.tbody.rows.length; i++){
+            cells.push(this.tbody.rows[i].cells[colIndex]);
+        }
+        return cells;
+    }
+
+    /**
+     * Finds the column header for a given cell in a table.
+     * 
+     * @param {HTMLTableCellElement} cell - The table cell (td) whose header you want to find.
+     * @return {string} The text content of the header cell.
+    */
+    findColumnHeader(cell) {
+        let headerIndex = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: cell.cellIndex}));
+        headerIndex = JSON.parse(headerIndex);
+        return this.thead.rows[headerIndex.row].cells[headerIndex.col].textContent.trim();
+    }
+
+    /**
+     * Get the minimum and maximum virtual column indices of the given cell.
+     * E.g., if the cell is located at (0,0) and has colspan=2, the output will
+     * be min=0 and max=1.
+     * 
+     * @param {HTMLTableCellElement} cell a table header cell.
+     * @returns {number[]} An array of two numbers, min and max respectively.
+     */
+    getMinAndMaxColIndices(cell){
+        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cell.cellIndex}));
+
+        const colIndices = [];
+        coveredIndices.forEach(index => {
+            colIndices.push(JSON.parse(index).col);
+        });
+
+        return [Math.min(...colIndices), Math.max(...colIndices)];
+    }
+
+    /** 
+     * Returns the cells between two headers. It iterates over the virtual indices 
+     * between the two headers and gets the actual indices from the headerMapping.
+     * 
+     * @param {number} minRow The row index of the first header.
+     * @param {number} maxRow The row index of the second header.
+     * @param {number} minCol The column index of the first header.
+     * @param {number} maxCol The column index of the second header.
+     * @returns {Array<HTMLTableCellElement>} An array of header cells.
+    */
+    getCellsBetween2Headers(minRow, maxRow, minCol, maxCol){
+        const cellsSet = new Set();
+        for (let i = minRow; i <= maxRow; i++){
+            for (let j = minCol; j <= maxCol; j++){
+                const newCell = this.headerMapping.get(JSON.stringify({row: i, col: j}));
+                cellsSet.add(newCell);
+            }
+        }
+        return this.getCellsFromObjectIndices(Array.from(cellsSet));
+    }
+
+    /** 
+     * Returns the position of the virtual sub-cell relative to the original cell.
+     * If the original cell is located at (0,0) and has rowspan=colspan=2, and say
+     * the mouse is located at the bottom right corner of the original cell, the output will be
+     * {row: 1, col: 1}.
+     * 
+     * @param {HTMLTableCellElement} originalCell The original cell.
+     * @param {MouseEvent} mouseEvent The mouse event.
+     * @returns {Object} A virtual index.
+    */
     getSubCellPosition(originalCell, mouseEvent) {
         const { left, top, width, height } = originalCell.getBoundingClientRect();
         const colspan = originalCell.colSpan;
@@ -1011,8 +1046,7 @@ class TableObj {
         const row = this.findClosestRow(y, Array.from(this.tbody.rows));
         let cells = Array.from(row.cells);
         // Remove the first 2 cells (drag handles and row selectors)
-        cells.shift();
-        cells.shift();
+        cells.shift(); cells.shift();
         return this.findClosestCol(x, cells);
     }
 
@@ -1078,8 +1112,7 @@ class TableObj {
         const row = this.findClosestRow(y, Array.from(this.thead.rows));
         let cells = Array.from(this.tbody.rows[0].cells);
         // Remove the first 2 cells (drag handles and row selectors)
-        cells.shift();
-        cells.shift();
+        cells.shift(); cells.shift();
 
         return {row: row.rowIndex, col: this.findClosestCol(x, cells).cellIndex};
     }
@@ -1151,23 +1184,6 @@ class TableObj {
             this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
     }
 
-    addDocumentEventListeners(){
-        document.addEventListener("mousemove", this.documentMouseMove.bind(this));
-        document.addEventListener("mouseup", this.documentMouseUp.bind(this));
-        document.addEventListener("mousedown", this.documentMouseDown.bind(this));
-        document.addEventListener("dragend", this.documentDragEnd.bind(this));
-        document.addEventListener("dragover", this.documentDragOver.bind(this));
-        document.addEventListener("click", this.documentClick.bind(this));
-    }
-
-    addTableSpecificEventListeners(){
-        this.thead.addEventListener("mousedown", this.theadMouseDown.bind(this), true);
-        this.tbody.addEventListener("mousedown", this.tbodyMouseDown.bind(this), true);
-        this.addRowDragHandlesListeners();
-        this.addColumnDragHandlesListeners();
-        this.addFunctionsToSortButtons();
-    }
-
     // ====================================== Event Listeners' Functions ======================================
     theadMouseDown(event){
         if (event.target.closest(".sortButton")) return;
@@ -1194,8 +1210,6 @@ class TableObj {
 
         this.startCell = {row: subCellIndex.row, col: minCol};
         this.endCell = {row: this.startCell.row, col: maxCol};
-
-        
 
         if (this.startCell.row === 0){
             if (this.startCell.col !== 0 && this.startCell.col !== 1){
@@ -1370,8 +1384,7 @@ class TableObj {
                     this.targetRow.after(this.sourceRow);
             }
 
-            this.targetRow.classList.remove('rowDragLineTop');
-            this.targetRow.classList.remove('rowDragLineBottom');
+            this.targetRow.classList.remove('rowDragLineTop', 'rowDragLineBottom');
             this.sourceRow = this.targetRow = null;
         }
 
@@ -1395,7 +1408,7 @@ class TableObj {
                 // Get the headers and store them with their new indices in headersToMove
                 headers.forEach(cell => {
                     const [currentMinCol, currentMaxCol] = this.getMinAndMaxColIndices(cell);
-                    
+
                     // Calculate the column offset of the cell from the source cell (the row index is
                     // the same as the current row)
                     const colOffset = currentMinCol - souceMinCol;
@@ -1491,10 +1504,8 @@ class TableObj {
             this.allowDrag = false;
 
             // Remove the line drawn by the previous drag
-            if (this.targetRow){
-                this.targetRow.classList.remove('rowDragLineTop');
-                this.targetRow.classList.remove('rowDragLineBottom');
-            }
+            if (this.targetRow)
+                this.targetRow.classList.remove('rowDragLineTop', 'rowDragLineBottom');
             
             // Update the target row
             this.targetRow = this.findClosestRow(event.clientY, Array.from(this.tbody.rows));
