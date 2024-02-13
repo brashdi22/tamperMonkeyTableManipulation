@@ -17,7 +17,7 @@ class TableObj {
         this.addColumnDragHandles();
 
         this.headerRowIndex = this.thead.rows.length - 1;
-        this.colDragHandlesRowIndex = this.thead.rows.length - 2;
+        this.colDragHandlesRowIndex = 0;
 
         this.replaceHeaders();
         this.addRowSelectors();
@@ -180,7 +180,7 @@ class TableObj {
         let matrix = [];
         let mapping = new Map();
 
-        // Initialize matrix to accommodate for all rows and theoretical columns
+        // Initialize matrix to accommodate for all rows and virtual columns
         for (let i = 0; i < rows.length; i++) {
             matrix[i] = [];
         }
@@ -240,7 +240,7 @@ class TableObj {
     getCellsUnderHeader(headerCell){
         // Turn the index of the header cell into a string to be used as a key in the inverseHeaderMapping
         const headerCellIndex = JSON.stringify({row: headerCell.parentElement.rowIndex, col: headerCell.cellIndex});
-        // Get the theoritical indices that the header cell is spanning over.
+        // Get the virtual indices that the header cell is spanning over.
         // If the header is located at (0,0) and has rowspan=2, the covered indices will be (0,0) and (1,0).
         const InitialCoveredIndices = this.inverseHeaderMapping.get(headerCellIndex);
 
@@ -252,7 +252,7 @@ class TableObj {
         // Create a set to hold the column indices that the header cell is spanning over
         const columns = new Set();
 
-        // For each theoretical index that the header cell is spanning over
+        // For each virtual index that the header cell is spanning over
         InitialCoveredIndices.forEach((index) => {
             // Parse the index from a string to an object
             const cellIndex = JSON.parse(index);
@@ -264,7 +264,7 @@ class TableObj {
             let row = cellIndex.row + 1;
             // While the row is less than the number of rows in the thead
             while (row < this.thead.rows.length){
-                // Create a new index in the form of a string (this is a theoretical index)
+                // Create a new index in the form of a string (this is a virtual index)
                 const newIndex = JSON.stringify({row: row, col: cellIndex.col});
 
                 // Get the actual index of the cell in the tbody
@@ -779,82 +779,6 @@ class TableObj {
         return [Math.min(...colIndices), Math.max(...colIndices)];
     }
 
-    // getMinAndMaxRowColIndices(coveredIndices){
-    //     const rowIndices = new Set();
-    //     const colIndices = new Set();
-
-    //     coveredIndices.forEach(index => {
-    //         rowIndices.add(JSON.parse(index).row);
-    //         colIndices.add(JSON.parse(index).col);
-    //     });
-
-    //     return [Math.min(...rowIndices), Math.max(...rowIndices),
-    //             Math.min(...colIndices), Math.max(...colIndices)];
-    // }
-
-    // getCellsBetween2Headers(startCell, endCell){
-    //     // if startcell is 1,2 and endcell is 3,2
-    //     if (startCell.parentElement.rowIndex === 1 && startCell.cellIndex === 2
-    //         && endCell.parentElement.rowIndex === 3 && endCell.cellIndex === 2)
-    //         debugger;
-    //     const coveredIndices1 = this.inverseHeaderMapping.get(JSON.stringify({row: startCell.parentElement.rowIndex, col: startCell.cellIndex}));
-    //     const coveredIndices2 = this.inverseHeaderMapping.get(JSON.stringify({row: endCell.parentElement.rowIndex, col: endCell.cellIndex}));
-
-    //     let [minRow, maxRow, minCol, maxCol] = this.getMinAndMaxRowColIndices([...coveredIndices1, ...coveredIndices2]);
-
-    //     const cellsSet = new Set();
-    //     let newIndexFound = false;
-        
-
-    //     do {
-    //         newIndexFound = false;
-    //         for (let i = minRow; i <= maxRow; i++){
-    //             for (let j = minCol; j <= maxCol; j++){
-    //                 const newCell = this.headerMapping.get(JSON.stringify({row: i, col: j}));
-    //                 cellsSet.add(newCell);
-
-    //                 // // Check what indices the new cell is spanning over
-    //                 // const coveredIndices = this.inverseHeaderMapping.get(newCell);
-    //                 // const [NewMinRow, NewMaxRow, NewMinCol, NewMaxCol] = this.getMinAndMaxRowColIndices(coveredIndices);
-                    
-    //                 // // Update the minRow, maxRow, minCol and maxCol
-    //                 // if (NewMinRow < minRow){
-    //                 //     minRow = NewMinRow;
-    //                 //     newIndexFound = true;
-    //                 //     break;
-    //                 // }
-    //                 // if (NewMaxRow > maxRow){
-    //                 //     maxRow = NewMaxRow;
-    //                 //     newIndexFound = true;
-    //                 //     break;
-    //                 // }
-    //                 // if (NewMinCol < minCol){
-    //                 //     minCol = NewMinCol;
-    //                 //     newIndexFound = true;
-    //                 //     break;
-    //                 // }
-    //                 // if (NewMaxCol > maxCol){
-    //                 //     maxCol = NewMaxCol;
-    //                 //     newIndexFound = true;
-    //                 //     break;
-    //                 // }
-    //             }
-    //             if (newIndexFound) break;
-    //         }
-    //     } while (newIndexFound);
-        
-    //     return [minRow, maxRow, minCol, maxCol, this.getCellsFromObjectIndices(Array.from(cellsSet))];
-    // }
-
-    // getCellsBetween2Headers(minCol, maxCol, row){
-    //     const cellsSet = new Set();
-    //     for (let i = minCol; i <= maxCol; i++){
-    //         const newCell = this.headerMapping.get(JSON.stringify({row: row, col: i}));
-    //         cellsSet.add(newCell);
-    //     }
-    //     return this.getCellsFromObjectIndices(Array.from(cellsSet));
-    // }
-
     getCellsBetween2Headers(minRow, maxRow, minCol, maxCol){
         const cellsSet = new Set();
         for (let i = minRow; i <= maxRow; i++){
@@ -985,60 +909,6 @@ class TableObj {
             });
         }      
     }
-
-    // selectColumns() {
-    //     if (!this.startCell || !this.endCell) return;
-
-    //     // First 2 headers should be excluded from column selection (row darg handles and index columns).
-    //     const minCol = Math.max(Math.min(this.startCell.cellIndex, this.endCell.cellIndex), 2);
-    //     const maxCol = Math.max(this.startCell.cellIndex, this.endCell.cellIndex);
-
-        
-    //     const rowIndex = this.endCell.parentElement.rowIndex;
-    //     if (this.toggleSelect){
-    //         const theadCells = [];
-    //         for (let i = minCol; i < maxCol + 1; i++){
-    //             // const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), thead tr:nth-child(n+2) th:nth-child(${i+1})`);
-    //             theadCells.push(...this.getCellsUnderHeaderTheadOnly(this.thead.rows[rowIndex].cells[i]));
-    //             const cells = this.getCellsUnderHeader(this.thead.rows[rowIndex].cells[i]);
-    //             for (let i = 0; i < cells.length; i++) {
-    //                 if (cells[i].style.display !== 'none')
-    //                     cells[i].classList.add('selectedTableObjCell');
-    //             }
-    //         }
-
-    //         // const theadCells = this.getCellsUnderHeaderTheadOnly(this.thead.rows[rowIndex].cells[0]);
-    //         const selectedTheadCells = this.thead.querySelectorAll('.selectedTableObjCell');
-    //         for (let i = 0; i < selectedTheadCells.length; i++){
-    //             if (!this.selectedCells.includes(selectedTheadCells[i]) && !theadCells.includes(selectedTheadCells[i]))
-    //                 selectedTheadCells[i].classList.remove('selectedTableObjCell');
-    //         }
-
-    //         // Find the columns in the tbody located between the startCell and the endCell
-    //         const [minColT, maxColT] = this.getMinAndMaxColIndices(this.startCell, this.endCell);
-
-
-    //         const cells = this.tbody.querySelectorAll('.selectedTableObjCell');
-    //         for (let i = 0; i < cells.length; i++){
-    //             if (!this.selectedCells.includes(cells[i]) && (cells[i].cellIndex < minColT || cells[i].cellIndex > maxColT))
-    //                 cells[i].classList.remove('selectedTableObjCell');
-    //         }
-    //     }
-    //     else {
-    //         for (let i = minCol; i < maxCol + 1; i++){
-    //             const cells = this.table.querySelectorAll(`td:nth-child(${i+1}), th:nth-child(${i+1})`);
-    //             for (let i = 0; i < cells.length; i++) {
-    //                 cells[i].classList.remove('selectedTableObjCell');
-    //             }
-    //         }
-
-    //         this.selectedCells.forEach(cell => {
-    //             if (cell.cellIndex < minCol || cell.cellIndex > maxCol){
-    //                 cell.classList.add('selectedTableObjCell');
-    //             }
-    //         });
-    //     }      
-    // }
 
     selectRows() {
         if (!this.startCell || !this.endCell) return;
@@ -1310,18 +1180,21 @@ class TableObj {
             this.toggleSelect = false;
         else
             this.toggleSelect = true;
+
         const [minCol, maxCol] = this.getMinAndMaxColIndices(this.startCell, this.startCell);
+
+        // Virtual cell index
         const subCellIndex = this.getSubCellPosition(this.startCell, event);
+
         this.startCell = {row: subCellIndex.row, col: minCol};
         this.endCell = {row: this.startCell.row, col: maxCol};
 
         
 
-        if (this.endCell.row === 0){
-            
-            if (this.endCell.col !== 0 && this.endCell.col !== 1){
-                // fix this, should use the getCellsUnderHeader function
-                const cells = this.table.querySelectorAll(`td:nth-child(${this.endCell.col+1}), th:nth-child(${this.endCell.col+1})`);
+        if (this.startCell.row === 0){
+            if (this.startCell.col !== 0 && this.startCell.col !== 1){
+                const [theadCells, tbodyCells] = this.getCellsUnderHeader(this.findParentCell(event.target, "TH"));
+                const cells = [...theadCells, ...tbodyCells];
                 for (let i = 0; i < cells.length; i++) {
                     cells[i].classList.add('selectedTableObjCell');
                 }
@@ -1495,38 +1368,237 @@ class TableObj {
             this.targetRow.classList.remove('rowDragLineBottom');
             this.sourceRow = this.targetRow = null;
         }
-        else if (this.sourceColumn && this.targetColumn){
-            if (this.sourceColumn !== this.targetColumn.cellIndex){
-                const targetColumnIndex = this.targetColumn.cellIndex;
+        // else if (this.sourceColumn && this.targetColumn){
+        //     if (this.sourceColumn !== this.targetColumn.cellIndex){
+        //         const targetColumnIndex = this.targetColumn.cellIndex;
 
-                const rows = this.table.rows;
-                if (this.targetColumn.classList.contains('columnDragLineRight')){
-                    for (let i = 0; i < rows.length; i++){
-                        const cell1 = rows[i].cells[this.sourceColumn];
-                        const cell2 = rows[i].cells[targetColumnIndex];
+        //         const rows = this.table.rows;
+        //         if (this.targetColumn.classList.contains('columnDragLineRight')){
+        //             for (let i = 0; i < rows.length; i++){
+        //                 const cell1 = rows[i].cells[this.sourceColumn];
+        //                 const cell2 = rows[i].cells[targetColumnIndex];
         
-                        // Move the source cell to the new position
-                        const removedCell = rows[i].removeChild(cell1);
-                        cell2.after(removedCell);
+        //                 // Move the source cell to the new position
+        //                 const removedCell = rows[i].removeChild(cell1);
+        //                 cell2.after(removedCell);
+        //             }
+        //         }
+        //         else {
+        //             for (let i = 0; i < rows.length; i++){
+        //                 const cell1 = rows[i].cells[this.sourceColumn];
+        //                 const cell2 = rows[i].cells[targetColumnIndex];
+
+        //                 // Move the source cell to the new position
+        //                 const removedCell = rows[i].removeChild(cell1);
+        //                 cell2.before(removedCell);
+        //             }                    
+        //         }
+        //     }
+
+        //     this.targetColumn.classList.remove('columnDragLineLeft');
+        //     this.targetColumn.classList.remove('columnDragLineRight');
+        //     this.sourceColumn = this.targetColumn = null;
+        // }
+
+        // else if (this.sourceColumn && this.targetColumn){
+        //     if (this.sourceColumn !== this.targetColumn.cellIndex){
+        //         debugger;
+        //         const targetColumnIndex = this.targetColumn.cellIndex;
+
+        //         // Get virtual target cell index
+        //         const targetCellIndex = { row: 0, col: this.targetColumn.cellIndex };
+        //         const [minCol, maxCol] = this.getMinAndMaxColIndices(this.targetColumn, this.targetColumn);
+
+        //         const sourceCellIndex = { row: 0, col: this.sourceColumn };
+        //         const temp = this.thead.rows[0].cells[this.sourceColumn];
+                
+        //         // Get the cells under the source header
+        //         const [headers, cells] = this.getCellsUnderHeader(temp);
+
+        //         if (this.targetColumn.classList.contains('columnDragLineRight')) {
+        //             headers.forEach(cell => {
+        //                 debugger;
+        //                 // Get the the most left column index of the cell (in case the cell spans multiple columns)
+        //                 const [min, max] = this.getMinAndMaxColIndices(cell, cell);
+        //                 // calculate the offset of the cell from the source cell
+        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: min - sourceCellIndex.col };
+
+        //                 // Get the new cell's virtual index
+        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
+        //                 // Get the new cell's actual index
+        //                 const actualNewCellIndex = JSON.parse(this.headerMapping.get(JSON.stringify(newCellIndex)));
+                        
+        //                 const cell2 = this.table.rows[actualNewCellIndex.row].cells[actualNewCellIndex.col];
+        //                 // Remove the cell from the table
+        //                 const removedCell = cell.parentElement.removeChild(cell);
+
+        //                 // Insert the cell at the new position
+        //                 // cell2.after(removedCell);
+        //             });
+        //             cells.forEach(cell => {
+        //                 debugger;
+        //                 // calculate the offset of the cell from the source cell
+        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: cell.cellIndex - sourceCellIndex.col };
+
+        //                 // Get the new cell index
+        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
+                        
+        //                 const cell2 = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
+        //                 // Remove the cell from the table
+        //                 const removedCell = cell.parentElement.removeChild(cell);
+        //                 console.log(removedCell.cellIndex);
+
+        //                 // Insert the cell at the new position
+        //                 // cell2.after(removedCell);
+        //             });
+        //         }
+        //         else {
+        //             headers.forEach(cell => {
+        //                 debugger;
+        //                 // calculate the offset of the cell from the source cell
+        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: cell.cellIndex - sourceCellIndex.col };
+
+        //                 // Get the new cell's virtual index
+        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
+        //                 // Get the new cell's actual index
+        //                 const actualNewCellIndex = JSON.parse(this.headerMapping.get(JSON.stringify(newCellIndex)));
+                        
+        //                 const cell2 = this.table.rows[actualNewCellIndex.row].cells[actualNewCellIndex.col];
+        //                 // Remove the cell from the table
+        //                 const removedCell = cell.parentElement.removeChild(cell);
+
+        //                 // Insert the cell at the new position
+        //                 cell2.before(removedCell);
+        //             });
+        //             cells.forEach(cell => {
+        //                 debugger;
+        //                 // calculate the offset of the cell from the source cell
+        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: cell.cellIndex - sourceCellIndex.col };
+
+        //                 // Get the new cell index
+        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
+                        
+        //                 const cell2 = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
+        //                 // Remove the cell from the table
+        //                 const removedCell = cell.parentElement.removeChild(cell);
+
+        //                 // Insert the cell at the new position
+        //                 cell2.before(removedCell);
+        //             });
+        //         }
+        //     }
+
+        //     this.headerMapping = this.mapTableHeaderIndices();
+        //     this.inverseHeaderMapping = this.invertMap(this.headerMapping);
+
+        //     this.targetColumn.classList.remove('columnDragLineLeft');
+        //     this.targetColumn.classList.remove('columnDragLineRight');
+        //     this.sourceColumn = this.targetColumn = null;
+        // }
+
+        else if (this.sourceColumn && this.targetColumn){
+            if (this.targetColumn.classList.contains('columnDragLineLeft')){
+                this.targetColumn.classList.remove('columnDragLineLeft');
+                // Get the cell to the left of the target cell
+                this.targetColumn = this.targetColumn.previousElementSibling;
+            }
+            if (this.sourceColumn !== this.targetColumn.cellIndex){
+                const sourceCellIndex = { row: 0, col: this.sourceColumn };
+                const temp = this.thead.rows[0].cells[this.sourceColumn];
+                const [souceMinCol, souceMaxCol] = this.getMinAndMaxColIndices(temp, temp);
+
+                const [targetMinCol, targetMaxCol] = this.getMinAndMaxColIndices(this.targetColumn, this.targetColumn);
+                
+                // Get the cells under the source header
+                const [headers, cells] = this.getCellsUnderHeader(temp);
+
+                const headersToMove = [];
+                const placeholderes = [];
+
+                headers.forEach(cell => {
+
+                    const [currentMinCol, currentMaxCol] = this.getMinAndMaxColIndices(cell, cell);
+                    // calculate the offset of the cell from the source cell
+                    const offset = { row: cell.parentElement.rowIndex, col: currentMinCol - souceMinCol };
+                    // const offset = { row: cell.parentElement.rowIndex, col: cell.cellIndex - this.sourceColumn };
+
+                    // Get the new cell's virtual index
+                    const newCellIndex = { row: offset.row, col: targetMaxCol + offset.col };
+
+                    // Clone the cell
+                    const cell2 = cell.cloneNode(true);
+
+                    headersToMove.push({ cell: cell, row: newCellIndex.row, col: newCellIndex.col, oldRow: cell.parentElement.rowIndex, oldCol: cell.cellIndex });    
+                });
+
+                headersToMove.forEach(cell => {
+                    // // cell.cell.parentElement.removeChild(cell.cell);
+                    // // replace each cell a placeholder, the placeholder should have the same col and row spans
+                    // const placeholder = document.createElement('th');
+                    
+                    const row = cell.cell.parentElement;
+                    row.removeChild(cell.cell);
+                    const placeholder = row.insertCell(cell.oldCol);
+                    placeholder.rowSpan = cell.cell.rowSpan;
+                    placeholder.colSpan = cell.cell.colSpan;
+                    placeholderes.push(placeholder);
+
+                });
+
+                headersToMove.forEach(cell => {
+                    // const actualIndex = JSON.parse(this.headerMapping.get(JSON.stringify({row: cell.row, col: cell.col})));
+                    // this.table.rows[actualIndex.row].cells[actualIndex.col].after(cell.cell);
+                    // this.table.rows[cell.row].cells[cell.col].after(cell.cell);
+
+                    let currentCol = cell.col;
+                    let virtual = { row: cell.row, col: cell.col };
+                    let fetched = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
+                    while (virtual.row !== fetched.row){
+                        currentCol--;
+                        virtual = { row: cell.row, col: currentCol };
+                        fetched = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
+                        
                     }
-                }
-                else {
-                    for (let i = 0; i < rows.length; i++){
-                        const cell1 = rows[i].cells[this.sourceColumn];
-                        const cell2 = rows[i].cells[targetColumnIndex];
-        
-                        // Move the source cell to the new position
-                        const removedCell = rows[i].removeChild(cell1);
-                        cell2.before(removedCell);
-                    }                    
-                }
+
+
+                    let tempCell = this.table.rows[cell.row].cells[fetched.col];
+                    // while (!tempCell){
+                    //     currentCol--;
+                    //     tempCell = this.table.rows[cell.row].cells[currentCol];
+                    // }
+                    tempCell.after(cell.cell);
+
+                    this.headerMapping = this.mapTableHeaderIndices();
+                    this.inverseHeaderMapping = this.invertMap(this.headerMapping);
+                    
+                });
+
+                cells.forEach(cell => {
+                    // calculate the offset of the cell from the source cell
+                    const offset = { row: cell.parentElement.rowIndex, col: cell.cellIndex - souceMinCol };
+
+                    // Get the new cell index
+                    const newCellIndex = { row: offset.row, col: targetMaxCol + offset.col };
+                    
+                    const cell2 = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
+                    // Remove the cell from the table
+                    const removedCell = cell.parentElement.removeChild(cell);
+
+                    // Insert the cell at the new position
+                    cell2.after(removedCell);
+                });
+
+                placeholderes.forEach(placeholder => {
+                    placeholder.remove();
+                });
             }
 
-            this.targetColumn.classList.remove('columnDragLineLeft');
+            this.headerMapping = this.mapTableHeaderIndices();
+            this.inverseHeaderMapping = this.invertMap(this.headerMapping);
+
             this.targetColumn.classList.remove('columnDragLineRight');
             this.sourceColumn = this.targetColumn = null;
         }
-        
     }
 
     documentDragOver(event){

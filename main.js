@@ -152,8 +152,8 @@ setTimeout(function() {
     targetTable = document.getElementsByTagName("table")[0];
 
     function callMainOnce(){
-        main();
         observer.disconnect();     // Stop observing the target table for mutations
+        main();
     }
 
     // Set an initial delay for execution
