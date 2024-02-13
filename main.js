@@ -599,41 +599,9 @@ async function classifyColumn(column) {
  * @returns {Array<Array>} an array of 2 arrays. Each sub-array contains the header, data type and data of a column.
  */
 async function getColumnsToPlot(){
-    const columns = document.querySelectorAll('table thead tr:nth-child(2) th.selectedTableObjCell');
-
-    let col1Header, col2Header;
-    let col1ContentArray = [], col2ContentArray = [];
-
-    if (columns.length === 0){
-        const temp = getSelectedCellsAsColumns();
-        if (!temp) return;
-        [col1Header, col1ContentArray, col2Header, col2ContentArray] = temp;
-    }
-    else {
-        let col1, col2;
-        const table = columns[0].parentElement.parentElement.parentElement; // table -> thead -> tr -> th
-    
-        if (columns.length === 1){
-            col1 = columns[0].cellIndex;
-            col2 = null;
-        }
-        else {
-            col1 = columns[0].cellIndex;
-            col2 = columns[1].cellIndex;
-        }
-        
-        table.querySelectorAll(`tbody td:nth-child(${col1 + 1})`).forEach(cell => {
-            col1ContentArray.push(cell.textContent);
-        });
-
-        if (col2){
-            table.querySelectorAll(`tbody td:nth-child(${col2 + 1})`).forEach(cell => {
-                col2ContentArray.push(cell.textContent);
-            });
-            col2Header = table.rows[1].cells[col2].textContent;
-        }
-        col1Header = table.rows[1].cells[col1].textContent;
-    }
+    const temp = getSelectedCellsAsColumns();
+    if (!temp) return;
+    const [col1Header, col1ContentArray, col2Header, col2ContentArray] = temp;
     
     const col1DataType = await classifyColumn(col1ContentArray);
 
@@ -657,7 +625,7 @@ async function getColumnsToPlot(){
  *                         content, column 2 header, column 2 content.
  */
 function getSelectedCellsAsColumns(){
-    const selectedCells = Array.from(document.querySelectorAll('.selectedTableObjCell'));
+    const selectedCells = Array.from(document.querySelectorAll('tbody .selectedTableObjCell'));
     if (selectedCells.length === 0) return;
 
     const table = selectedCells[0].parentElement.parentElement.parentElement; // table -> tbody -> tr -> td
@@ -670,28 +638,28 @@ function getSelectedCellsAsColumns(){
     const col1ContentArray = col1Cells.map(cell => cell.textContent);
 
     // Get the header cell of the first column
-    const col1Header = table.rows[1].cells[col1Index].textContent;
+    const col1Header = col1Cells[0].title;
 
     // Get the first cell that is not in the same column
-    const col2Index = selectedCells
+    const col2 = selectedCells
         .filter(cell => cell.cellIndex !== col1Index)
-        .reduce((minIndex, cell) => Math.min(minIndex, cell.cellIndex), Infinity);
+        .reduce((minCell, currentCell) => (minCell === null || currentCell.cellIndex < minCell.cellIndex) ? currentCell : minCell, null);
 
-    if (col2Index === Infinity){
+    if (!col2){
         return [col1Header, col1ContentArray, undefined, undefined];
     }
     else {
         // Get the selected cells in the second column that are in the same row as the selected cells in the first column
         const col2ContentArray = [];
         col1Cells.forEach(cell1 => {
-            const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2Index];
+            const cell2 = table.rows[cell1.parentElement.rowIndex].cells[col2.cellIndex];
             col2ContentArray.push(cell2.textContent);
         });
 
         // Get the header cell of the second column
-        const col2Header = table.rows[1].cells[col2Index].textContent;
+        const col2Header = col2.title;
 
-        if (col1Index > col2Index)
+        if (col1Index > col2.cellIndex)
             return [col2Header, col2ContentArray, col1Header, col1ContentArray];
         else
             return [col1Header, col1ContentArray, col2Header, col2ContentArray];
