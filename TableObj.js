@@ -235,18 +235,17 @@ class TableObj {
      * When this cell is selected, the whole row will be selected.
      */
     addRowSelectors(){
-        // Add an empty cell to the left of the row for every row in the thead except the headers row
-        for (let i = 0; i < this.thead.rows.length - 1; i++){
-            const th = document.createElement("th");
-            th.style.cursor = 'default';
-            this.thead.rows[i].insertBefore(th, this.thead.rows[i].firstElementChild);
-        }
+        // Add an empty cell to the left of the top row (column drag handles row)
+        const th0 = document.createElement("th");
+        th0.style.cursor = 'default';
+        this.thead.rows[0].insertBefore(th0, this.thead.rows[0].firstElementChild);
 
         // Add the 'Index' header cell to the headers row
-        const th = document.createElement("th");
-        th.className = "rowSelector";
-        th.textContent = "Index";
-        this.thead.rows[this.headerRowIndex].insertBefore(th, this.thead.rows[this.headerRowIndex].firstElementChild);
+        const indexTH = document.createElement("th");
+        indexTH.className = "rowSelector";
+        indexTH.textContent = "Index";
+        indexTH.rowSpan = this.thead.rows.length - 1;
+        this.thead.rows[1].insertBefore(indexTH, this.thead.rows[1].firstElementChild);
 
         // Add row selectors to the tbody
         const rows = Array.from(this.tbody.rows);
@@ -276,12 +275,11 @@ class TableObj {
      * and adds event listeners to the cells.
      */
     addRowDragHandles(){
-        // Add an empty cell to the left of the row for every row in the thead
-        for (let i = 0; i < this.thead.rows.length; i++){
-            const th = document.createElement("th");
-            th.style.cursor = 'default';
-            this.thead.rows[i].insertBefore(th, this.thead.rows[i].firstElementChild);
-        }
+        // Add an empty cell to the left of the top row (column drag handles row)
+        const th0 = document.createElement("th");
+        th0.rowSpan = this.thead.rows.length;
+        th0.style.cursor = 'default';
+        this.thead.rows[0].insertBefore(th0, this.thead.rows[0].firstElementChild);
 
         // Add row drag handles to the tbody
         const rows = Array.from(this.tbody.rows);
@@ -845,13 +843,13 @@ class TableObj {
 
     selecetWholeTable(){
         if (this.toggleSelect){
-            this.table.querySelectorAll('tbody td:nth-child(n+2), thead tr:nth-child(n+2) th:nth-child(n+2)').forEach(cell => {
+            this.table.querySelectorAll('tbody tr td:not(:first-child), tr:not(:first-child) th').forEach(cell => {
                 if (cell.style.display !== 'none' && cell.parentElement.style.display !== 'none')
                     cell.classList.add('selectedTableObjCell');
             });
         }
         else {
-            this.table.querySelectorAll('tbody td:nth-child(n+2), thead tr:nth-child(n+2) th:nth-child(n+2)').forEach(cell => {
+            this.table.querySelectorAll('tbody tr td:not(:first-child), tr:not(:first-child) th').forEach(cell => {
                 cell.classList.remove('selectedTableObjCell');
             });
         }
@@ -1221,9 +1219,11 @@ class TableObj {
             }
         } 
         else {
+            
             this.mouseDownH = true;
-            if (this.endCell.col === 1)
+            if (this.endCell.col === 1){
                 this.selecetWholeTable();
+            }
             else if (this.endCell.col !== 0){
                 this.selectColumns();
             }
@@ -1389,6 +1389,7 @@ class TableObj {
         }
 
         else if (this.sourceColumn && this.targetColumn){
+            debugger;
             if (this.targetColumn.classList.contains('columnDragLineLeft')){
                 this.targetColumn.classList.remove('columnDragLineLeft');
                 // Get the cell to the left of the target cell
@@ -1446,14 +1447,20 @@ class TableObj {
                     // The virtual index and the actual index should have the same row index,
                     // this is to place the cell in the correct position even if some of the 
                     // previous cells are spanning multiple rows.
-                    while (virtual.row !== actual.row){
+                    while (virtual.row !== actual.row && virtual.col !== 0){
                         virtual = { row: sourceCell.row, col: virtual.col - 1 };
                         actual = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
                     }
 
-                    // Get the target cell and insert the source cell in the correct position
-                    let targetCell = this.table.rows[sourceCell.row].cells[actual.col];
-                    targetCell.after(sourceCell.cell);
+                    if (virtual.col === 0 ){
+                        // insert the at the start of the row
+                        this.table.rows[sourceCell.row].insertBefore(sourceCell.cell, this.table.rows[sourceCell.row].firstElementChild)
+                    }
+                    else {
+                        // Get the target cell and insert the source cell in the correct position
+                        let targetCell = this.table.rows[sourceCell.row].cells[actual.col];
+                        targetCell.after(sourceCell.cell);
+                    }
 
                     // Update the headerMapping and the inverseHeaderMapping
                     this.headerMapping = this.mapTableHeaderIndices();
