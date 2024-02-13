@@ -455,7 +455,7 @@ class TableObj {
         const columnDragHandles = document.querySelectorAll(`#${this.table.id} .columnDragHandle`);
         columnDragHandles.forEach(handle => {
             handle.addEventListener('dragstart', (event) => {
-                this.sourceColumn = event.target.cellIndex;
+                this.sourceColumn = event.target;
             });
         });
     }
@@ -766,13 +766,19 @@ class TableObj {
         hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[0]);
     }
 
-    getMinAndMaxColIndices(startCell, endCell){
-        const coveredIndices1 = this.inverseHeaderMapping.get(JSON.stringify({row: startCell.parentElement.rowIndex, col: startCell.cellIndex}));
-        const coveredIndices2 = this.inverseHeaderMapping.get(JSON.stringify({row: endCell.parentElement.rowIndex, col: endCell.cellIndex}));
+    /**
+     * Get the minimum and maximum virtual column indices of the given cell.
+     * E.g., if the cell is located at (0,0) and has colspan=2, the output will
+     * be min=0 and max=1.
+     * 
+     * @param {HTMLTableCellElement} cell a table header cell.
+     * @returns {number[]} An array of two numbers, min and max respectively.
+     */
+    getMinAndMaxColIndices(cell){
+        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cell.cellIndex}));
 
         const colIndices = [];
-
-        [...coveredIndices1, ...coveredIndices2].forEach(index => {
+        coveredIndices.forEach(index => {
             colIndices.push(JSON.parse(index).col);
         });
 
@@ -1181,7 +1187,7 @@ class TableObj {
         else
             this.toggleSelect = true;
 
-        const [minCol, maxCol] = this.getMinAndMaxColIndices(this.startCell, this.startCell);
+        const [minCol, maxCol] = this.getMinAndMaxColIndices(this.startCell);
 
         // Virtual cell index
         const subCellIndex = this.getSubCellPosition(this.startCell, event);
@@ -1368,133 +1374,6 @@ class TableObj {
             this.targetRow.classList.remove('rowDragLineBottom');
             this.sourceRow = this.targetRow = null;
         }
-        // else if (this.sourceColumn && this.targetColumn){
-        //     if (this.sourceColumn !== this.targetColumn.cellIndex){
-        //         const targetColumnIndex = this.targetColumn.cellIndex;
-
-        //         const rows = this.table.rows;
-        //         if (this.targetColumn.classList.contains('columnDragLineRight')){
-        //             for (let i = 0; i < rows.length; i++){
-        //                 const cell1 = rows[i].cells[this.sourceColumn];
-        //                 const cell2 = rows[i].cells[targetColumnIndex];
-        
-        //                 // Move the source cell to the new position
-        //                 const removedCell = rows[i].removeChild(cell1);
-        //                 cell2.after(removedCell);
-        //             }
-        //         }
-        //         else {
-        //             for (let i = 0; i < rows.length; i++){
-        //                 const cell1 = rows[i].cells[this.sourceColumn];
-        //                 const cell2 = rows[i].cells[targetColumnIndex];
-
-        //                 // Move the source cell to the new position
-        //                 const removedCell = rows[i].removeChild(cell1);
-        //                 cell2.before(removedCell);
-        //             }                    
-        //         }
-        //     }
-
-        //     this.targetColumn.classList.remove('columnDragLineLeft');
-        //     this.targetColumn.classList.remove('columnDragLineRight');
-        //     this.sourceColumn = this.targetColumn = null;
-        // }
-
-        // else if (this.sourceColumn && this.targetColumn){
-        //     if (this.sourceColumn !== this.targetColumn.cellIndex){
-        //         debugger;
-        //         const targetColumnIndex = this.targetColumn.cellIndex;
-
-        //         // Get virtual target cell index
-        //         const targetCellIndex = { row: 0, col: this.targetColumn.cellIndex };
-        //         const [minCol, maxCol] = this.getMinAndMaxColIndices(this.targetColumn, this.targetColumn);
-
-        //         const sourceCellIndex = { row: 0, col: this.sourceColumn };
-        //         const temp = this.thead.rows[0].cells[this.sourceColumn];
-                
-        //         // Get the cells under the source header
-        //         const [headers, cells] = this.getCellsUnderHeader(temp);
-
-        //         if (this.targetColumn.classList.contains('columnDragLineRight')) {
-        //             headers.forEach(cell => {
-        //                 debugger;
-        //                 // Get the the most left column index of the cell (in case the cell spans multiple columns)
-        //                 const [min, max] = this.getMinAndMaxColIndices(cell, cell);
-        //                 // calculate the offset of the cell from the source cell
-        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: min - sourceCellIndex.col };
-
-        //                 // Get the new cell's virtual index
-        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
-        //                 // Get the new cell's actual index
-        //                 const actualNewCellIndex = JSON.parse(this.headerMapping.get(JSON.stringify(newCellIndex)));
-                        
-        //                 const cell2 = this.table.rows[actualNewCellIndex.row].cells[actualNewCellIndex.col];
-        //                 // Remove the cell from the table
-        //                 const removedCell = cell.parentElement.removeChild(cell);
-
-        //                 // Insert the cell at the new position
-        //                 // cell2.after(removedCell);
-        //             });
-        //             cells.forEach(cell => {
-        //                 debugger;
-        //                 // calculate the offset of the cell from the source cell
-        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: cell.cellIndex - sourceCellIndex.col };
-
-        //                 // Get the new cell index
-        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
-                        
-        //                 const cell2 = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
-        //                 // Remove the cell from the table
-        //                 const removedCell = cell.parentElement.removeChild(cell);
-        //                 console.log(removedCell.cellIndex);
-
-        //                 // Insert the cell at the new position
-        //                 // cell2.after(removedCell);
-        //             });
-        //         }
-        //         else {
-        //             headers.forEach(cell => {
-        //                 debugger;
-        //                 // calculate the offset of the cell from the source cell
-        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: cell.cellIndex - sourceCellIndex.col };
-
-        //                 // Get the new cell's virtual index
-        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
-        //                 // Get the new cell's actual index
-        //                 const actualNewCellIndex = JSON.parse(this.headerMapping.get(JSON.stringify(newCellIndex)));
-                        
-        //                 const cell2 = this.table.rows[actualNewCellIndex.row].cells[actualNewCellIndex.col];
-        //                 // Remove the cell from the table
-        //                 const removedCell = cell.parentElement.removeChild(cell);
-
-        //                 // Insert the cell at the new position
-        //                 cell2.before(removedCell);
-        //             });
-        //             cells.forEach(cell => {
-        //                 debugger;
-        //                 // calculate the offset of the cell from the source cell
-        //                 const offset = { row: cell.parentElement.rowIndex - sourceCellIndex.row, col: cell.cellIndex - sourceCellIndex.col };
-
-        //                 // Get the new cell index
-        //                 const newCellIndex = { row: cell.parentElement.rowIndex, col: maxCol + offset.col };
-                        
-        //                 const cell2 = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
-        //                 // Remove the cell from the table
-        //                 const removedCell = cell.parentElement.removeChild(cell);
-
-        //                 // Insert the cell at the new position
-        //                 cell2.before(removedCell);
-        //             });
-        //         }
-        //     }
-
-        //     this.headerMapping = this.mapTableHeaderIndices();
-        //     this.inverseHeaderMapping = this.invertMap(this.headerMapping);
-
-        //     this.targetColumn.classList.remove('columnDragLineLeft');
-        //     this.targetColumn.classList.remove('columnDragLineRight');
-        //     this.sourceColumn = this.targetColumn = null;
-        // }
 
         else if (this.sourceColumn && this.targetColumn){
             if (this.targetColumn.classList.contains('columnDragLineLeft')){
@@ -1502,92 +1381,93 @@ class TableObj {
                 // Get the cell to the left of the target cell
                 this.targetColumn = this.targetColumn.previousElementSibling;
             }
-            if (this.sourceColumn !== this.targetColumn.cellIndex){
-                const sourceCellIndex = { row: 0, col: this.sourceColumn };
-                const temp = this.thead.rows[0].cells[this.sourceColumn];
-                const [souceMinCol, souceMaxCol] = this.getMinAndMaxColIndices(temp, temp);
 
-                const [targetMinCol, targetMaxCol] = this.getMinAndMaxColIndices(this.targetColumn, this.targetColumn);
+            if (this.sourceColumn.cellIndex !== this.targetColumn.cellIndex){
+                const [souceMinCol, souceMaxCol] = this.getMinAndMaxColIndices(this.sourceColumn);
+                const [targetMinCol, targetMaxCol] = this.getMinAndMaxColIndices(this.targetColumn);
                 
                 // Get the cells under the source header
-                const [headers, cells] = this.getCellsUnderHeader(temp);
+                const [headers, cells] = this.getCellsUnderHeader(this.sourceColumn);
 
                 const headersToMove = [];
                 const placeholderes = [];
 
+                // Get the headers and store them with their new indices in headersToMove
                 headers.forEach(cell => {
-
-                    const [currentMinCol, currentMaxCol] = this.getMinAndMaxColIndices(cell, cell);
-                    // calculate the offset of the cell from the source cell
-                    const offset = { row: cell.parentElement.rowIndex, col: currentMinCol - souceMinCol };
-                    // const offset = { row: cell.parentElement.rowIndex, col: cell.cellIndex - this.sourceColumn };
+                    const [currentMinCol, currentMaxCol] = this.getMinAndMaxColIndices(cell);
+                    
+                    // Calculate the column offset of the cell from the source cell (the row index is
+                    // the same as the current row)
+                    const colOffset = currentMinCol - souceMinCol;
 
                     // Get the new cell's virtual index
-                    const newCellIndex = { row: offset.row, col: targetMaxCol + offset.col };
+                    const newCellIndex = { row: cell.parentElement.rowIndex, col: targetMaxCol + colOffset };
 
-                    // Clone the cell
-                    const cell2 = cell.cloneNode(true);
-
-                    headersToMove.push({ cell: cell, row: newCellIndex.row, col: newCellIndex.col, oldRow: cell.parentElement.rowIndex, oldCol: cell.cellIndex });    
+                    headersToMove.push({ cell: cell, row: newCellIndex.row, col: newCellIndex.col, oldCol: cell.cellIndex });    
                 });
 
+                // Replace the headers to move with placeholders, and store the placeholders in 
+                // the placeholderes array
                 headersToMove.forEach(cell => {
-                    // // cell.cell.parentElement.removeChild(cell.cell);
-                    // // replace each cell a placeholder, the placeholder should have the same col and row spans
-                    // const placeholder = document.createElement('th');
-                    
+                    // Remove the cell from the table
                     const row = cell.cell.parentElement;
                     row.removeChild(cell.cell);
+
+                    // Insert a placeholder in the cell's position
                     const placeholder = row.insertCell(cell.oldCol);
+
+                    // Set the spans to be the same as the cell's
                     placeholder.rowSpan = cell.cell.rowSpan;
                     placeholder.colSpan = cell.cell.colSpan;
-                    placeholderes.push(placeholder);
 
+                    placeholderes.push(placeholder);
                 });
 
-                headersToMove.forEach(cell => {
-                    // const actualIndex = JSON.parse(this.headerMapping.get(JSON.stringify({row: cell.row, col: cell.col})));
-                    // this.table.rows[actualIndex.row].cells[actualIndex.col].after(cell.cell);
-                    // this.table.rows[cell.row].cells[cell.col].after(cell.cell);
+                // Insert the cells in the correct position
+                headersToMove.forEach(sourceCell => {
+                    // The index of the cell is a virtual index, so we need to get the actual index 
+                    // from the headerMapping 
+                    let virtual = { row: sourceCell.row, col: sourceCell.col };
+                    let actual = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
 
-                    let currentCol = cell.col;
-                    let virtual = { row: cell.row, col: cell.col };
-                    let fetched = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
-                    while (virtual.row !== fetched.row){
-                        currentCol--;
-                        virtual = { row: cell.row, col: currentCol };
-                        fetched = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
-                        
+                    // The virtual index and the actual index should have the same row index,
+                    // this is to place the cell in the correct position even if some of the 
+                    // previous cells are spanning multiple rows.
+                    while (virtual.row !== actual.row){
+                        virtual = { row: sourceCell.row, col: virtual.col - 1 };
+                        actual = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
                     }
 
+                    // Get the target cell and insert the source cell in the correct position
+                    let targetCell = this.table.rows[sourceCell.row].cells[actual.col];
+                    targetCell.after(sourceCell.cell);
 
-                    let tempCell = this.table.rows[cell.row].cells[fetched.col];
-                    // while (!tempCell){
-                    //     currentCol--;
-                    //     tempCell = this.table.rows[cell.row].cells[currentCol];
-                    // }
-                    tempCell.after(cell.cell);
-
+                    // Update the headerMapping and the inverseHeaderMapping
                     this.headerMapping = this.mapTableHeaderIndices();
                     this.inverseHeaderMapping = this.invertMap(this.headerMapping);
-                    
                 });
 
-                cells.forEach(cell => {
-                    // calculate the offset of the cell from the source cell
-                    const offset = { row: cell.parentElement.rowIndex, col: cell.cellIndex - souceMinCol };
+                // Move the cells in the body. This is simpler than moving the cells in the header
+                // because we are assuming that the cells in the body are not spanning multiple rows
+                // nor columns.
+                cells.forEach(sourceCell => {
+                    // Calculate the column offset of the cell from the source cell
+                    const colOffset = sourceCell.cellIndex - souceMinCol;
 
                     // Get the new cell index
-                    const newCellIndex = { row: offset.row, col: targetMaxCol + offset.col };
+                    const newCellIndex = { row: sourceCell.parentElement.rowIndex, col: targetMaxCol + colOffset };
                     
-                    const cell2 = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
-                    // Remove the cell from the table
-                    const removedCell = cell.parentElement.removeChild(cell);
+                    // Get the target cell
+                    const tragetCell = this.table.rows[newCellIndex.row].cells[newCellIndex.col];
+
+                    // Remove the source cell from the table
+                    const removedCell = sourceCell.parentElement.removeChild(sourceCell);
 
                     // Insert the cell at the new position
-                    cell2.after(removedCell);
+                    tragetCell.after(removedCell);
                 });
 
+                // Remove the placeholders
                 placeholderes.forEach(placeholder => {
                     placeholder.remove();
                 });
