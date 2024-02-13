@@ -211,12 +211,17 @@ function main() {
 
     // Retrieve the tables from the page
     const tables = document.getElementsByTagName("table");
-    let tableObjects = [];
+    
 
     // Create an instance of TableObj for each table
     Array.from(tables).forEach(table => {
-        if (table.rows.length > 1)
-            tableObjects.push(new TableObj(table));
+        if (table.rows.length > 1){
+            // Some tables have no ids. During the creation of the TableObj, the id is set to
+            // the table if it does not have one. That is why the instance is stored in a const
+            // before adding it to the tableObjects map.
+            const temp = new TableObj(table);
+            tableObjects.set(temp.table.id, temp);
+        }
     });
 
 
@@ -263,6 +268,7 @@ function main() {
 
 }
 
+let tableObjects = new Map();
 let classifierPromise;
 const coloursMap = {
     '#ebe052': 'yellow',
@@ -446,18 +452,47 @@ function copySelectedCellsAsTSV() {
     // Get the selected cells
     const selectedCells = Array.from(document.querySelectorAll('.selectedTableObjCell'));
 
-    // Get the minimum and maximum row and column index of the selected cells
-    const minRowIndex = Math.min(...selectedCells.map(cell => cell.parentNode.rowIndex));
-    const maxRowIndex = Math.max(...selectedCells.map(cell => cell.parentNode.rowIndex));
-    const minColIndex = Math.min(...selectedCells.map(cell => cell.cellIndex));
-    const maxColIndex = Math.max(...selectedCells.map(cell => cell.cellIndex));
+    // Get the table object of the first selected cell
+    const tableObj = tableObjects.get(selectedCells[0].parentElement.parentElement.parentElement.id);
+
+    // Separate the selected cells into th and td
+    const ths = selectedCells.filter(cell => cell.tagName === 'TH');
+    const tds = selectedCells.filter(cell => cell.tagName === 'TD');
+
+    // For each th, get the corresponding virtual columns, then find the min and max row/column
+    let rows = [];
+    let cols = [];
+    ths.forEach(th => {
+        const index = JSON.stringify({ row: th.parentElement.rowIndex, col: th.cellIndex });
+        const coveredIndices = tableObj.inverseHeaderMapping.get(index);
+        coveredIndices.forEach(index => {
+            rows.push(JSON.parse(index).row);
+            cols.push(JSON.parse(index).col);
+        });
+    });
+    let minRowIndex = Math.min(...rows);
+    let maxRowIndex = Math.max(...rows);
+    let minColIndex = Math.min(...cols);
+    let maxColIndex = Math.max(...cols);
+
+    // Get the min and max row/column index of the selected cells (both th and td)
+    minRowIndex = Math.min(minRowIndex, Math.min(...tds.map(cell => cell.parentNode.rowIndex)));
+    maxRowIndex = Math.max(maxRowIndex, Math.max(...tds.map(cell => cell.parentNode.rowIndex)));
+    minColIndex = Math.min(minColIndex, Math.min(...tds.map(cell => cell.cellIndex)));
+    maxColIndex = Math.max(maxColIndex, Math.max(...tds.map(cell => cell.cellIndex)));
 
     // Create a 2D array with empty strings
-    const rows = Array.from({ length: maxRowIndex - minRowIndex + 1 }, () => Array(maxColIndex - minColIndex + 1).fill(''));
+    const clipboardArray = Array.from({ length: maxRowIndex - minRowIndex + 1 }, () => Array(maxColIndex - minColIndex + 1).fill(''));
+
+    for (th of ths){
+        // Get the top left virtual index
+        const topLeftIndex = getTopLeftVirtualIndex(th, tableObj.inverseHeaderMapping);
+        clipboardArray[topLeftIndex.row - minRowIndex][topLeftIndex.col - minColIndex] = th.textContent.trim();
+    }
     
     // Put the text content of the selected cells in the 2D array
-    for (const cell of selectedCells) {
-        rows[cell.parentNode.rowIndex - minRowIndex][cell.cellIndex - minColIndex] = cell.textContent.replace(/[\n\t]/g, "");
+    for (const cell of tds) {
+        clipboardArray[cell.parentNode.rowIndex - minRowIndex][cell.cellIndex - minColIndex] = cell.textContent.trim();
     }
 
     // Get the hidden rows and columns
@@ -467,20 +502,42 @@ function copySelectedCellsAsTSV() {
 
     // Exclude the hidden rows and columns from the 2D array
     for (let i = 0; i < hiddenRows.length; i++){
-        rows.splice(hiddenRows[i] - minRowIndex - i, 1);
+        clipboardArray.splice(hiddenRows[i] - minRowIndex - i, 1);
     }
     for (let i = 0; i < hiddenCols.length; i++){
-        rows.forEach(row => {
+        clipboardArray.forEach(row => {
             row.splice(hiddenCols[i] - minColIndex - i, 1);
         });
     }
 
     // Convert the 2D array to TSV format (Tab-Separated Values)
-    const textToCopy = rows.map(row => row.join('\t')).join('\n');
+    const textToCopy = clipboardArray.map(row => row.join('\t')).join('\n');
 
     // Use the Clipboard API to copy the text to the clipboard
     navigator.clipboard.writeText(textToCopy)
         .catch(err => console.error('Error copying text: ', err));                   
+}
+
+/**
+ * Given a header cell, this function finds the top left virtual index of the
+ * cells covered by the header cell (in case there are cells in the thead spanning
+ * over multiple rows/columns).
+ * 
+ * @param {HTMLTableCellElement} th the header cell
+ * @param {Map} inverseHeaderMapping the inverse header mapping of the table object
+ * @returns {Object} an object containing the 'row' and 'col' of the top left virtual cell
+ */
+function getTopLeftVirtualIndex(th, inverseHeaderMapping){
+    const index = JSON.stringify({ row: th.parentElement.rowIndex, col: th.cellIndex });
+    const coveredIndices = inverseHeaderMapping.get(index);
+
+    const cols = [];
+    const rows = [];
+    coveredIndices.forEach(index => {
+        rows.push(JSON.parse(index).row);
+        cols.push(JSON.parse(index).col);
+    });
+    return {row: Math.min(...rows), col: Math.min(...cols)};
 }
 
 /** 

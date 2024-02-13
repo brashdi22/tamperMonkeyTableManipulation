@@ -1389,7 +1389,6 @@ class TableObj {
         }
 
         else if (this.sourceColumn && this.targetColumn){
-            debugger;
             if (this.targetColumn.classList.contains('columnDragLineLeft')){
                 this.targetColumn.classList.remove('columnDragLineLeft');
                 // Get the cell to the left of the target cell
