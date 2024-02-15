@@ -312,21 +312,22 @@ function hideColsRows(){
     rows.forEach(cell => {
         hideRow(cell);
 
-        // The id of the respective checkbox: `${table.id}-row${index}`
-        // Get the checkbox and uncheck it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
-        checkbox.checked = false;
+        // // The id of the respective checkbox: `${table.id}-row${index}`
+        // // Get the checkbox and uncheck it
+        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
+        // checkbox.checked = false;
     });
 
     // Hide the selected columns
     const columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
     columns.forEach(cell => {
-        hideCol(cell);
+        if (cell.style.display !== 'none')
+            hideCol(cell);
 
-        // The id of the respective checkbox: `${table.id}-col${index}`
-        // Get the checkbox and uncheck it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
-        checkbox.checked = false;
+        // // The id of the respective checkbox: `${table.id}-col${index}`
+        // // Get the checkbox and uncheck it
+        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
+        // checkbox.checked = false;
     });
 }
 
@@ -340,10 +341,10 @@ function showColsRows(){
     rows.forEach(cell => {
         showRow(cell);
 
-        // The id of the respective checkbox: `${table.id}-row${index}`
-        // Get the checkbox and check it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
-        checkbox.checked = true;
+        // // The id of the respective checkbox: `${table.id}-row${index}`
+        // // Get the checkbox and check it
+        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
+        // checkbox.checked = true;
     });
 
     // Show the hidden columns
@@ -351,10 +352,10 @@ function showColsRows(){
     columns.forEach(cell => {
         showCol(cell);
 
-        // The id of the respective checkbox: `${table.id}-col${index}`
-        // Get the checkbox and check it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
-        checkbox.checked = true;
+        // // The id of the respective checkbox: `${table.id}-col${index}`
+        // // Get the checkbox and check it
+        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
+        // checkbox.checked = true;
     });
 }
 
@@ -363,16 +364,59 @@ function showColsRows(){
  * @param {HTMLTableCellElement} cell the header of the column to hide
  */
 function hideCol(cell){
-    cell.classList.add('hiddenColumn');
-    const index = cell.cellIndex;
-    const table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
-    const rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        // This takes into account rows with a colspan
-        try{
-            row.cells[index].style.display = 'none';
-        } catch (e) {}
+    // Get the table object
+    const tableObj = tableObjects.get(cell.parentElement.parentElement.parentElement.id);
+    const [cellMin, cellMax] = tableObj.getMinAndMaxColIndices(cell, tableObj.virtualInverseHeaderMapping);
+    for (let i = cellMin; i <= cellMax; i++){
+        tableObj.hiddenColumns.push(i);
+    }
+
+    const cellsAboveHeader = new Set();
+
+    const colIndex = getTopLeftVirtualIndex(cell, tableObj.virtualInverseHeaderMapping).col;
+
+    for (let i = cell.parentElement.rowIndex - 1; i >= 0; i--){
+        const virtualIndex = JSON.stringify({ row: i, col: colIndex });
+        const actualIndex = JSON.parse(tableObj.virtualHeaderMapping.get(virtualIndex));
+        const actualCell = tableObj.table.rows[actualIndex.row].cells[actualIndex.col];
+        cellsAboveHeader.add(actualCell);
+    }
+
+    let hiddenColumnAdded = false;
+    cellsAboveHeader.forEach(headerAbove => {
+        if (headerAbove.colSpan > cell.colSpan){
+            headerAbove.colSpan -= cell.colSpan;
+            // add a place holder for the hidden cell
+            const placeHolder = document.createElement('th');
+            
+            placeHolder.colSpan = cell.colSpan;
+            placeHolder.rowSpan = headerAbove.rowSpan;
+        }
+        else{
+            headerAbove.style.display = 'none';
+            headerAbove.classList.add('hiddenColumn');
+            hiddenColumnAdded = true;
+        }
     });
+    if (!hiddenColumnAdded)
+        cell.classList.add('hiddenColumn');
+
+    // Get the cells under the header
+    const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.virtualHeaderMapping, tableObj.virtualInverseHeaderMapping);
+    [...headers, ...cells].forEach(cell => {
+        cell.style.display = 'none';
+    });
+    const temp = tableObj.virtualHeaderMapping;
+
+    tableObj.virtualHeaderMapping = tableObj.mapTableHeaderIndices(tableObj.theadCopy, tableObj.hiddenColumns);
+    tableObj.virtualInverseHeaderMapping = tableObj.invertMap(tableObj.virtualHeaderMapping);
+
+    console.log(temp);
+    console.log(tableObj.virtualHeaderMapping);
+
+    // find the difference between the two maps
+    const diff = new Map([...temp].filter(([k, v]) => !tableObj.virtualHeaderMapping.has(k)));
+    console.log(diff);
 }
 
 /**
@@ -380,14 +424,23 @@ function hideCol(cell){
  * @param {HTMLTableCellElement} cell the header of the column to show
  */
 function showCol(cell){
+    const tableObj = tableObjects.get(cell.parentElement.parentElement.parentElement.id);
     cell.classList.remove('hiddenColumn');
-    const index = cell.cellIndex;
-    const table = cell.parentElement.parentElement.parentElement; // table -> thead -> tr -> th
-    const rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        try{
-            row.cells[index].style.display = '';
-        } catch (e) {}
+
+    const cellsAboveHeader = new Set();
+
+    const colIndex = getTopLeftVirtualIndex(cell, tableObj.inverseHeaderMapping).col;
+
+    for (let i = cell.parentElement.rowIndex - 1; i >= 0; i--){
+        const virtualIndex = JSON.stringify({ row: i, col: colIndex });
+        const actualIndex = JSON.parse(tableObj.headerMapping.get(virtualIndex));
+        const actualCell = tableObj.table.rows[actualIndex.row].cells[actualIndex.col];
+        cellsAboveHeader.add(actualCell);
+    }
+
+    const [headers, cells] = tableObj.getCellsUnderHeader(cell);
+    [...headers, ...cells].forEach(cell => {
+        cell.style.display = '';
     });
 }
 
