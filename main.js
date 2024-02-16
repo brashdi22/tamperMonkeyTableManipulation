@@ -522,16 +522,12 @@ function copySelectedCellsAsTSV() {
             cols.push(JSON.parse(index).col);
         });
     });
-    let minRowIndex = Math.min(...rows);
-    let maxRowIndex = Math.max(...rows);
-    let minColIndex = Math.min(...cols);
-    let maxColIndex = Math.max(...cols);
 
     // Get the min and max row/column index of the selected cells (both th and td)
-    minRowIndex = Math.min(minRowIndex, Math.min(...tds.map(cell => cell.parentNode.rowIndex)));
-    maxRowIndex = Math.max(maxRowIndex, Math.max(...tds.map(cell => cell.parentNode.rowIndex)));
-    minColIndex = Math.min(minColIndex, Math.min(...tds.map(cell => cell.cellIndex)));
-    maxColIndex = Math.max(maxColIndex, Math.max(...tds.map(cell => cell.cellIndex)));
+    minRowIndex = Math.min(Math.min(...rows), Math.min(...tds.map(cell => cell.parentNode.rowIndex)));
+    maxRowIndex = Math.max(Math.max(...rows), Math.max(...tds.map(cell => cell.parentNode.rowIndex)));
+    minColIndex = Math.min(Math.min(...cols), Math.min(...tds.map(cell => cell.cellIndex)));
+    maxColIndex = Math.max(Math.max(...cols), Math.max(...tds.map(cell => cell.cellIndex)));
 
     // Create a 2D array with empty strings
     const clipboardArray = Array.from({ length: maxRowIndex - minRowIndex + 1 }, () => Array(maxColIndex - minColIndex + 1).fill(''));
@@ -550,15 +546,27 @@ function copySelectedCellsAsTSV() {
     // Get the hidden rows and columns
     const table = selectedCells[0].parentElement.parentElement.parentElement;
     const hiddenRows = Array.from(table.querySelectorAll('tbody td.hiddenRow')).map(cell => cell.parentElement.rowIndex);
-    const hiddenCols = Array.from(table.querySelectorAll('thead th.hiddenColumn')).map(cell => cell.cellIndex);
+    const hiddenCols = Array.from(table.querySelectorAll('thead th.hiddenColumn'))
+
+    // For each column in hiddenCols, get the virtual columns it is spanning over
+    let virtualHiddenCols = new Set();
+    hiddenCols.forEach(cell => {
+        const index = JSON.stringify({ row: cell.parentElement.rowIndex, col: cell.cellIndex });
+        const coveredIndices = tableObj.inverseHeaderMapping.get(index);
+        coveredIndices.forEach(index => {
+            virtualHiddenCols.add(JSON.parse(index).col);
+        });
+    });
+    virtualHiddenCols = Array.from(virtualHiddenCols);
+    virtualHiddenCols.sort((a, b) => a - b);
 
     // Exclude the hidden rows and columns from the 2D array
     for (let i = 0; i < hiddenRows.length; i++){
         clipboardArray.splice(hiddenRows[i] - minRowIndex - i, 1);
     }
-    for (let i = 0; i < hiddenCols.length; i++){
+    for (let i = 0; i < virtualHiddenCols.length; i++){
         clipboardArray.forEach(row => {
-            row.splice(hiddenCols[i] - minColIndex - i, 1);
+            row.splice(virtualHiddenCols[i] - minColIndex - i, 1);
         });
     }
 

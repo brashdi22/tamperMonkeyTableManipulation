@@ -161,21 +161,21 @@ class TableObj {
         }
     }
 
-    // /** 
-    //  * Returns a map of the possible indices to the actual indices. So if a 
-    //  * thead has 2 rows and the first row of the table has 4 cells, the possible 
-    //  * indices will be [(0,0), (0,1), (0,2), (0,3), (1,0), (1,1), (1,2), (1,3)].
-    //  * 
-    //  * In complex theads, cells can have rowspan and colspan, so the actual
-    //  * indices will be different from the possible indices. 
-    //  * 
-    //  * Assume the first cell in the first row in the actual thead has rowspan=2,
-    //  * in this case (0,0) and (1,0) should be mapped to (0,0). Assume the second
-    //  * cell in the first row in the actual thead has colspan=2, in this case (0,1)
-    //  * and (0,2) should be mapped to (0,1).
-    //  * 
-    //  * @returns {Map<string, string>} A map of string => string. Each string is an index in the form '(row,col)'.
-    // */
+    /** 
+     * Returns a map of the possible indices to the actual indices. So if a 
+     * thead has 2 rows and the first row of the table has 4 cells, the possible 
+     * indices will be [(0,0), (0,1), (0,2), (0,3), (1,0), (1,1), (1,2), (1,3)].
+     * 
+     * In complex theads, cells can have rowspan and colspan, so the actual
+     * indices will be different from the possible indices. 
+     * 
+     * Assume the first cell in the first row in the actual thead has rowspan=2,
+     * in this case (0,0) and (1,0) should be mapped to (0,0). Assume the second
+     * cell in the first row in the actual thead has colspan=2, in this case (0,1)
+     * and (0,2) should be mapped to (0,1).
+     * 
+     * @returns {Map<string, string>} A map of string => string. Each string is an index in the form '(row,col)'.
+    */
     mapTableHeaderIndices() {
         const rows = this.theadCopy.rows;
         let matrix = [];
@@ -784,7 +784,7 @@ class TableObj {
         else {
             let allCells = [];
             headersToCheck.forEach(header => {
-                const [headers, cellsO] = this.getCellsUnderHeader(header, headerMapping, inverseHeaderMapping);
+                const [headers, cellsO] = this.getCellsUnderHeader(header);
                 const cells = [...headers, ...cellsO];
                 allCells.push(...cells);
                 cells.forEach(cell => {
@@ -1430,35 +1430,21 @@ class TableObj {
 
                 // Replace the headers to move with placeholders, and store the placeholders in 
                 // the placeholderes array
-                headersToMove.forEach(cell => {
-                    // Remove the cell from the table
-                    const row = cell.cell.parentElement;
-                    row.removeChild(cell.cell);
+                [headersToMove, headersToMoveC].forEach(headersArray => {
+                    headersArray.forEach(cell => {
+                        // Remove the cell from the table
+                        const row = cell.cell.parentElement;
+                        row.removeChild(cell.cell);
 
-                    // Insert a placeholder in the cell's position
-                    const placeholder = row.insertCell(cell.oldCol);
+                        // Insert a placeholder in the cell's position
+                        const placeholder = row.insertCell(cell.oldCol);
 
-                    // Set the spans to be the same as the cell's
-                    placeholder.rowSpan = cell.cell.rowSpan;
-                    placeholder.colSpan = cell.cell.colSpan;
+                        // Set the spans to be the same as the cell's
+                        placeholder.rowSpan = cell.cell.rowSpan;
+                        placeholder.colSpan = cell.cell.colSpan;
 
-                    placeholderes.push(placeholder);
-
-                });
-
-                headersToMoveC.forEach(cell => {
-                    // Remove the cell from the table
-                    const row = cell.cell.parentElement;
-                    row.removeChild(cell.cell);
-
-                    // Insert a placeholder in the cell's position
-                    const placeholder = row.insertCell(cell.oldCol);
-
-                    // Set the spans to be the same as the cell's
-                    placeholder.rowSpan = cell.cell.rowSpan;
-                    placeholder.colSpan = cell.cell.colSpan;
-
-                    placeholderes.push(placeholder);
+                        placeholderes.push(placeholder);
+                    });
                 });
 
                 // Insert the cells in the correct position
@@ -1523,9 +1509,6 @@ class TableObj {
                     placeholder.remove();
                 });
 
-                placeholderesC.forEach(placeholder => {
-                    placeholder.remove();
-                });
             }
 
             this.headerMapping = this.mapTableHeaderIndices();
