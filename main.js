@@ -467,7 +467,7 @@ function showRow(cell){
 */
 function toggleMagnify(magnify){
     // Get all cells in all tables except the cells in the first row in the thead and the first cell in each row in the table
-    const cells = document.querySelectorAll('table tbody td:not(:first-child), table thead tr:not(:first-child) th:not(:first-child)');
+    const cells = document.querySelectorAll('tbody tr td:not(:first-child), tr:not(:first-child) th');
     if (magnify){
         cells.forEach(cell => {
             cell.classList.add('magnify-on-hover');

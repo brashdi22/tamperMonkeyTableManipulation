@@ -32,6 +32,7 @@ class TableObj {
         this.showColNameOnHover();
         this.addSortButtons();
         this.addTableSettingsMenu();
+        this.ensureTbodyCellsAreTds();
 
         // this.table.className = "";
         this.table.classList.add("lib-tabl");
@@ -102,26 +103,42 @@ class TableObj {
     }
 
     /**
-     * Ensure all cells in the thead are 'th's.
+     * Ensures all cells in the thead are 'th's.
      */
     ensureTheadCellsAreThs(){
-        const rows = Array.from(this.thead.rows);
-        rows.forEach(row => {
-            const cells = Array.from(row.cells);
-            cells.forEach(cell => {
-                if (cell.tagName !== 'TH'){
-                    const th = document.createElement('th');
-                    th.innerHTML = cell.innerHTML;
-                    th.style.cssText = cell.style.cssText;
+        // Query all td elements in the thead and replace them with th elements
+        const tds = this.thead.querySelectorAll('td');
+        tds.forEach(td => {
+            const th = document.createElement('th');
+            th.innerHTML = td.innerHTML;
+            th.style.cssText = td.style.cssText;
 
-                    // Copy all attributes from the original cell to the new 'th' element
-                    for (let i = 0; i < cell.attributes.length; i++) {
-                        let attr = cell.attributes[i];
-                        th.setAttribute(attr.name, attr.value);
-                    }
-                    row.replaceChild(th, cell);
-                }
-            });
+            // Copy all attributes from the original cell to the new 'th' element
+            for (let i = 0; i < td.attributes.length; i++) {
+                let attr = td.attributes[i];
+                th.setAttribute(attr.name, attr.value);
+            }
+            td.parentElement.replaceChild(th, td);
+        });
+    }
+
+    /**
+     * Ensures all cells in the tbody are 'td's.
+     */
+    ensureTbodyCellsAreTds(){
+        // Query all th elements in the tbody and replace them with td elements
+        const ths = this.tbody.querySelectorAll('th');
+        ths.forEach(th => {
+            const td = document.createElement('td');
+            td.innerHTML = th.innerHTML;
+            td.style.cssText = th.style.cssText;
+
+            // Copy all attributes from the original cell to the new 'td' element
+            for (let i = 0; i < th.attributes.length; i++) {
+                let attr = th.attributes[i];
+                td.setAttribute(attr.name, attr.value);
+            }
+            th.parentElement.replaceChild(td, th);
         });
     }
 
