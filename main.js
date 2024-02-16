@@ -369,11 +369,11 @@ function hideCol(cell){
 
     const cellsAboveHeader = new Set();
 
-    const colIndex = getTopLeftVirtualIndex(cell, tableObj.realInverseHeaderMapping).col;
+    const colIndex = getTopLeftVirtualIndex(cell, tableObj.inverseHeaderMapping).col;
 
     for (let i = cell.parentElement.rowIndex - 1; i >= 0; i--){
         const virtualIndex = JSON.stringify({ row: i, col: colIndex });
-        const actualIndex = JSON.parse(tableObj.realHeaderMapping.get(virtualIndex));
+        const actualIndex = JSON.parse(tableObj.headerMapping.get(virtualIndex));
         const actualCell = tableObj.table.rows[actualIndex.row].cells[actualIndex.col];
         cellsAboveHeader.add(actualCell);
     }
@@ -398,16 +398,13 @@ function hideCol(cell){
         cell.classList.add('hiddenColumn');
 
     // Get the cells under the header
-    const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.realHeaderMapping, tableObj.realInverseHeaderMapping);
+    const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.headerMapping, tableObj.inverseHeaderMapping);
     [...headers, ...cells].forEach(cell => {
         cell.style.display = 'none';
     });
 
-    tableObj.realHeaderMapping = tableObj.mapTableHeaderIndices(tableObj.theadCopy);
-    tableObj.realInverseHeaderMapping = tableObj.invertMap(tableObj.realHeaderMapping);
-
-    tableObj.virtualHeaderMapping = tableObj.realHeaderMapping;
-    tableObj.virtualInverseHeaderMapping = tableObj.realInverseHeaderMapping;
+    tableObj.headerMapping = tableObj.mapTableHeaderIndices();
+    tableObj.inverseHeaderMapping = tableObj.invertMap(tableObj.headerMapping);
 }
 
 /**
@@ -423,11 +420,10 @@ function showCol(cell){
     // colspan, then use the index to get the actual cell in the actual thead 
     // and set its colspan to the virtual colspan
     const cellsAboveHeader = new Set();
-    const colIndex = getTopLeftVirtualIndex(cell, tableObj.virtualInverseHeaderMapping).col;
+    const colIndex = getTopLeftVirtualIndex(cell, tableObj.inverseHeaderMapping).col;
     for (let i = cell.parentElement.rowIndex - 1; i >= 0; i--){
         const virtualIndex = JSON.stringify({ row: i, col: colIndex });
-        const actualIndex = tableObj.virtualHeaderMapping.get(virtualIndex);
-        // const actualCell = tableObj.theadCopy.rows[actualIndex.row].cells[actualIndex.col];
+        const actualIndex = tableObj.headerMapping.get(virtualIndex);
         cellsAboveHeader.add(actualIndex);
     }
 
@@ -438,16 +434,13 @@ function showCol(cell){
         actualCell.colSpan = virtualCell.colSpan;
     });
     
-    const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.virtualHeaderMapping, tableObj.virtualInverseHeaderMapping);
+    const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.headerMapping, tableObj.inverseHeaderMapping);
     [...headers, ...cells].forEach(cell => {
         cell.style.display = '';
     });
     
-    tableObj.realHeaderMapping = tableObj.mapTableHeaderIndices(tableObj.theadCopy);
-    tableObj.realInverseHeaderMapping = tableObj.invertMap(tableObj.realHeaderMapping);
-
-    tableObj.virtualHeaderMapping = tableObj.realHeaderMapping;
-    tableObj.virtualInverseHeaderMapping = tableObj.realInverseHeaderMapping;
+    tableObj.headerMapping = tableObj.mapTableHeaderIndices();
+    tableObj.inverseHeaderMapping = tableObj.invertMap(tableObj.headerMapping);
 }
 
 /**
@@ -523,7 +516,7 @@ function copySelectedCellsAsTSV() {
     let cols = [];
     ths.forEach(th => {
         const index = JSON.stringify({ row: th.parentElement.rowIndex, col: th.cellIndex });
-        const coveredIndices = tableObj.realInverseHeaderMapping.get(index);
+        const coveredIndices = tableObj.inverseHeaderMapping.get(index);
         coveredIndices.forEach(index => {
             rows.push(JSON.parse(index).row);
             cols.push(JSON.parse(index).col);
@@ -545,7 +538,7 @@ function copySelectedCellsAsTSV() {
 
     for (th of ths){
         // Get the top left virtual index
-        const topLeftIndex = getTopLeftVirtualIndex(th, tableObj.realInverseHeaderMapping);
+        const topLeftIndex = getTopLeftVirtualIndex(th, tableObj.inverseHeaderMapping);
         clipboardArray[topLeftIndex.row - minRowIndex][topLeftIndex.col - minColIndex] = th.textContent.trim();
     }
     

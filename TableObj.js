@@ -25,14 +25,8 @@ class TableObj {
 
         this.theadCopy = this.thead.cloneNode(true);
 
-        // Virtual (assumes no hidden columns)
-        this.virtualHeaderMapping = this.mapTableHeaderIndices();
-        this.virtualInverseHeaderMapping = this.invertMap(this.virtualHeaderMapping);
-
-        // Real 
-        this.realHeaderMapping = this.virtualHeaderMapping;
-        this.realInverseHeaderMapping = this.virtualInverseHeaderMapping;
-        
+        this.headerMapping = this.mapTableHeaderIndices();
+        this.inverseHeaderMapping = this.invertMap(this.headerMapping);
 
         this.ensureAllColumnsHaveHeaders();
         this.showColNameOnHover();
@@ -141,14 +135,14 @@ class TableObj {
         for (let i = numOfCols - 1; i >= 0; i--){
             // For each index, try to get the header cell from the thead.
             // Use the headerMapping to get the actual index of the header cell.
-            const headerCell = this.virtualHeaderMapping.get(JSON.stringify({row: this.headerRowIndex, col: i}));
+            const headerCell = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: i}));
             // If the header cell does not exist, create a new one, and update the headerMapping
             if (!headerCell){
                 const th = document.createElement('th');
                 this.thead.rows[this.headerRowIndex].appendChild(th);
                 const index = JSON.stringify({row: this.headerRowIndex, col: i});
-                this.virtualHeaderMapping.set(index, index);
-                this.virtualInverseHeaderMapping.set(index, index);
+                this.headerMapping.set(index, index);
+                this.inverseHeaderMapping.set(index, index);
             }
             else
                 break;
@@ -182,8 +176,8 @@ class TableObj {
     //  * 
     //  * @returns {Map<string, string>} A map of string => string. Each string is an index in the form '(row,col)'.
     // */
-    mapTableHeaderIndices(thead=this.thead) {
-        const rows = thead.rows;
+    mapTableHeaderIndices() {
+        const rows = this.theadCopy.rows;
         let matrix = [];
         let mapping = new Map();
 
@@ -373,7 +367,7 @@ class TableObj {
         let cells = new Set();
         for (let i = 1; i < numOfCols; i++){
             const index = JSON.stringify({row: this.headerRowIndex, col: i});
-            cells.add(this.virtualHeaderMapping.get(index));
+            cells.add(this.headerMapping.get(index));
         }
 
         cells = this.getCellsFromObjectIndices(Array.from(cells));
@@ -391,7 +385,7 @@ class TableObj {
             const cellIndex = JSON.stringify({row: header.parentElement.rowIndex, col: header.cellIndex});
 
             // Get the index of the column in the tbody that the button is supposed to sort
-            const coveredIndices = this.virtualInverseHeaderMapping.get(cellIndex);
+            const coveredIndices = this.inverseHeaderMapping.get(cellIndex);
             const colIndex = JSON.parse(coveredIndices[0]).col;
 
             header.setAttribute('TableObj-col-sort-asc', 'true');
@@ -747,7 +741,7 @@ class TableObj {
         }
     }
 
-    selectColumns(headerMapping, inverseHeaderMapping) {
+    selectColumns() {
         if (!this.startCell || !this.endCell) return;
 
         // First 2 headers should be excluded from column selection (row darg handles and index columns).
@@ -757,12 +751,12 @@ class TableObj {
         const minRow = Math.max(Math.min(this.startCell.row, this.endCell.row), 1);
         const maxRow = Math.max(this.startCell.row, this.endCell.row);
 
-        const headersToCheck = this.getCellsBetween2Headers(minRow, maxRow, minCol, maxCol, headerMapping);
+        const headersToCheck = this.getCellsBetween2Headers(minRow, maxRow, minCol, maxCol);
         let theadCells = [];
         let tbodyCells = [];
         if (this.toggleSelect){
             headersToCheck.forEach(header => {
-                const [headers, cellsO] = this.getCellsUnderHeader(header, headerMapping, inverseHeaderMapping);
+                const [headers, cellsO] = this.getCellsUnderHeader(header);
                 theadCells.push(...headers);
                 tbodyCells.push(...cellsO);
                 const cells = [...headers, ...cellsO];
@@ -869,12 +863,12 @@ class TableObj {
      * @param {HTMLTableCellElement} headerCell 
      * @returns {Array<HTMLTableCellElement>} An array of the header and all cells beneath it.
      */
-    getCellsUnderHeader(headerCell, headerMapping, inverseHeaderMapping){
+    getCellsUnderHeader(headerCell){
         // Turn the index of the header cell into a string to be used as a key in the inverseHeaderMapping
         const headerCellIndex = JSON.stringify({row: headerCell.parentElement.rowIndex, col: headerCell.cellIndex});
         // Get the virtual indices that the header cell is spanning over.
         // If the header is located at (0,0) and has rowspan=2, the covered indices will be (0,0) and (1,0).
-        const InitialCoveredIndices = inverseHeaderMapping.get(headerCellIndex);
+        const InitialCoveredIndices = this.inverseHeaderMapping.get(headerCellIndex);
 
         // Create a set to hold the indices of the cells that are under the header cell inside the thead
         const cellsSet = new Set();
@@ -900,7 +894,7 @@ class TableObj {
                 const newIndex = JSON.stringify({row: row, col: cellIndex.col});
 
                 // Get the actual index of the cell in the tbody
-                cellsSet.add(headerMapping.get(newIndex));
+                cellsSet.add(this.headerMapping.get(newIndex));
 
                 row++;
             }
@@ -958,7 +952,7 @@ class TableObj {
      * @return {string} The text content of the header cell.
     */
     findColumnHeader(cell) {
-        let headerIndex = this.virtualHeaderMapping.get(JSON.stringify({row: this.headerRowIndex, col: cell.cellIndex}));
+        let headerIndex = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: cell.cellIndex}));
         headerIndex = JSON.parse(headerIndex);
         return this.thead.rows[headerIndex.row].cells[headerIndex.col].textContent.trim();
     }
@@ -971,8 +965,8 @@ class TableObj {
      * @param {HTMLTableCellElement} cell a table header cell.
      * @returns {number[]} An array of two numbers, min and max respectively.
      */
-    getMinAndMaxColIndices(cell, inverseMapping){
-        const coveredIndices = inverseMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cell.cellIndex}));
+    getMinAndMaxColIndices(cell){
+        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cell.cellIndex}));
 
         const colIndices = [];
         coveredIndices.forEach(index => {
@@ -992,11 +986,11 @@ class TableObj {
      * @param {number} maxCol The column index of the second header.
      * @returns {Array<HTMLTableCellElement>} An array of header cells.
     */
-    getCellsBetween2Headers(minRow, maxRow, minCol, maxCol, headerMapping){
+    getCellsBetween2Headers(minRow, maxRow, minCol, maxCol){
         const cellsSet = new Set();
         for (let i = minRow; i <= maxRow; i++){
             for (let j = minCol; j <= maxCol; j++){
-                const newCell = headerMapping.get(JSON.stringify({row: i, col: j}));
+                const newCell = this.headerMapping.get(JSON.stringify({row: i, col: j}));
                 cellsSet.add(newCell);
             }
         }
@@ -1013,7 +1007,7 @@ class TableObj {
      * @param {MouseEvent} mouseEvent The mouse event.
      * @returns {Object} A virtual index.
     */
-    getSubCellPosition(originalCell, mouseEvent, inverseMapping) {
+    getSubCellPosition(originalCell, mouseEvent) {
         const { left, top, width, height } = originalCell.getBoundingClientRect();
         const colspan = originalCell.colSpan;
         const rowspan = originalCell.rowSpan;
@@ -1031,7 +1025,7 @@ class TableObj {
         const rowIndex = Math.floor(mouseYRelativeToCell / subCellHeight);
 
         // Get the cells covered by the original cell
-        const coveredIndices = inverseMapping.get(JSON.stringify({row: originalCell.parentElement.rowIndex, col: originalCell.cellIndex}));
+        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: originalCell.parentElement.rowIndex, col: originalCell.cellIndex}));
 
         // Get the top left cell
         const originalCellIndex = JSON.parse(coveredIndices[0]);
@@ -1209,18 +1203,18 @@ class TableObj {
         else
             this.toggleSelect = true;
 
-        const [minCol, maxCol] = this.getMinAndMaxColIndices(this.startCell, this.realInverseHeaderMapping);
+        const [minCol, maxCol] = this.getMinAndMaxColIndices(this.startCell);
         
 
         // Virtual cell index
-        const subCellIndex = this.getSubCellPosition(this.startCell, event, this.realInverseHeaderMapping);
+        const subCellIndex = this.getSubCellPosition(this.startCell, event);
 
         this.startCell = {row: subCellIndex.row, col: minCol};
         this.endCell = {row: this.startCell.row, col: maxCol};
 
         if (this.startCell.row === 0){
             if (this.startCell.col !== 0 && this.startCell.col !== 1){
-                const [theadCells, tbodyCells] = this.getCellsUnderHeader(this.findParentCell(event.target, "TH"), this.virtualHeaderMapping, this.virtualInverseHeaderMapping);
+                const [theadCells, tbodyCells] = this.getCellsUnderHeader(this.findParentCell(event.target, "TH"));
                 const cells = [...theadCells, ...tbodyCells];
                 for (let i = 0; i < cells.length; i++) {
                     cells[i].classList.add('selectedTableObjCell');
@@ -1234,7 +1228,7 @@ class TableObj {
                 this.selecetWholeTable();
             }
             else if (this.endCell.col !== 0){
-                this.selectColumns(this.realHeaderMapping, this.realInverseHeaderMapping);
+                this.selectColumns();
             }
         }
     }
@@ -1282,11 +1276,11 @@ class TableObj {
             } 
             else {
                 this.OldEndCell = this.endCell;
-                this.endCell = this.getSubCellPosition(this.findParentCell(event.target, "TH"), event, this.realInverseHeaderMapping);
+                this.endCell = this.getSubCellPosition(this.findParentCell(event.target, "TH"), event);
             }
 
             if (this.OldEndCell === this.endCell) return;
-            this.selectColumns(this.virtualHeaderMapping, this.virtualInverseHeaderMapping);
+            this.selectColumns();
         }
 
         else if (this.mouseDownR) {
@@ -1405,11 +1399,11 @@ class TableObj {
             }
 
             if (this.sourceColumn.cellIndex !== this.targetColumn.cellIndex){
-                const [souceMinCol, souceMaxCol] = this.getMinAndMaxColIndices(this.sourceColumn, this.virtualInverseHeaderMapping);
-                const [targetMinCol, targetMaxCol] = this.getMinAndMaxColIndices(this.targetColumn, this.virtualInverseHeaderMapping);
+                const [souceMinCol, souceMaxCol] = this.getMinAndMaxColIndices(this.sourceColumn);
+                const [targetMinCol, targetMaxCol] = this.getMinAndMaxColIndices(this.targetColumn);
                 
                 // Get the cells under the source header
-                const [headers, cells] = this.getCellsUnderHeader(this.sourceColumn, this.virtualHeaderMapping, this.virtualInverseHeaderMapping);
+                const [headers, cells] = this.getCellsUnderHeader(this.sourceColumn);
 
                 const headersToMove = [];
                 const placeholderes = [];
@@ -1418,7 +1412,7 @@ class TableObj {
 
                 // Get the headers and store them with their new indices in headersToMove
                 headers.forEach(cell => {
-                    const [currentMinCol, currentMaxCol] = this.getMinAndMaxColIndices(cell, this.virtualInverseHeaderMapping);
+                    const [currentMinCol, currentMaxCol] = this.getMinAndMaxColIndices(cell);
 
                     // Calculate the column offset of the cell from the source cell (the row index is
                     // the same as the current row)
@@ -1472,14 +1466,14 @@ class TableObj {
                     // The index of the cell is a virtual index, so we need to get the actual index 
                     // from the headerMapping 
                     let virtual = { row: sourceCell.row, col: sourceCell.col };
-                    let actual = JSON.parse(this.virtualHeaderMapping.get(JSON.stringify(virtual)));
+                    let actual = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
 
                     // The virtual index and the actual index should have the same row index,
                     // this is to place the cell in the correct position even if some of the 
                     // previous cells are spanning multiple rows.
                     while (virtual.row !== actual.row && virtual.col !== 0){
                         virtual = { row: sourceCell.row, col: virtual.col - 1 };
-                        actual = JSON.parse(this.virtualHeaderMapping.get(JSON.stringify(virtual)));
+                        actual = JSON.parse(this.headerMapping.get(JSON.stringify(virtual)));
                     }
 
                     if (virtual.col === 0 ){
@@ -1500,8 +1494,8 @@ class TableObj {
                     }
 
                     // Update the headerMapping and the inverseHeaderMapping
-                    this.virtualHeaderMapping = this.mapTableHeaderIndices(this.theadCopy);
-                    this.virtualInverseHeaderMapping = this.invertMap(this.virtualHeaderMapping);
+                    this.headerMapping = this.mapTableHeaderIndices();
+                    this.inverseHeaderMapping = this.invertMap(this.headerMapping);
                 });
 
                 // Move the cells in the body. This is simpler than moving the cells in the header
@@ -1534,11 +1528,8 @@ class TableObj {
                 });
             }
 
-            this.virtualHeaderMapping = this.mapTableHeaderIndices(this.theadCopy);
-            this.virtualInverseHeaderMapping = this.invertMap(this.virtualHeaderMapping);
-            
-            this.realHeaderMapping = this.virtualHeaderMapping;
-            this.realInverseHeaderMapping = this.virtualInverseHeaderMapping;
+            this.headerMapping = this.mapTableHeaderIndices();
+            this.inverseHeaderMapping = this.invertMap(this.headerMapping);
 
             this.targetColumn.classList.remove('columnDragLineRight');
             this.sourceColumn = this.targetColumn = null;
