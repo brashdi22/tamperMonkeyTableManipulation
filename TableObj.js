@@ -75,8 +75,6 @@ class TableObj {
         this.selectedHeaders = new Array(this.thead.rows[this.headerRowIndex].cells.length).fill(false);
         this.selectedRows = [];
 
-        this.hiddenColumns = [];
-
         this.toggleSelect = true;
         // this.scrollInterval = null;
 
@@ -221,53 +219,6 @@ class TableObj {
 
         return mapping;
     }
-
-    // mapTableHeaderIndices(thead=this.thead, hiddenColumns=[]) {
-    //     const rows = thead.rows;
-    //     let matrix = [];
-    //     let mapping = new Map();
-
-    //     // Initialize matrix to accommodate for all rows and virtual columns
-    //     for (let i = 0; i < rows.length; i++) {
-    //         matrix[i] = [];
-    //     }
-
-    //     // Populate the matrix with actual header positions, considering rowspan and colspan
-    //     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    //         let actualColIndex = 0; // Correctly scope actualColIndex for each row
-    //         for (let colIndex = 0; colIndex < rows[rowIndex].cells.length; colIndex++) {
-    //             while (matrix[rowIndex][actualColIndex] !== undefined) {
-    //                 actualColIndex++;
-    //             }
-    //             const cell = rows[rowIndex].cells[colIndex];
-    //             const rowspan = cell.rowSpan;
-    //             const colspan = cell.colSpan;
-
-    //             for (let i = 0; i < rowspan; i++) {
-    //                 for (let j = 0; j < colspan; j++) {
-    //                     // Ensure the target row in the matrix exists before assignment
-    //                     if (matrix[rowIndex + i] !== undefined)
-    //                         matrix[rowIndex + i][actualColIndex + j] = { row: rowIndex, col: colIndex };
-    //                 }
-    //             }
-    //             actualColIndex += colspan; // Increment to move past the current cell, including its colspan
-    //         }
-    //     }
-    //     console.log(matrix);
-    //     matrix = removeColumns(matrix, hiddenColumns);
-    //     console.log(matrix);
-
-    //     for (let i = 0; i < matrix.length; i++) {
-    //         for (let j = 0; j < matrix[i].length; j++) {
-    //             console.log(i,j);
-    //             if (matrix[i][j] && !hiddenColumns.includes(j)) {
-    //                 console.log(JSON.stringify({ row: i, col: j }));
-    //                 mapping.set(JSON.stringify({ row: i, col: j }), JSON.stringify(matrix[i][j]));
-    //             }
-    //         }
-    //     }
-    //     return mapping;
-    // }
 
     /**
      * Returns inverse of an input map. Given map<a, b> returns map<b, a>.
@@ -1021,14 +972,7 @@ class TableObj {
      * @returns {number[]} An array of two numbers, min and max respectively.
      */
     getMinAndMaxColIndices(cell, inverseMapping){
-        let cellIndex = cell.cellIndex;
-        // // get all cells that appear before the given cell in the same row 
-        // // for each cell, if it is hidden, decrement cellIndex by 1
-        // for (let i = 0; i < cell.cellIndex; i++){
-        //     if (this.thead.rows[cell.parentElement.rowIndex].cells[i].style.display === 'none')
-        //         cellIndex--;
-        // }
-        const coveredIndices = inverseMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cellIndex}));
+        const coveredIndices = inverseMapping.get(JSON.stringify({row: cell.parentElement.rowIndex, col: cell.cellIndex}));
 
         const colIndices = [];
         coveredIndices.forEach(index => {
@@ -1291,7 +1235,6 @@ class TableObj {
             }
             else if (this.endCell.col !== 0){
                 this.selectColumns(this.realHeaderMapping, this.realInverseHeaderMapping);
-                // this.selectColumns(this.virtualHeaderMapping, this.virtualInverseHeaderMapping);
             }
         }
     }
@@ -1339,10 +1282,7 @@ class TableObj {
             } 
             else {
                 this.OldEndCell = this.endCell;
-                const temp = this.findParentCell(event.target, "TH");
-                // console.log(temp);
                 this.endCell = this.getSubCellPosition(this.findParentCell(event.target, "TH"), event, this.realInverseHeaderMapping);
-                // console.log(this.endCell);
             }
 
             if (this.OldEndCell === this.endCell) return;
@@ -1596,16 +1536,9 @@ class TableObj {
 
             this.virtualHeaderMapping = this.mapTableHeaderIndices(this.theadCopy);
             this.virtualInverseHeaderMapping = this.invertMap(this.virtualHeaderMapping);
-            // virtual
+            
             this.realHeaderMapping = this.virtualHeaderMapping;
             this.realInverseHeaderMapping = this.virtualInverseHeaderMapping;
-
-            // console.log("From drag end, first is virtual, second is real");
-            // console.log(this.virtualHeaderMapping);
-            // console.log(this.realHeaderMapping);
-
-            // // this.realHeaderMapping = this.mapTableHeaderIndices(this.theadCopy);
-            // // this.realInverseHeaderMapping = this.invertMap(this.realHeaderMapping);
 
             this.targetColumn.classList.remove('columnDragLineRight');
             this.sourceColumn = this.targetColumn = null;

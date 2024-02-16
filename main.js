@@ -366,12 +366,6 @@ function showColsRows(){
 function hideCol(cell){
     // Get the table object
     const tableObj = tableObjects.get(cell.parentElement.parentElement.parentElement.id);
-    const [cellMin, cellMax] = tableObj.getMinAndMaxColIndices(cell, tableObj.realInverseHeaderMapping);
-    const [cellMinv, cellMaxv] = tableObj.getMinAndMaxColIndices(cell, tableObj.virtualInverseHeaderMapping);
-    console.log(cellMin, cellMax, cellMinv, cellMaxv);
-    for (let i = cellMin; i <= cellMax; i++){
-        tableObj.hiddenColumns.push(i);
-    }
 
     const cellsAboveHeader = new Set();
 
@@ -409,20 +403,11 @@ function hideCol(cell){
         cell.style.display = 'none';
     });
 
-    const temp = tableObj.realHeaderMapping;
-
-
     tableObj.realHeaderMapping = tableObj.mapTableHeaderIndices(tableObj.theadCopy);
     tableObj.realInverseHeaderMapping = tableObj.invertMap(tableObj.realHeaderMapping);
 
-    // find the difference between temp and the new realHeaderMapping
-    // then log the difference
-    // const diff = new Map([...temp].filter(([k, v]) => !tableObj.realHeaderMapping.has(k)));
-    // console.log(temp);
-    console.log("from hideCol, realHeaderMapping:");
-    console.log(tableObj.realHeaderMapping);
-    // console.log(diff);
-    
+    tableObj.virtualHeaderMapping = tableObj.realHeaderMapping;
+    tableObj.virtualInverseHeaderMapping = tableObj.realInverseHeaderMapping;
 }
 
 /**
@@ -430,26 +415,13 @@ function hideCol(cell){
  * @param {HTMLTableCellElement} cell the header of the column to show
  */
 function showCol(cell){
-    // debugger;
     const tableObj = tableObjects.get(cell.parentElement.parentElement.parentElement.id);
     cell.classList.remove('hiddenColumn');
-
-    // const cellsAboveHeader = new Set();
-
-    // const colIndex = getTopLeftVirtualIndex(cell, tableObj.inverseHeaderMapping).col;
-
-    // for (let i = cell.parentElement.rowIndex - 1; i >= 0; i--){
-    //     const virtualIndex = JSON.stringify({ row: i, col: colIndex });
-    //     const actualIndex = JSON.parse(tableObj.headerMapping.get(virtualIndex));
-    //     const actualCell = tableObj.table.rows[actualIndex.row].cells[actualIndex.col];
-    //     cellsAboveHeader.add(actualCell);
-    // }
 
     // use the virtual header mapping to get the cells above the header
     // then for each cell, get the column index and the row index, get the 
     // colspan, then use the index to get the actual cell in the actual thead 
     // and set its colspan to the virtual colspan
-
     const cellsAboveHeader = new Set();
     const colIndex = getTopLeftVirtualIndex(cell, tableObj.virtualInverseHeaderMapping).col;
     for (let i = cell.parentElement.rowIndex - 1; i >= 0; i--){
@@ -466,14 +438,16 @@ function showCol(cell){
         actualCell.colSpan = virtualCell.colSpan;
     });
     
-
     const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.virtualHeaderMapping, tableObj.virtualInverseHeaderMapping);
     [...headers, ...cells].forEach(cell => {
         cell.style.display = '';
     });
     
-    tableObj.realHeaderMapping = tableObj.mapTableHeaderIndices(tableObj.theadCopy, tableObj.hiddenColumns);
+    tableObj.realHeaderMapping = tableObj.mapTableHeaderIndices(tableObj.theadCopy);
     tableObj.realInverseHeaderMapping = tableObj.invertMap(tableObj.realHeaderMapping);
+
+    tableObj.virtualHeaderMapping = tableObj.realHeaderMapping;
+    tableObj.virtualInverseHeaderMapping = tableObj.realInverseHeaderMapping;
 }
 
 /**
@@ -898,23 +872,4 @@ function sortTableByColumn(table, columnIndex, header) {
     // Re-add rows to tbody
     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
     sortedRows.forEach(row => tbody.appendChild(row));
-}
-
-function removeColumns(matrix, columnsToRemove) {
-    // Sort columnsToRemove in descending order to remove columns from right to left
-    // This prevents shifting indices affecting the removal of subsequent columns
-    columnsToRemove.sort((a, b) => b - a);
-
-    // Iterate through each row of the matrix
-    for (let i = 0; i < matrix.length; i++) {
-        // Iterate through each column index in columnsToRemove
-        for (const colIndex of columnsToRemove) {
-            // Remove the column from the current row if it exists
-            if (colIndex < matrix[i].length) {
-                matrix[i].splice(colIndex, 1);
-            }
-        }
-    }
-
-    return matrix;
 }
