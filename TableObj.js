@@ -1028,7 +1028,7 @@ class TableObj {
         const { left, top, width, height } = originalCell.getBoundingClientRect();
         const colspan = originalCell.colSpan;
         const rowspan = originalCell.rowSpan;
-    
+
         // Calculate the size of each sub-cell
         const subCellWidth = width / colspan;
         const subCellHeight = height / rowspan;
@@ -1042,14 +1042,28 @@ class TableObj {
         const rowIndex = Math.floor(mouseYRelativeToCell / subCellHeight);
 
         // Get the cells covered by the original cell
-        const coveredIndices = this.inverseHeaderMapping.get(JSON.stringify({row: originalCell.parentElement.rowIndex, col: originalCell.cellIndex}));
+        const coveredIndices = this.inverseHeaderMapping.get(
+            JSON.stringify({row: originalCell.parentElement.rowIndex, col: originalCell.cellIndex}));
 
         // Get the top left cell
         const originalCellIndex = JSON.parse(coveredIndices[0]);
     
         // Return the position of the sub-cell relative to the original cell
-        const subCellRow = originalCellIndex.row + rowIndex;
-        const subCellCol = originalCellIndex.col + colIndex;
+        let subCellRow = originalCellIndex.row + rowIndex;
+        let subCellCol = originalCellIndex.col + colIndex;
+
+        // If the sub-cell is outside the original cell, set it to the original cell.
+        // This might occur if the coords of the mouse are not captured accurately
+        // or they do not reflect the coords as they are seen in the GUI.
+        if (subCellRow > originalCellIndex.row + rowspan - 1) 
+            subCellRow = originalCellIndex.row + rowspan - 1;
+        else if (subCellRow < originalCellIndex.row)
+            subCellRow = originalCellIndex.row;
+        if (subCellCol > originalCellIndex.col + colspan - 1)  
+            subCellCol = originalCellIndex.col + colspan - 1;
+        else if (subCellCol < originalCellIndex.col)
+            subCellCol = originalCellIndex.col;
+
         return { row: subCellRow, col: subCellCol };
     }
 
