@@ -443,9 +443,9 @@ class TableObj {
         // ================================= Columns option =================================
         let li = document.createElement('li');
         li.textContent = 'Show/Hide Columns';
-        let submenue = document.createElement('ul');
-        submenue.className = 'TableObjSubMenu';
-        let columns = Array.from(this.thead.rows[this.colDragHandlesRowIndex].cells).slice(1);
+        let submenu = document.createElement('ul');
+        submenu.className = 'TableObjSubMenu';
+
         // Add an 'li' and a checkbox for the first column (whole table selector)
         let nestedLi = document.createElement('li');
         let checkbox = document.createElement('input');
@@ -467,10 +467,14 @@ class TableObj {
         });
         nestedLi.appendChild(checkbox);
         nestedLi.appendChild(label);
-        submenue.appendChild(nestedLi);
+        submenu.appendChild(nestedLi);
 
-
-        columns = Array.from(this.thead.rows[this.headerRowIndex].cells).slice(1);
+        let columns = new Set();
+        for (let i = 1; i < this.tbody.rows[0].cells.length; i++){
+            const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: i})));
+            columns.add(this.thead.rows[index.row].cells[index.col]);
+        }
+        columns = Array.from(columns);
 
         columns.forEach((column, index) => {
             let nestedLi = document.createElement('li');
@@ -490,56 +494,32 @@ class TableObj {
                 if (checkbox.checked){
                     // Show the column
                     showCol(column);
-                    if (this.allColumnCheckboxesChecked()){
+                    if (this.allColumnCheckboxesChecked())
                         document.getElementById(`${this.table.id}-col0`).checked = true;
-                    }
                 }
-                    
                 else {
                     // Hide the column
                     hideCol(column);
-                    if (!this.allColumnCheckboxesChecked()){
+                    if (!this.allColumnCheckboxesChecked())
                         document.getElementById(`${this.table.id}-col0`).checked = false;
-                    }
                 }
             });
 
             nestedLi.appendChild(checkbox);
             nestedLi.appendChild(label);
-            submenue.appendChild(nestedLi);
+            submenu.appendChild(nestedLi);
         });
 
-        li.appendChild(submenue);
+        li.appendChild(submenu);
         settingsMenu.appendChild(li);
 
         // Add event listener to the submenu to toggle the checkbox
-        submenue.addEventListener('click', (event) => {
+        submenu.addEventListener('click', (event) => {
             if (event.target.tagName.toLowerCase() === 'li') {
                 let checkbox = event.target.querySelector('input[type="checkbox"]');
                 if (checkbox) {
                     checkbox.checked = !checkbox.checked;
-
-                    // If the class of the checkbox is 'tableCheckbox', use the same functionality as above
-                    if (checkbox.classList.contains('tableCheckbox')){
-                        if (checkbox.checked)
-                            this.showColAndCheckCheckbox();
-                        else
-                            this.hideColAndUncheckCheckbox();
-                    }
-                    else {
-                        if (checkbox.checked){
-                            showCol(this.thead.rows[this.colDragHandlesRowIndex].cells[checkbox.value]);
-                            if (this.allColumnCheckboxesChecked()){
-                                document.getElementById(`${this.table.id}-col0`).checked = true;
-                            }
-                        }
-                        else {
-                            hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[checkbox.value]);
-                            if (!this.allColumnCheckboxesChecked()){
-                                document.getElementById(`${this.table.id}-col0`).checked = false;
-                            }
-                        }
-                    }
+                    checkbox.dispatchEvent(new Event('change'));
                 }
             }
         });
@@ -548,8 +528,8 @@ class TableObj {
         // ================================= Rows option =================================
         li = document.createElement('li');
         li.textContent = 'Show/Hide Rows';
-        submenue = document.createElement('ul');
-        submenue.className = 'TableObjSubMenu';
+        submenu = document.createElement('ul');
+        submenu.className = 'TableObjSubMenu';
         const rows = Array.from(this.tbody.rows);
 
         rows.forEach((row, index) => {
@@ -568,31 +548,26 @@ class TableObj {
 
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked)
-                    showRow(row.cells[0]);
+                    showRow(row.cells[1]);
                 else
-                    hideRow(row.cells[0]);
+                    hideRow(row.cells[1]);
             });
 
             nestedLi.appendChild(checkbox);
             nestedLi.appendChild(label);
-            submenue.appendChild(nestedLi);
+            submenu.appendChild(nestedLi);
         });
 
-        li.appendChild(submenue);
+        li.appendChild(submenu);
         settingsMenu.appendChild(li);
 
         // Add event listener to the submenu to toggle the checkbox
-        submenue.addEventListener('click', (event) => {
+        submenu.addEventListener('click', (event) => {
             if (event.target.tagName.toLowerCase() === 'li') {
                 let checkbox = event.target.querySelector('input[type="checkbox"]');
-                // If the id of the checkbox is `row0-col0`
                 if (checkbox) {
                     checkbox.checked = !checkbox.checked;
-
-                    if (checkbox.checked)
-                        showRow(this.tbody.rows[checkbox.value].cells[0]);
-                    else
-                        hideRow(this.tbody.rows[checkbox.value].cells[0]);
+                    checkbox.dispatchEvent(new Event('change'));
                 }
             }
         });
@@ -656,7 +631,9 @@ class TableObj {
         for (let i = 0; i < checkboxes.length; i++){
             // If the checkbox is not checked, show the column and check the box
             if (!checkboxes[i].checked){
-                showCol(this.thead.rows[this.colDragHandlesRowIndex].cells[i+1]);
+                // Get the actual index of the column using headerMapping
+                const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: +checkboxes[i].value})));
+                showCol(this.thead.rows[index.row].cells[index.col]);
                 checkboxes[i].checked = true;
             }
         }
@@ -673,7 +650,9 @@ class TableObj {
         for (let i = 0; i < checkboxes.length; i++){
             // If the checkbox is checked, hide the column and uncheck the box
             if (checkboxes[i].checked){
-                hideCol(this.thead.rows[this.colDragHandlesRowIndex].cells[i+1]);
+                // Get the actual index of the column using headerMapping
+                const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: +checkboxes[i].value})));
+                hideCol(this.thead.rows[index.row].cells[index.col]);
                 checkboxes[i].checked = false;
             }
         }

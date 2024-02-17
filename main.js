@@ -312,22 +312,23 @@ function hideColsRows(){
     rows.forEach(cell => {
         hideRow(cell);
 
-        // // The id of the respective checkbox: `${table.id}-row${index}`
-        // // Get the checkbox and uncheck it
-        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
-        // checkbox.checked = false;
+        // The id of the respective checkbox: `${table.id}-row${index}`
+        // Get the checkbox and uncheck it
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
+        checkbox.checked = false;
     });
 
     // Hide the selected columns
-    const columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
+    let columns = document.querySelectorAll('table thead tr th.selectedTableObjCell');
+    columns = sortCellsByByRowDesc(columns);
     columns.forEach(cell => {
         if (cell.style.display !== 'none')
             hideCol(cell);
 
-        // // The id of the respective checkbox: `${table.id}-col${index}`
-        // // Get the checkbox and uncheck it
-        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
-        // checkbox.checked = false;
+        // The id of the respective checkbox: `${table.id}-col${index+1}`
+        // Get the checkbox and uncheck it
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex+1}`);
+        if (checkbox) checkbox.checked = false;
     });
 }
 
@@ -341,21 +342,23 @@ function showColsRows(){
     rows.forEach(cell => {
         showRow(cell);
 
-        // // The id of the respective checkbox: `${table.id}-row${index}`
-        // // Get the checkbox and check it
-        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
-        // checkbox.checked = true;
+        // The id of the respective checkbox: `${table.id}-row${index}`
+        // Get the checkbox and check it
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
+        checkbox.checked = true;
     });
 
     // Show the hidden columns
-    const columns = document.querySelectorAll('table thead tr th.hiddenColumn');
+    let columns = document.querySelectorAll('table thead tr th.hiddenColumn');
+    columns = sortCellsByByRowDesc(columns);
     columns.forEach(cell => {
+        if (cell.style.display === 'none')
         showCol(cell);
 
-        // // The id of the respective checkbox: `${table.id}-col${index}`
-        // // Get the checkbox and check it
-        // const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex}`);
-        // checkbox.checked = true;
+        // The id of the respective checkbox: `${table.id}-col${index+1}`
+        // Get the checkbox and check it
+        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex+1}`);
+        if (checkbox) checkbox.checked = true;
     });
 }
 
@@ -378,24 +381,17 @@ function hideCol(cell){
         cellsAboveHeader.add(actualCell);
     }
 
-    let hiddenColumnAdded = false;
     cellsAboveHeader.forEach(headerAbove => {
         if (headerAbove.colSpan > cell.colSpan){
             headerAbove.colSpan -= cell.colSpan;
-            // add a place holder for the hidden cell
-            const placeHolder = document.createElement('th');
-            
-            placeHolder.colSpan = cell.colSpan;
-            placeHolder.rowSpan = headerAbove.rowSpan;
         }
         else{
             headerAbove.style.display = 'none';
             headerAbove.classList.add('hiddenColumn');
-            hiddenColumnAdded = true;
         }
     });
-    if (!hiddenColumnAdded)
-        cell.classList.add('hiddenColumn');
+
+    cell.classList.add('hiddenColumn');
 
     // Get the cells under the header
     const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.headerMapping, tableObj.inverseHeaderMapping);
@@ -429,9 +425,12 @@ function showCol(cell){
 
     cellsAboveHeader.forEach(headerAbove => {
         headerAbove = JSON.parse(headerAbove);
-        const virtualCell = tableObj.theadCopy.rows[headerAbove.row].cells[headerAbove.col];
         const actualCell = tableObj.table.rows[headerAbove.row].cells[headerAbove.col];
-        actualCell.colSpan = virtualCell.colSpan;
+
+        if (actualCell.style.display === 'none')
+            actualCell.style.display = '';
+        else
+            actualCell.colSpan += cell.colSpan;
     });
     
     const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.headerMapping, tableObj.inverseHeaderMapping);
@@ -598,6 +597,22 @@ function getTopLeftVirtualIndex(th, inverseHeaderMapping){
         cols.push(JSON.parse(index).col);
     });
     return {row: Math.min(...rows), col: Math.min(...cols)};
+}
+
+/** 
+ * This functions sorts the given cells by their row index in descending order.
+ * 
+ * @param {HTMLTableCellElement[]} cells the cells to sort
+ * @returns {HTMLTableCellElement[]} the sorted cells
+*/
+function sortCellsByByRowDesc(cells) {
+    let sortedCells = Array.from(cells);
+    sortedCells.sort((a, b) => {
+        if (a.parentElement.rowIndex < b.parentElement.rowIndex) return 1;
+        if (a.parentElement.rowIndex > b.parentElement.rowIndex) return -1;
+        return 0;
+    });
+    return sortedCells;
 }
 
 /** 
