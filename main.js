@@ -312,9 +312,10 @@ function hideColsRows(){
     rows.forEach(cell => {
         hideRow(cell);
 
-        // The id of the respective checkbox: `${table.id}-row${index}`
         // Get the checkbox and uncheck it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
+        const table = cell.parentElement.parentElement.parentElement;
+        const checkBoxes = document.querySelectorAll(`#settingsMenu-${table.id} .rowCheckbox`);
+        const checkbox = checkBoxes[cell.parentElement.rowIndex - table.tHead.rows.length];
         checkbox.checked = false;
     });
 
@@ -342,9 +343,10 @@ function showColsRows(){
     rows.forEach(cell => {
         showRow(cell);
 
-        // The id of the respective checkbox: `${table.id}-row${index}`
-        // Get the checkbox and check it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-row${cell.parentElement.rowIndex - 2}`);
+        // Get the checkbox and uncheck it
+        const table = cell.parentElement.parentElement.parentElement;
+        const checkBoxes = document.querySelectorAll(`#settingsMenu-${table.id} .rowCheckbox`);
+        const checkbox = checkBoxes[cell.parentElement.rowIndex - table.tHead.rows.length];
         checkbox.checked = true;
     });
 
@@ -888,4 +890,14 @@ function sortTableByColumn(table, columnIndex, header) {
     // Re-add rows to tbody
     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
     sortedRows.forEach(row => tbody.appendChild(row));
+}
+
+function getLiIndex(li, ul) {
+    // Get all the LI elements within the UL
+    const lis = Array.from(ul.querySelectorAll('li'));
+    
+    // Find the index of the specific LI element
+    const index = lis.indexOf(li);
+    
+    return index;
 }

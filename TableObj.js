@@ -532,25 +532,52 @@ class TableObj {
         submenu.className = 'TableObjSubMenu';
         const rows = Array.from(this.tbody.rows);
 
-        rows.forEach((row, index) => {
+        // for (let i = this.tbody.rows[0].rowIndex; i < this.table.rows.length; i++){
+        //     const row = this.table.rows[i];
+        //     let nestedLi = document.createElement('li');
+
+        //     // Create the checkbox
+        //     let checkbox = document.createElement('input');
+        //     checkbox.type = 'checkbox';
+        //     checkbox.id = `${this.table.id}-row${i}`;
+        //     checkbox.className = 'rowCheckbox';
+        //     checkbox.checked = true;
+        //     checkbox.value = i;
+        //     let label = document.createElement('label');
+        //     label.htmlFor = `${this.table.id}-row${i}`;
+        //     label.appendChild(document.createTextNode(row.cells[1].textContent));
+
+        //     checkbox.addEventListener('change', () => {
+        //         if (checkbox.checked)
+        //             showRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[0]);
+        //         else
+        //             hideRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[0]);
+        //     });
+
+        //     nestedLi.appendChild(checkbox);
+        //     nestedLi.appendChild(label);
+        //     submenu.appendChild(nestedLi);
+        // }
+
+        rows.forEach(row => {
             let nestedLi = document.createElement('li');
 
             // Create the checkbox
             let checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.id = `${this.table.id}-row${index}`;
+            checkbox.id = `${this.table.id}-row${row.rowIndex}`;
             checkbox.className = 'rowCheckbox';
             checkbox.checked = true;
-            checkbox.value = index;
+            checkbox.value = row.rowIndex;
             let label = document.createElement('label');
-            label.htmlFor = `${this.table.id}-row${index}`;
+            label.htmlFor = `${this.table.id}-row${row.rowIndex}`;
             label.appendChild(document.createTextNode(row.cells[1].textContent));
 
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked)
-                    showRow(row.cells[1]);
+                    showRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[1]);
                 else
-                    hideRow(row.cells[1]);
+                    hideRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[1]);
             });
 
             nestedLi.appendChild(checkbox);
@@ -1391,11 +1418,39 @@ class TableObj {
     documentDragEnd(){
         if (this.sourceRow && this.targetRow){        // Move the source row to the target row
             if (this.sourceRow !== this.targetRow){
-                if (this.targetRow.classList.contains('rowDragLineTop'))
+                
+                const menu = document.getElementById(`settingsMenu-${this.table.id}`);
+                const checkBoxes = Array.from(menu.querySelectorAll('.rowCheckbox'));
+                const sourceCheckbox = checkBoxes[this.sourceRow.rowIndex - this.thead.rows.length].parentElement;
+                const targetCheckbox = checkBoxes[this.targetRow.rowIndex - this.thead.rows.length].parentElement;
+                // const sourceCheckbox = menu.querySelector(`#${this.table.id}-row${this.sourceRow.rowIndex}`).parentElement;
+                // const targetCheckbox = menu.querySelector(`#${this.table.id}-row${this.targetRow.rowIndex}`).parentElement;
+                
+                if (this.targetRow.classList.contains('rowDragLineTop')){
                     this.targetRow.before(this.sourceRow);
-                else
+                    targetCheckbox.before(sourceCheckbox);
+                }
+                else {
                     this.targetRow.after(this.sourceRow);
+                    targetCheckbox.after(sourceCheckbox);
+                }
             }
+
+            // const menu = document.getElementById(`settingsMenu-${this.table.id}`);
+            // const checkBoxes = Array.from(menu.querySelectorAll('.rowCheckbox'));
+            // // checkBoxes.forEach(checkbox => {
+            // //     const label = checkbox.nextElementSibling;
+            // //     // change the current text of the label
+            // //     label.textContent = 'fklgihoj';
+            // // });
+
+            // for (let i = 0; i < checkBoxes.length; i++){
+            //     const label = checkBoxes[i].nextElementSibling;
+            //     // replace the current text node with a new one
+            //     label.replaceChild(document.createTextNode(this.tbody.rows[i].cells[1].textContent), label.firstChild);
+            //     // label.appendChild(document.createTextNode(row.cells[1].textContent));
+            //     // label.textContent = this.tbody.rows[i].cells[1].textContent;
+            // }
 
             this.targetRow.classList.remove('rowDragLineTop', 'rowDragLineBottom');
             this.sourceRow = this.targetRow = null;
