@@ -493,13 +493,13 @@ class TableObj {
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked){
                     // Show the column
-                    showCol(column);
+                    showCol(this.getColFromLiIndex(getLiIndex(nestedLi, nestedLi.parentElement)));
                     if (this.allColumnCheckboxesChecked())
                         document.getElementById(`${this.table.id}-col0`).checked = true;
                 }
                 else {
                     // Hide the column
-                    hideCol(column);
+                    hideCol(this.getColFromLiIndex(getLiIndex(nestedLi, nestedLi.parentElement)));
                     if (!this.allColumnCheckboxesChecked())
                         document.getElementById(`${this.table.id}-col0`).checked = false;
                 }
@@ -532,33 +532,6 @@ class TableObj {
         submenu.className = 'TableObjSubMenu';
         const rows = Array.from(this.tbody.rows);
 
-        // for (let i = this.tbody.rows[0].rowIndex; i < this.table.rows.length; i++){
-        //     const row = this.table.rows[i];
-        //     let nestedLi = document.createElement('li');
-
-        //     // Create the checkbox
-        //     let checkbox = document.createElement('input');
-        //     checkbox.type = 'checkbox';
-        //     checkbox.id = `${this.table.id}-row${i}`;
-        //     checkbox.className = 'rowCheckbox';
-        //     checkbox.checked = true;
-        //     checkbox.value = i;
-        //     let label = document.createElement('label');
-        //     label.htmlFor = `${this.table.id}-row${i}`;
-        //     label.appendChild(document.createTextNode(row.cells[1].textContent));
-
-        //     checkbox.addEventListener('change', () => {
-        //         if (checkbox.checked)
-        //             showRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[0]);
-        //         else
-        //             hideRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[0]);
-        //     });
-
-        //     nestedLi.appendChild(checkbox);
-        //     nestedLi.appendChild(label);
-        //     submenu.appendChild(nestedLi);
-        // }
-
         rows.forEach(row => {
             let nestedLi = document.createElement('li');
 
@@ -575,9 +548,9 @@ class TableObj {
 
             checkbox.addEventListener('change', () => {
                 if (checkbox.checked)
-                    showRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[1]);
+                    showRow(this.tbody.rows[getLiIndex(nestedLi, nestedLi.parentElement)].cells[1]);
                 else
-                    hideRow(this.tbody.rows[getLiIndex(nestedLi, submenu)].cells[1]);
+                    hideRow(this.tbody.rows[getLiIndex(nestedLi, nestedLi.parentElement)].cells[1]);
             });
 
             nestedLi.appendChild(checkbox);
@@ -632,6 +605,17 @@ class TableObj {
         container.appendChild(settingsButton);
         container.appendChild(settingsMenu);
         this.table.parentElement.insertBefore(container, this.table);
+    }
+
+    /** 
+     * Returns an actual header cell at a given virtual index.
+     * 
+     * @param {number} liIndex - The virtual index of the header cell.
+     * @returns {HTMLTableCellElement} The actual header cell.
+    */
+    getColFromLiIndex(liIndex) {
+        const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: liIndex})));
+        return this.thead.rows[index.row].cells[index.col];
     }
 
     /**
@@ -1418,13 +1402,10 @@ class TableObj {
     documentDragEnd(){
         if (this.sourceRow && this.targetRow){        // Move the source row to the target row
             if (this.sourceRow !== this.targetRow){
-                
-                const menu = document.getElementById(`settingsMenu-${this.table.id}`);
-                const checkBoxes = Array.from(menu.querySelectorAll('.rowCheckbox'));
+
+                const checkBoxes = document.querySelectorAll(`#settingsMenu-${this.table.id} .rowCheckbox`);
                 const sourceCheckbox = checkBoxes[this.sourceRow.rowIndex - this.thead.rows.length].parentElement;
                 const targetCheckbox = checkBoxes[this.targetRow.rowIndex - this.thead.rows.length].parentElement;
-                // const sourceCheckbox = menu.querySelector(`#${this.table.id}-row${this.sourceRow.rowIndex}`).parentElement;
-                // const targetCheckbox = menu.querySelector(`#${this.table.id}-row${this.targetRow.rowIndex}`).parentElement;
                 
                 if (this.targetRow.classList.contains('rowDragLineTop')){
                     this.targetRow.before(this.sourceRow);
@@ -1435,22 +1416,6 @@ class TableObj {
                     targetCheckbox.after(sourceCheckbox);
                 }
             }
-
-            // const menu = document.getElementById(`settingsMenu-${this.table.id}`);
-            // const checkBoxes = Array.from(menu.querySelectorAll('.rowCheckbox'));
-            // // checkBoxes.forEach(checkbox => {
-            // //     const label = checkbox.nextElementSibling;
-            // //     // change the current text of the label
-            // //     label.textContent = 'fklgihoj';
-            // // });
-
-            // for (let i = 0; i < checkBoxes.length; i++){
-            //     const label = checkBoxes[i].nextElementSibling;
-            //     // replace the current text node with a new one
-            //     label.replaceChild(document.createTextNode(this.tbody.rows[i].cells[1].textContent), label.firstChild);
-            //     // label.appendChild(document.createTextNode(row.cells[1].textContent));
-            //     // label.textContent = this.tbody.rows[i].cells[1].textContent;
-            // }
 
             this.targetRow.classList.remove('rowDragLineTop', 'rowDragLineBottom');
             this.sourceRow = this.targetRow = null;
@@ -1464,16 +1429,24 @@ class TableObj {
             }
 
             if (this.sourceColumn.cellIndex !== this.targetColumn.cellIndex){
-                const [souceMinCol, souceMaxCol] = this.getMinAndMaxColIndices(this.sourceColumn);
+                const [sourceMinCol, sourceMaxCol] = this.getMinAndMaxColIndices(this.sourceColumn);
                 const [targetMinCol, targetMaxCol] = this.getMinAndMaxColIndices(this.targetColumn);
-                
+
+                // Move the checkboxes to the new positions first
+                const checkBoxes = Array.from(document.querySelectorAll(`#settingsMenu-${this.table.id} .columnCheckbox`));
+                const checkBoxesToMove = checkBoxes.slice(sourceMinCol - 1, sourceMaxCol);
+                // insert them at the position of targetMaxCol in reverse order
+                checkBoxesToMove.reverse().forEach(checkbox => {
+                    checkBoxes[targetMaxCol - 1].parentElement.after(checkbox.parentElement);
+                });
+
+                // Then move the columns
                 // Get the cells under the source header
                 const [headers, cells] = this.getCellsUnderHeader(this.sourceColumn);
 
                 const headersToMove = [];
                 const placeholderes = [];
                 const headersToMoveC = [];
-                const placeholderesC = [];
 
                 // Get the headers and store them with their new indices in headersToMove
                 headers.forEach(cell => {
@@ -1481,7 +1454,7 @@ class TableObj {
 
                     // Calculate the column offset of the cell from the source cell (the row index is
                     // the same as the current row)
-                    const colOffset = currentMinCol - souceMinCol;
+                    const colOffset = currentMinCol - sourceMinCol;
 
                     // Get the new cell's virtual index
                     const newCellIndex = { row: cell.parentElement.rowIndex, col: targetMaxCol + colOffset };
@@ -1554,7 +1527,7 @@ class TableObj {
                 // nor columns.
                 cells.forEach(sourceCell => {
                     // Calculate the column offset of the cell from the source cell
-                    const colOffset = sourceCell.cellIndex - souceMinCol;
+                    const colOffset = sourceCell.cellIndex - sourceMinCol;
 
                     // Get the new cell index
                     const newCellIndex = { row: sourceCell.parentElement.rowIndex, col: targetMaxCol + colOffset };

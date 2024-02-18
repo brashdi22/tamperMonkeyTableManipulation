@@ -326,9 +326,11 @@ function hideColsRows(){
         if (cell.style.display !== 'none')
             hideCol(cell);
 
-        // The id of the respective checkbox: `${table.id}-col${index+1}`
         // Get the checkbox and uncheck it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex+1}`);
+        const table = cell.parentElement.parentElement.parentElement;
+        const virtaulCol = getTopLeftVirtualIndex(cell, tableObjects.get(table.id).inverseHeaderMapping).col;
+        const checkBoxes = document.querySelectorAll(`#settingsMenu-${table.id} .columnCheckbox`);
+        const checkbox = checkBoxes[virtaulCol-1];
         if (checkbox) checkbox.checked = false;
     });
 }
@@ -357,9 +359,11 @@ function showColsRows(){
         if (cell.style.display === 'none')
         showCol(cell);
 
-        // The id of the respective checkbox: `${table.id}-col${index+1}`
         // Get the checkbox and check it
-        const checkbox = document.getElementById(`${cell.parentElement.parentElement.parentElement.id}-col${cell.cellIndex+1}`);
+        const table = cell.parentElement.parentElement.parentElement;
+        const virtaulCol = getTopLeftVirtualIndex(cell, tableObjects.get(table.id).inverseHeaderMapping).col;
+        const checkBoxes = document.querySelectorAll(`#settingsMenu-${table.id} .columnCheckbox`);
+        const checkbox = checkBoxes[virtaulCol-1];
         if (checkbox) checkbox.checked = true;
     });
 }
