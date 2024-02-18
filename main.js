@@ -905,3 +905,78 @@ function getLiIndex(li, ul) {
     
     return index;
 }
+
+/**
+ * Given a table with no thead, this function counts the number of rows
+ * that should be considered as headers. It does this by checking the first
+ * few rows to see if they contain only TH elements.
+ * 
+ * @param {HTMLTableElement} table 
+ * @returns {Number} sthe number of rows that should be considered as headers
+ */
+function countHeaderRowsWithTH(table) {
+    let numRows = table.rows.length;
+    let headerCount = 0;
+  
+    for (let i = 0; i < numRows; i++) {
+        let row = table.rows[i];
+        let allHeaders = true;
+    
+        for (let j = 0; j < row.cells.length; j++) {
+            if (row.cells[j].tagName !== 'TH') {
+            allHeaders = false;
+            break;
+            }
+        }
+    
+        if (allHeaders)
+            headerCount++;
+        else
+            break;
+    }
+    return headerCount;
+}
+
+/**
+ * Given a table with no thead, this function counts the number of rows
+ * that should be considered as headers. It does this by checking the first
+ * few rows to see if they have row/col spans.
+ * 
+ * @param {HTMLTableElement} table 
+ * @returns {Number} the number of rows that should be considered as headers
+ */
+function countHeaderRowsWithSpans(table) {
+    let numRows = table.rows.length;
+    if (numRows === 0) return 0;
+
+    let headerRows = 0;
+    let colCoverage = new Array(numRows).fill(0); // Track cumulative column coverage for each row
+
+    for (let i = 0; i < numRows; i++) {
+        let row = table.rows[i];
+        let localCoverage = 0; // Track column coverage contributed by the current row
+
+        for (let j = 0; j < row.cells.length; j++) {
+            let cell = row.cells[j];
+            let colspan = cell.hasAttribute('colspan') ? parseInt(cell.getAttribute('colspan'), 10) : 1;
+            let rowspan = cell.hasAttribute('rowspan') ? parseInt(cell.getAttribute('rowspan'), 10) : 1;
+            
+            localCoverage += colspan;
+    
+            // Update future row coverage based on the current cell's rowspan
+            for (let k = 1; k < rowspan && (i + k) < numRows; k++) {
+            colCoverage[i + k] += colspan;
+            }
+        }
+    
+        colCoverage[i] += localCoverage; // Update current row's cumulative column coverage
+    
+        // Determine if the row contributes to header structure based on column coverage
+        if (i === 0 || colCoverage[i] > colCoverage[i - 1])
+            headerRows++;
+        else
+            break;
+    }
+
+    return headerRows;
+}

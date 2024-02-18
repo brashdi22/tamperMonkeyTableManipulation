@@ -77,16 +77,22 @@ class TableObj {
     }
 
     /**
-     * Creates a thead element and copies the first row of the table to it,
-     * then removes the copied row from the tbody.
+     * Decides which rows from the tbody should be the thead, 
+     * then creates the thead and removes these rows from the tbody.
      */
     createThead(){
-        const headerRow = this.table.rows[0];
+        const headerRowsUsingTh = countHeaderRowsWithTH(this.table);
+        const headerRowsUsingSpan = countHeaderRowsWithSpans(this.table);
+        const lastHeaderRowIndex = Math.max(headerRowsUsingTh, headerRowsUsingSpan, 1) - 1;
+
         const thead = document.createElement("thead");
-        this.table.insertBefore(thead, this.tbody);
-        thead.appendChild(headerRow.cloneNode(true));
-        this.tbody.removeChild(this.tbody.rows[0]);
         this.thead = thead;
+        this.table.insertBefore(thead, this.tbody);
+
+        for (let i = lastHeaderRowIndex; i >= 0; i--){
+            const removedRow = this.tbody.rows[i].parentNode.removeChild(this.tbody.rows[i]);
+            thead.insertBefore(removedRow, thead.firstChild);
+        }
     }
 
     /**
@@ -387,7 +393,7 @@ class TableObj {
             cells.add(this.headerMapping.get(index));
         }
 
-        cells = this.getCellsFromObjectIndices(Array.from(cells));
+        cells = this.getCellsFromObjectIndices(cells);
         cells.forEach(cell => {
             const button = document.createElement('button');
             button.className = 'sortButton';
@@ -474,9 +480,8 @@ class TableObj {
             const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: i})));
             columns.add(this.thead.rows[index.row].cells[index.col]);
         }
-        columns = Array.from(columns);
 
-        columns.forEach((column, index) => {
+        [...columns].forEach((column, index) => {
             let nestedLi = document.createElement('li');
 
             // Create the checkbox
@@ -774,14 +779,14 @@ class TableObj {
             });
 
 
-            theadCells = Array.from(new Set(theadCells));
+            theadCells = [...(new Set(theadCells))];
             const selectedTheadCells = this.thead.querySelectorAll('.selectedTableObjCell');
             for (let i = 0; i < selectedTheadCells.length; i++){
                 if (!this.selectedCells.includes(selectedTheadCells[i]) && !theadCells.includes(selectedTheadCells[i]))
                     selectedTheadCells[i].classList.remove('selectedTableObjCell');
             }
 
-            tbodyCells = Array.from(new Set(tbodyCells));
+            tbodyCells = [...(new Set(tbodyCells))];
             const cells = this.tbody.querySelectorAll('.selectedTableObjCell');
             for (let i = 0; i < cells.length; i++){
                 if (!this.selectedCells.includes(cells[i]) && !tbodyCells.includes(cells[i]))
@@ -799,7 +804,7 @@ class TableObj {
                 });
             });
 
-            allCells = Array.from(new Set(allCells));
+            allCells = [...(new Set(allCells))];
             this.selectedCells.forEach(cell => {
                 if (!allCells.includes(cell)){
                     cell.classList.add('selectedTableObjCell');
@@ -907,7 +912,7 @@ class TableObj {
             }
         });
 
-        const headers = this.getCellsFromObjectIndices(Array.from(cellsSet));
+        const headers = this.getCellsFromObjectIndices([...cellsSet]);
 
         // Get the cells from the set of indices
         const cells = [];
@@ -1001,7 +1006,7 @@ class TableObj {
                 cellsSet.add(newCell);
             }
         }
-        return this.getCellsFromObjectIndices(Array.from(cellsSet));
+        return this.getCellsFromObjectIndices([...cellsSet]);
     }
 
     /** 
