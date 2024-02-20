@@ -8,7 +8,7 @@ setTimeout(function() {
     }
 
     // Set an initial delay for execution
-    const initialDelay = 1000;
+    const initialDelay = 1;
     let timeoutId = setTimeout(callMainOnce, initialDelay);
 
     // Create a callback function to execute when mutations are observed
@@ -34,7 +34,7 @@ setTimeout(function() {
     if (targetTable)
         observer.observe(targetTable, config);
 
-}, 1000);
+}, 1);
 
 function main() {
     'use strict';
@@ -52,19 +52,19 @@ function main() {
     const ortScript = GM_addElement('script', {src: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0/dist/ort.min.js'});
     classifierPromise = loadOnnxModel(ortScript);
     
-    // Retrieve the tables from the page
-    const tables = document.getElementsByTagName("table");
+    // // Retrieve the tables from the page
+    // const tables = document.getElementsByTagName("table");
     
-    // Create an instance of TableObj for each table
-    Array.from(tables).forEach(table => {
-        if (table.rows.length > 1){
-            // Some tables have no ids. During the creation of the TableObj, the id is set to
-            // the table if it does not have one. That is why the instance is stored in a const
-            // before adding it to the tableObjects map.
-            const temp = new TableObj(table);
-            tableObjects.set(temp.table.id, temp);
-        }
-    });
+    // // Create an instance of TableObj for each table
+    // Array.from(tables).forEach(table => {
+    //     if (table.rows.length > 1){
+    //         // Some tables have no ids. During the creation of the TableObj, the id is set to
+    //         // the table if it does not have one. That is why the instance is stored in a const
+    //         // before adding it to the tableObjects map.
+    //         const temp = new TableObj(table);
+    //         tableObjects.set(temp.table.id, temp);
+    //     }
+    // });
 
 
     // Define the custom toolbar element using the TableObjToolbar class
@@ -583,7 +583,8 @@ async function getColumnsToPlot(){
  *                         content, column 2 header, column 2 content.
  */
 function getSelectedCellsAsColumns(){
-    const selectedCells = Array.from(document.querySelectorAll('tbody .selectedTableObjCell'));
+    const selectedCells = Array.from(document.querySelectorAll('tbody .selectedTableObjCell'))
+                            .filter(cell => cell.tagName === 'TD');
     if (selectedCells.length === 0) return;
 
     const table = selectedCells[0].parentElement.parentElement.parentElement; // table -> tbody -> tr -> td
@@ -876,4 +877,3 @@ async function loadOnnxModel(ortScript) {
     //     };
     // });
 }
-  

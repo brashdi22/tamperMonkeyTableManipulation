@@ -3,7 +3,11 @@ class TableObj {
 
     constructor(tableElem){
         TableObj.tablesCount++;
-        this.table = tableElem;
+        this.original = tableElem;
+        // Clone the table and replace the original with the clone
+        this.table = tableElem.cloneNode(true);
+        tableElem.parentElement.replaceChild(this.table, tableElem);
+        // this.table = tableElem;
 
         this.tbody = this.table.tBodies[0];
         this.thead = this.table.tHead;
@@ -19,7 +23,7 @@ class TableObj {
         this.headerRowIndex = this.thead.rows.length - 1;
         this.colDragHandlesRowIndex = 0;
 
-        this.replaceHeaders();
+        // this.replaceHeaders();
         this.addRowSelectors();
         this.addRowDragHandles();
 

@@ -4,8 +4,13 @@ class TableObjToolbar extends HTMLElement {
         this.shadow = this.attachShadow({ mode: 'open' });
         this.magnify = false;
         this.graphOptionsHidden = true;
+        this.addTable = false;
+        this.deleteTable = false;
         this.col1data = [];
         this.col2data = [];
+
+        this.boundDocumentMousemove = this.documentMousemove.bind(this);
+        this.boundDocumentClick = this.documentClick.bind(this);
 
         // Add the stylesheet to the page
         const styleSheet = `
@@ -243,8 +248,47 @@ class TableObjToolbar extends HTMLElement {
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'none';
             }                
         };
-        
 
+        // Create a button to allow the use to create a new tableObj instance
+        let newTableButton = document.createElement('button');
+        newTableButton.id = 'newTableButton';
+        newTableButton.title = 'Apply extension to a new table. Click this then click on a table.';
+        newTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>';
+        newTableButton.onclick = () => {
+            this.addTable = !this.addTable;
+            if (this.addTable) {
+                this.deleteTable = false;
+                // Add a document mousemove event listener to allow the user to click on a table
+                document.addEventListener('mousemove', this.boundDocumentMousemove);
+                document.addEventListener('click', this.boundDocumentClick);
+            }
+            else {
+                // Remove the document mousemove event listener
+                document.removeEventListener('mousemove', this.boundDocumentMousemove);
+                document.removeEventListener('click', this.boundDocumentClick);
+            }
+        };
+
+        // Create a button to allow the user to delete the current tableObj instance
+        let deleteTableButton = document.createElement('button');
+        deleteTableButton.id = 'deleteTableButton';
+        deleteTableButton.title = 'Remove extension from a table';
+        deleteTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>';
+        deleteTableButton.onclick = () => {
+            this.deleteTable = !this.deleteTable;
+            if (this.deleteTable) {
+                this.addTable = false;
+                // Add a document mousemove event listener to allow the user to click on a table
+                document.addEventListener('mousemove', this.boundDocumentMousemove);
+                document.addEventListener('click', this.boundDocumentClick);
+            }
+            else {
+                // Remove the document mousemove event listener
+                document.removeEventListener('mousemove', this.boundDocumentMousemove);
+                document.removeEventListener('click', this.boundDocumentClick);
+            }
+        };
+        
         // Add the elements to the shadow root
 
         // Highlight
@@ -271,6 +315,13 @@ class TableObjToolbar extends HTMLElement {
         div = document.createElement('div');
         div.className = 'buttonsDiv';
         div.appendChild(dataTypeButton);
+        this.shadow.appendChild(div);
+
+        // Add/remove instance buttons
+        div = document.createElement('div');
+        div.className = 'buttonsDiv';
+        div.appendChild(newTableButton);
+        div.appendChild(deleteTableButton);
         this.shadow.appendChild(div);
 
     }
@@ -841,5 +892,64 @@ class TableObjToolbar extends HTMLElement {
             'Percentage',
             'nominal',
             'numerical');
+    }
+
+    /**
+     * A function bound to the document mousemove event. This function
+     * changes the border of the table to indicate that it is selected.
+     * 
+     * @param {event} event 
+     */
+    documentMousemove(event) {
+        // Get the closest table to the mouse
+        const table = event.target.closest('table');
+        if (table) {
+            // Add a class which changes the border of the table
+            table.classList.add('tableSelected');
+
+            // Define a named function (for the mouseleave event) so it can be removed
+            const removeClassOnMouseLeave = () => {
+                table.classList.remove('tableSelected');
+                table.removeEventListener('mouseleave', removeClassOnMouseLeave);
+            };
+
+            // Add the mouseleave event listener using the named function
+            table.addEventListener('mouseleave', removeClassOnMouseLeave);
+        }
+    }
+
+    /** 
+     * A function bound to the document click event. This function
+     * creates a new TableObj instance or removes a TableObj instance.
+     * 
+     * @param {event} event
+    */
+    documentClick(event) {
+        const table = event.target.closest('table');
+        if (table) {
+            if (this.addTable){
+                // Check if the table exits in the tableObjects map before creating a new TableObj instance
+                if (!tableObjects.has(table.id)){
+                    table.classList.remove('tableSelected');
+                    const temp = new TableObj(table);
+                    tableObjects.set(temp.table.id, temp);
+                }
+            }
+            else if (this.deleteTable) {
+                const tableObj = tableObjects.get(table.id);
+                if (tableObj){
+                    table.classList.remove('tableSelected');
+                    
+                    // Replace the table with the original table
+                    table.parentElement.replaceChild(tableObj.original, table);
+
+                    // Remove the Settings menu
+                    document.getElementById(`${table.id}-menuContainer`).remove();
+
+                    // Remove the tableObj instance from the map
+                    tableObjects.delete(table.id);
+                }
+            }
+        }
     }
 }

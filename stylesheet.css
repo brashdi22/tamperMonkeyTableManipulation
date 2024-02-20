@@ -233,3 +233,7 @@ table.lib-table th {
 .rowDragLineBottom::after {
     bottom: -13px;
 }
+
+.tableSelected {
+    border: 4px solid #000000 !important;
+}
