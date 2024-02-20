@@ -594,7 +594,13 @@ class TableObjToolbar extends HTMLElement {
         const cleanedData = [];
         data.forEach(row => {
             row = row.replace(/[^0-9.]/g, '');
-            cleanedData.push(row);
+            // If the row is not empty, try to convert to a number
+            if (row !== '') {
+                row = +row;
+                if (!isNaN(row))
+                    cleanedData.push(row);
+            }
+            
         });
         return cleanedData;
     }

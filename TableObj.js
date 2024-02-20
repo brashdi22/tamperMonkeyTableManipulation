@@ -35,6 +35,7 @@ class TableObj {
         this.ensureTbodyCellsAreTds();
 
         // this.table.className = "";
+        // this.table.classList.add("lib-table");
         this.table.classList.add("lib-tabl");
 
         // Create a copy of the table to be used if the user hits the reset button
@@ -342,6 +343,8 @@ class TableObj {
             // Create a cell
             const cell = document.createElement("th");
             cell.colSpan = cells[i].colSpan || 1;
+            cell.style.display = window.getComputedStyle(cells[i]).display;
+            
             cell.className = 'columnDragHandle';
             cell.draggable = true; 
 
@@ -1248,12 +1251,11 @@ class TableObj {
             }
         } 
         else {
-            
-            this.mouseDownH = true;
             if (this.endCell.col === 1){
                 this.selecetWholeTable();
             }
             else if (this.endCell.col !== 0){
+                this.mouseDownH = true;
                 this.selectColumns();
             }
         }
