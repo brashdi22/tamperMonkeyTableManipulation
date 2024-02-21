@@ -682,7 +682,6 @@ class TableObj {
         document.addEventListener("mousedown", this.documentMouseDown.bind(this));
         document.addEventListener("dragend", this.documentDragEnd.bind(this));
         document.addEventListener("dragover", this.documentDragOver.bind(this));
-        document.addEventListener("click", this.documentClick.bind(this));
     }
 
     addTableSpecificEventListeners(){
@@ -1353,11 +1352,6 @@ class TableObj {
         // Update selected cells
         this.selectedCells = Array.from(this.table.querySelectorAll('.selectedTableObjCell'));
 
-        // Update the graphs options if the graphs tab is open
-        const toolbar = document.getElementById('TableObjToolbar');
-        if (!toolbar.graphOptionsHidden)
-            toolbar.updateSelectedColumns();
-
         this.mouseDown = this.mouseDownH = this.mouseDownR = false;
 
         // this.checkAllCellsInRowSelected();
@@ -1389,16 +1383,6 @@ class TableObj {
             menus.forEach(menu => {
                 menu.style.display = 'none';
             });
-        }
-    }
-
-    documentClick(event){
-        if (!event.target.closest('#TableObjToolbar')
-            && !event.target.closest('#chartContainer')){
-            // Update the graphs options if the graphs tab is open
-            const toolbar = document.getElementById('TableObjToolbar');
-            if (!toolbar.graphOptionsHidden)
-                toolbar.updateSelectedColumns();
         }
     }
 

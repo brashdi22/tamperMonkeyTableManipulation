@@ -130,6 +130,8 @@ class TableObjToolbar extends HTMLElement {
             }
 
             .tooltip {
+                display: inline-block;
+                text-align: left;
                 position: absolute;
                 background-color: white;
                 border: 1px solid black;
@@ -141,7 +143,7 @@ class TableObjToolbar extends HTMLElement {
                 transform: translateX(-100%);
                 top: 0;
                 left: -1px;
-                z-index: 1;
+                z-index: 10000000;
             }
 
             .tooltip p {
@@ -172,6 +174,28 @@ class TableObjToolbar extends HTMLElement {
 
             #graphOptionsContainer .buttonsDiv button:disabled svg {
                 opacity: 0.35;
+            }
+
+            .statsIcon {
+                text-align: center;
+                font-size: 11px;
+                background-color: white;
+                border-radius: 5px;
+                padding: 2px 3px;
+                margin: 0;
+                width: 25px;
+                height: 14px;
+            }
+
+            .statsIcon .tooltip {
+                width: 180px;
+                height: 125px;
+                display: block;
+            }
+
+            .statsIcon .tooltip ul {
+                padding-left: 15px;
+                margin: 0;
             }
 
         `;
@@ -469,6 +493,7 @@ class TableObjToolbar extends HTMLElement {
 
         div1.appendChild(label1);
         div1.appendChild(input1);
+        div1.appendChild(this.createStatsIcon());
         form.appendChild(div1);
 
 
@@ -493,6 +518,7 @@ class TableObjToolbar extends HTMLElement {
 
         div2.appendChild(label2);
         div2.appendChild(input2);
+        div2.appendChild(this.createStatsIcon());
         form.appendChild(div2);
 
         // Add event listeners to the input fields to update
@@ -606,6 +632,8 @@ class TableObjToolbar extends HTMLElement {
                 ['col2Name', 'swapButton'].forEach(id => {
                     this.shadow.getElementById(id).disabled = true;
                 });
+                this.shadow.getElementById('col2Name').nextElementSibling.style.display = 'none';
+                col2Type = undefined;
             }
 
             // Update the available graphs
@@ -636,6 +664,14 @@ class TableObjToolbar extends HTMLElement {
             }
             else
                 disable = ['bar', 'line', 'scatter', 'histogram', 'pie'];
+
+            if (type1 === 'numerical'){
+                const statsIcon = this.shadow.getElementById('col1Name').nextElementSibling;
+                statsIcon.style.display = 'block';
+                this.populateStatsTooltip(statsIcon.querySelector('.tooltip'), true);
+            }
+            else 
+                this.shadow.getElementById('col1Name').nextElementSibling.style.display = 'none';
         }
         else {      // 2 columns selected
             if (type1 === 'numerical' && type2 === 'numerical') {
@@ -652,6 +688,23 @@ class TableObjToolbar extends HTMLElement {
             }
             else
                 disable = ['bar', 'line', 'scatter', 'histogram', 'pie'];
+
+
+            // Show/hide the stats buttons
+            if (type1 === 'numerical') {
+                const statsIcon = this.shadow.getElementById('col1Name').nextElementSibling;
+                statsIcon.style.display = 'block';
+                this.populateStatsTooltip(statsIcon.querySelector('.tooltip'), true);
+            }
+            else 
+                this.shadow.getElementById('col1Name').nextElementSibling.style.display = 'none';
+            if (type2 === 'numerical'){
+                const statsIcon = this.shadow.getElementById('col2Name').nextElementSibling;
+                statsIcon.style.display = 'block';
+                this.populateStatsTooltip(statsIcon.querySelector('.tooltip'), false);
+            }
+            else
+                this.shadow.getElementById('col2Name').nextElementSibling.style.display = 'none';
         }
         
         // Enable
@@ -783,7 +836,7 @@ class TableObjToolbar extends HTMLElement {
             let rangeEnd = rangeStart + rangeSize;
             rangeStart = +rangeStart.toFixed(2);
             rangeEnd = +rangeEnd.toFixed(2);
-            frequency.set(`${rangeStart.toLocaleString()}-${rangeEnd.toLocaleString()}`, 0);
+            frequency.set(`${rangeStart.toLocaleString()} - ${rangeEnd.toLocaleString()}`, 0);
         }
     
         // Count frequencies
@@ -793,7 +846,7 @@ class TableObjToolbar extends HTMLElement {
             let rangeEnd = rangeStart + rangeSize;
             rangeStart = +rangeStart.toFixed(2);
             rangeEnd = +rangeEnd.toFixed(2);
-            const key = `${rangeStart.toLocaleString()}-${rangeEnd.toLocaleString()}`;
+            const key = `${rangeStart.toLocaleString()} - ${rangeEnd.toLocaleString()}`;
             frequency.set(key, frequency.get(key) + 1);
         }
 
@@ -992,5 +1045,69 @@ class TableObjToolbar extends HTMLElement {
                 }
             }
         }
+    }
+    
+    /** 
+     * Creates a. 'i' element and appends a hidden tooltip div to it.
+     * It also adds event listeners to show and hide the tooltip as the 
+     * mouse enters and leaves the 'i' element.
+     * 
+     * @returns {i} The 'i' element 
+    */
+    createStatsIcon(){
+        const infoIcon = document.createElement('i');
+        infoIcon.className = 'statsIcon';
+        infoIcon.innerText = 'Stats';
+        infoIcon.style.display = 'none';
+
+        // Create a tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.style.display = 'none';
+
+        // Show the tooltip when the info icon is hovered over
+        infoIcon.addEventListener('mouseover', () => {
+            tooltip.style.display = 'block';
+        });
+        // Hide the tooltip when the mouse leaves the info icon
+        infoIcon.addEventListener('mouseout', () => {
+            tooltip.style.display = 'none';
+        });
+
+        infoIcon.appendChild(tooltip);
+
+        return infoIcon;
+    }
+
+    /** 
+     * Populates the given tooltip with the statistics of the data.
+     * 
+     * @param {HTMLElement} tooltip The tooltip to populate
+     * @param {boolean} col1 If true, the statistics of the first column are used. 
+     *                      Otherwise, the statistics of the second column are used.
+    */
+    populateStatsTooltip(tooltip, col1){
+        let stats, title;
+        if (col1) {
+            title = this.shadow.getElementById('col1Label').textContent.slice(0, -3);
+            stats = getStats(this.cleanNumericalData(this.col1data));
+        }
+        else {
+            title = this.shadow.getElementById('col2Label').textContent.slice(0, -3);
+            stats = getStats(this.cleanNumericalData(this.col2data));
+        }
+
+        tooltip.innerHTML = `
+            <h6 style="padding-bottom:5px;">${title}</h6>
+            <ul>
+                <li><b>Min:</b> ${stats.minVal.toLocaleString()}</li>
+                <li><b>Max:</b> ${stats.maxVal.toLocaleString()}</li>
+                <li><b>Mean:</b> ${stats.meanVal.toLocaleString()}</li>
+                <li><b>Std:</b> ${stats.stdVal.toLocaleString()}</li>
+                <li><b>Q1:</b> ${stats.q1.toLocaleString()}</li>
+                <li><b>Q2:</b> ${stats.medianVal.toLocaleString()}</li>
+                <li><b>Q3:</b> ${stats.q3.toLocaleString()}</li>
+            <ul>
+        `;
     }
 }

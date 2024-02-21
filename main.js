@@ -76,16 +76,9 @@ function main() {
     document.body.appendChild(toolbar);
 
 
-    // Add an event listener to copy the selected cells to the clipboard
-    document.addEventListener('keydown', (event) => {
-        if (event.ctrlKey && event.key === 'c') {
-            if (document.activeElement.closest('.lib-tabl'))
-                copySelectedCellsAsTSV();
-            else
-                document.execCommand('copy');
-        }
-    });
+    addDocumentKeydownListener();
 
+    addDocumentClickListener();
 }
 
 let tableObjects = new Map();
@@ -502,16 +495,7 @@ function analyzeColumn(column) {
     let minVal, maxVal, meanVal, medianVal, stdVal, minStrLength, maxStrLength, meanStrLength, medianStrLength, stdStrLength;
 
     if (percentageNonNaN >= 80) {
-        // Numeric calculations
-        minVal = Math.min(...numericColumn);
-        maxVal = Math.max(...numericColumn);
-        meanVal = numericColumn.reduce((a, b) => a + b, 0) / numericColumn.length;
-
-        let sortedNumeric = [...numericColumn].sort((a, b) => a - b);
-        let mid = Math.floor(sortedNumeric.length / 2);
-        medianVal = sortedNumeric.length % 2 !== 0 ? sortedNumeric[mid] : (sortedNumeric[mid - 1] + sortedNumeric[mid]) / 2;
-        
-        stdVal = Math.sqrt(numericColumn.map(val => (val - meanVal) ** 2).reduce((a, b) => a + b, 0) / (numericColumn.length-1));
+        ({minVal, maxVal, meanVal, medianVal, stdVal} = getStats(numericColumn));
         minStrLength = maxStrLength = meanStrLength = medianStrLength = stdStrLength = 0;
     } else {
         // String length calculations for non-numeric data
@@ -533,6 +517,37 @@ function analyzeColumn(column) {
         minVal, maxVal, meanVal, medianVal, stdVal,
         minStrLength, maxStrLength, meanStrLength, medianStrLength, stdStrLength
     ];
+}
+
+/**
+ * Calculate the min, max, mean, median,standard deviation, 25th percentile, 
+ * and 75th percentile of an array of numbers.
+ * 
+ * @param {Array<Number>} numericColumn the array of numbers to analyze
+ * @returns {Object} An object with the following properties:
+ *  - minVal: The minimum value.
+ *  - maxVal: The maximum value.
+ *  - medianVal: The median value.
+ *  - meanVal: The mean value.
+ *  - stdVal: The standard deviation.
+ *  - q1: The first quartile.
+ *  - q3: The third quartile.
+ */
+function getStats(numericColumn){
+    minVal = Math.min(...numericColumn);
+    maxVal = Math.max(...numericColumn);
+    meanVal = numericColumn.reduce((a, b) => a + b, 0) / numericColumn.length;
+
+    let sortedNumeric = [...numericColumn].sort((a, b) => a - b);
+    let mid = Math.floor(sortedNumeric.length / 2);
+    medianVal = sortedNumeric.length % 2 !== 0 ? sortedNumeric[mid] : (sortedNumeric[mid - 1] + sortedNumeric[mid]) / 2;
+
+    // claculate the 25th and 75th percentiles
+    let q1 = sortedNumeric[Math.floor(sortedNumeric.length * 0.25)];
+    let q3 = sortedNumeric[Math.floor(sortedNumeric.length * 0.75)];
+
+    stdVal = Math.sqrt(numericColumn.map(val => (val - meanVal) ** 2).reduce((a, b) => a + b, 0) / (numericColumn.length-1));
+    return {minVal: minVal, maxVal: maxVal, medianVal: medianVal, meanVal: meanVal, stdVal: stdVal, q1: q1, q3: q3};
 }
 
 /** 
@@ -884,4 +899,37 @@ async function loadOnnxModel(ortScript) {
     //         reject("Script failed to load");
     //     };
     // });
+}
+
+/**
+ * Add a document keydown event listener which calls the copying function
+ * when the user presses Ctrl+C.
+ */
+function addDocumentKeydownListener(){
+    
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'c') {
+            if (document.activeElement.closest('.lib-tabl'))
+                copySelectedCellsAsTSV();
+            else
+                document.execCommand('copy');
+        }
+    });
+}
+
+/** 
+ * Add a document click event listener which updates the graph options if the
+ * graph tab is open and the user clicks outside the toolbar and the chart container.
+*/
+function addDocumentClickListener(){
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('#TableObjToolbar')
+            && !event.target.closest('#chartContainer')){
+            // Update the graphs options if the graphs tab is open
+            const toolbar = document.getElementById('TableObjToolbar');
+            if (!toolbar.graphOptionsHidden)
+                toolbar.updateSelectedColumns();
+        }
+    });
+    
 }
