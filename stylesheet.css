@@ -30,7 +30,7 @@ table.lib-table th {
     background-color: antiquewhite;
 }
 
-button {
+.TableObjMenuButton {
     border: none;
     padding: 10px 27px;
     background-color: #f8f9fa;
@@ -43,7 +43,7 @@ button {
     transition: background-color 0.3s ease;
 }
 
-button:hover {
+.TableObjMenuButton:hover {
     background-color: #e2e6ea;
 }
 

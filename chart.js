@@ -98,12 +98,22 @@ class chart {
                                 display: true,
                                 text: this.xLabel
                             },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return value.toLocaleString();
+                                }
+                            }
                         },
                         y: {
                             type: this.yScale,
                             title: {
                                 display: true,
                                 text: this.yLabel
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return value.toLocaleString();
+                                }
                             }
                         }
                     }

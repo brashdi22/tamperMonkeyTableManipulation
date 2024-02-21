@@ -779,17 +779,21 @@ class TableObjToolbar extends HTMLElement {
     
         // Initialize frequency map with ranges
         for (let i = 0; i < numberOfBins; i++) {
-            const rangeStart = min + i * rangeSize;
-            const rangeEnd = rangeStart + rangeSize;
-            frequency.set(`${rangeStart.toFixed(2)}-${rangeEnd.toFixed(2)}`, 0);
+            let rangeStart = min + i * rangeSize;
+            let rangeEnd = rangeStart + rangeSize;
+            rangeStart = +rangeStart.toFixed(2);
+            rangeEnd = +rangeEnd.toFixed(2);
+            frequency.set(`${rangeStart.toLocaleString()}-${rangeEnd.toLocaleString()}`, 0);
         }
     
         // Count frequencies
         for (let num of data) {
             const index = Math.min(Math.floor((num - min) / rangeSize), numberOfBins - 1);
-            const rangeStart = min + index * rangeSize;
-            const rangeEnd = rangeStart + rangeSize;
-            const key = `${rangeStart.toFixed(2)}-${rangeEnd.toFixed(2)}`;
+            let rangeStart = min + index * rangeSize;
+            let rangeEnd = rangeStart + rangeSize;
+            rangeStart = +rangeStart.toFixed(2);
+            rangeEnd = +rangeEnd.toFixed(2);
+            const key = `${rangeStart.toLocaleString()}-${rangeEnd.toLocaleString()}`;
             frequency.set(key, frequency.get(key) + 1);
         }
 
