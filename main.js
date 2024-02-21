@@ -152,6 +152,8 @@ function hideColsRows(){
         const checkBoxes = document.querySelectorAll(`#settingsMenu-${table.id} .columnCheckbox`);
         const checkbox = checkBoxes[virtaulCol-1];
         if (checkbox) checkbox.checked = false;
+        if (!tableObjects.get(table.id).allColumnCheckboxesChecked())
+            document.getElementById(`${table.id}-col0`).checked = false;
     });
 }
 
@@ -185,6 +187,8 @@ function showColsRows(){
         const checkBoxes = document.querySelectorAll(`#settingsMenu-${table.id} .columnCheckbox`);
         const checkbox = checkBoxes[virtaulCol-1];
         if (checkbox) checkbox.checked = true;
+        if (tableObjects.get(table.id).allColumnCheckboxesChecked())
+            document.getElementById(`${table.id}-col0`).checked = true;
     });
 }
 
@@ -221,7 +225,11 @@ function hideCol(cell){
 
     // Get the cells under the header
     const [headers, cells] = tableObj.getCellsUnderHeader(cell, tableObj.headerMapping, tableObj.inverseHeaderMapping);
-    [...headers, ...cells].forEach(cell => {
+    headers.forEach(cell => {
+        cell.classList.add('hiddenColumn');
+        cell.style.display = 'none';
+    });
+    cells.forEach(cell => {
         cell.style.display = 'none';
     });
 

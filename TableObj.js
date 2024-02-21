@@ -652,12 +652,10 @@ class TableObj {
     showColAndCheckCheckbox(){
         const checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
         for (let i = 0; i < checkboxes.length; i++){
-            // If the checkbox is not checked, show the column and check the box
+            // If the checkbox is not checked, check it
             if (!checkboxes[i].checked){
-                // Get the actual index of the column using headerMapping
-                const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: +checkboxes[i].value})));
-                showCol(this.thead.rows[index.row].cells[index.col]);
                 checkboxes[i].checked = true;
+                checkboxes[i].dispatchEvent(new Event('change'));
             }
         }
 
@@ -671,12 +669,10 @@ class TableObj {
     hideColAndUncheckCheckbox(){
         const checkboxes = document.querySelectorAll(`#${this.table.id}-menuContainer input.columnCheckbox`);
         for (let i = 0; i < checkboxes.length; i++){
-            // If the checkbox is checked, hide the column and uncheck the box
+            // If the checkbox is checked, uncheck it
             if (checkboxes[i].checked){
-                // Get the actual index of the column using headerMapping
-                const index = JSON.parse(this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: +checkboxes[i].value})));
-                hideCol(this.thead.rows[index.row].cells[index.col]);
                 checkboxes[i].checked = false;
+                checkboxes[i].dispatchEvent(new Event('change'));
             }
         }
 
