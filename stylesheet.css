@@ -30,6 +30,23 @@ table.lib-table th {
     background-color: antiquewhite;
 }
 
+button {
+    border: none;
+    padding: 10px 27px;
+    background-color: #f8f9fa;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #e2e6ea;
+}
+
 .selectedTableObjCell {
     /* background-color: antiquewhite !important; */
     background-color: rgb(249, 224, 186) !important;
@@ -155,7 +172,7 @@ table.lib-table th {
 
 #chartCloseButton {
     background-color: red;
-    border: 2px solid black;
+    border: 1px solid black;
     border-radius: 50%;
     position: absolute;
     transform: translate(40%, -40%);

@@ -26,6 +26,19 @@ class TableObjToolbar extends HTMLElement {
                 border-radius: .25rem;
                 transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
             }
+
+            button:hover {
+                background-color: #e2e6ea;
+            }
+
+            button:active {
+                transform: scale(0.90);
+            }
+
+            button.pressed {
+                transform: scale(0.95);
+                background-color: #e2e6ea;
+            }
             
             div {
                 font-family: Arial, Helvetica, sans-serif;
@@ -227,6 +240,11 @@ class TableObjToolbar extends HTMLElement {
         magnifyButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--><path d="M304 192v32c0 6.6-5.4 12-12 12h-56v56c0 6.6-5.4 12-12 12h-32c-6.6 0-12-5.4-12-12v-56h-56c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h56v-56c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v56h56c6.6 0 12 5.4 12 12zm201 284.7L476.7 505c-9.4 9.4-24.6 9.4-33.9 0L343 405.3c-4.5-4.5-7-10.6-7-17V372c-35.3 27.6-79.7 44-128 44C93.1 416 0 322.9 0 208S93.1 0 208 0s208 93.1 208 208c0 48.3-16.4 92.7-44 128h16.3c6.4 0 12.5 2.5 17 7l99.7 99.7c9.3 9.4 9.3 24.6 0 34zM344 208c0-75.2-60.8-136-136-136S72 132.8 72 208s60.8 136 136 136 136-60.8 136-136z"/></svg>';
         magnifyButton.onclick = () => {
             this.magnify = !this.magnify;
+            if (this.magnify)
+                magnifyButton.classList.add('pressed');
+            else
+                magnifyButton.classList.remove('pressed');
+
             toggleMagnify(this.magnify);
         };
 
@@ -239,11 +257,13 @@ class TableObjToolbar extends HTMLElement {
         dataTypeButton.innerHTML = '<svg fill="#000000" width="20px" height="18px" viewBox="0 0 24 24" id="Main" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="1.968"></g><g id="SVGRepo_iconCarrier"><title></title><path d="M20,7H18a2,2,0,0,0-2,2V20H15V12a2,2,0,0,0-2-2H11a2,2,0,0,0-2,2v8H8V16a2,2,0,0,0-2-2H4a2,2,0,0,0-2,2v5a1,1,0,0,0,1,1H21a1,1,0,0,0,1-1V9A2,2,0,0,0,20,7ZM4,20V16H6v4Zm7,0V12h2v8Zm7,0V9h2V20Z"></path><path d="M3.81,12.58l4.57-6.4L13.68,8a1,1,0,0,0,.82-.08l7-4a1,1,0,0,0-1-1.74L13.89,5.91,8.32,4.05a1,1,0,0,0-1.13.37l-5,7a1,1,0,0,0,.23,1.39A1,1,0,0,0,3,13,1,1,0,0,0,3.81,12.58Z"></path></g></svg>';
         dataTypeButton.onclick = async () => {
             if (this.graphOptionsHidden) {      // Show the graphOptionsContainer
+                dataTypeButton.classList.add('pressed');
                 this.graphOptionsHidden = false;
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'block';
                 this.updateSelectedColumns();
             }
             else {      // Hide the graphOptionsContainer
+                dataTypeButton.classList.remove('pressed');
                 this.graphOptionsHidden = true;
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'none';
             }                
@@ -253,16 +273,21 @@ class TableObjToolbar extends HTMLElement {
         let newTableButton = document.createElement('button');
         newTableButton.id = 'newTableButton';
         newTableButton.title = 'Apply extension to a new table. Click this then click on a table.';
-        newTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>';
+        newTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="18px" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>';
         newTableButton.onclick = () => {
             this.addTable = !this.addTable;
             if (this.addTable) {
                 this.deleteTable = false;
+                newTableButton.classList.add('pressed');
+                this.shadow.getElementById('deleteTableButton').classList.remove('pressed');
+
                 // Add a document mousemove event listener to allow the user to click on a table
                 document.addEventListener('mousemove', this.boundDocumentMousemove);
                 document.addEventListener('click', this.boundDocumentClick);
             }
             else {
+                newTableButton.classList.remove('pressed');
+
                 // Remove the document mousemove event listener
                 document.removeEventListener('mousemove', this.boundDocumentMousemove);
                 document.removeEventListener('click', this.boundDocumentClick);
@@ -272,17 +297,22 @@ class TableObjToolbar extends HTMLElement {
         // Create a button to allow the user to delete the current tableObj instance
         let deleteTableButton = document.createElement('button');
         deleteTableButton.id = 'deleteTableButton';
-        deleteTableButton.title = 'Remove extension from a table';
-        deleteTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>';
+        deleteTableButton.title = 'Remove extension from a table. Click this then click on a table.';
+        deleteTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="18px" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>';
         deleteTableButton.onclick = () => {
             this.deleteTable = !this.deleteTable;
             if (this.deleteTable) {
                 this.addTable = false;
+                deleteTableButton.classList.add('pressed');
+                newTableButton.classList.remove('pressed');
+
                 // Add a document mousemove event listener to allow the user to click on a table
                 document.addEventListener('mousemove', this.boundDocumentMousemove);
                 document.addEventListener('click', this.boundDocumentClick);
             }
             else {
+                deleteTableButton.classList.remove('pressed');
+
                 // Remove the document mousemove event listener
                 document.removeEventListener('mousemove', this.boundDocumentMousemove);
                 document.removeEventListener('click', this.boundDocumentClick);
@@ -892,6 +922,13 @@ class TableObjToolbar extends HTMLElement {
             'Percentage',
             'nominal',
             'numerical');
+    }
+
+    addPressedClass(button, pressed){
+        if (pressed)
+            button.classList.add('pressed');
+        else
+            button.classList.remove('pressed');
     }
 
     /**
