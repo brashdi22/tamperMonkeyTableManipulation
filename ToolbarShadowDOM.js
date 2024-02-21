@@ -941,7 +941,7 @@ class TableObjToolbar extends HTMLElement {
                     table.classList.remove('tableSelected');
                     
                     // Replace the table with the original table
-                    table.parentElement.replaceChild(tableObj.original, table);
+                    table.parentElement.replaceChild(tableObj.originalTable, table);
 
                     // Remove the Settings menu
                     document.getElementById(`${table.id}-menuContainer`).remove();

@@ -3,20 +3,23 @@ class TableObj {
 
     constructor(tableElem){
         TableObj.tablesCount++;
-        this.original = tableElem;
+        this.originalTable = tableElem;
         // Clone the table and replace the original with the clone
         this.table = tableElem.cloneNode(true);
         tableElem.parentElement.replaceChild(this.table, tableElem);
-        // this.table = tableElem;
+        this.addTableId();
 
+        this.init();
+    }
+
+    init(){
         this.tbody = this.table.tBodies[0];
         this.thead = this.table.tHead;
         this.table.tabIndex = 0;
 
         if (this.thead === null)
             this.createThead();
-
-        this.addTableId();
+        
         this.ensureTheadCellsAreThs();
         this.addColumnDragHandles();
 
@@ -42,13 +45,8 @@ class TableObj {
         // this.table.classList.add("lib-table");
         this.table.classList.add("lib-tabl");
 
-        // Create a copy of the table to be used if the user hits the reset button
-        this.originalTable = this.table.cloneNode(true);
-        
-
         this.addDocumentEventListeners();
         this.initialiseTableSpecificVariablesAndListeners();
-
     }
 
     /** 
@@ -593,19 +591,17 @@ class TableObj {
         li.addEventListener('mousedown', () => {li.style.backgroundColor = '#949090';});
         li.addEventListener('mouseup', () => {li.style.backgroundColor = '';});
         li.addEventListener('click', () => {
-            this.table.parentElement.replaceChild(this.originalTable, this.table);
-            this.table = this.originalTable;
-            this.originalTable = this.table.cloneNode(true);
-            this.tbody = this.table.tBodies[0];
-            this.thead = this.table.tHead;
+            // Reset the table to its original state
+            const temp = this.originalTable.cloneNode(true);
+            temp.id = this.table.id;
+            this.table.parentElement.replaceChild(temp, this.table);
+            this.table = temp;
 
-            // Delete the menu container and create a new one (to reinitialise the event listeners)
+            // Delete the menu container (to reinitialise the event listeners)
             const container = document.getElementById(`${this.table.id}-menuContainer`);
             container.parentElement.removeChild(container);
-            this.addTableSettingsMenu();
 
-            this.initialiseTableSpecificVariablesAndListeners();
-               
+            this.init();
         });
         settingsMenu.appendChild(li);
         // ================================= Reset option =================================
