@@ -79,6 +79,8 @@ function main() {
     addDocumentKeydownListener();
 
     addDocumentClickListener();
+
+    document.tableObjects = tableObjects;
 }
 
 let tableObjects = new Map();
