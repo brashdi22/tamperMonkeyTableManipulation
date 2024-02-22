@@ -80,7 +80,7 @@ class chart {
         let ctx = document.getElementById('chartCanvas').getContext('2d');
 
         if (this.chartType === 'scatter' || this.chartType === 'line' || this.chartType === 'bar') {
-            new Chart(ctx, {
+            let chart = new Chart(ctx, {
                 type: this.chartType,
                 data: {
                     datasets: [{
@@ -116,12 +116,19 @@ class chart {
                                 }
                             }
                         }
+                    },
+                    onClick: function(event, elements) {
+                        if (elements.length) {
+                            let clickedIndex = elements[0].index;
+                            chart.data.datasets[0].data.splice(clickedIndex, 1);
+                            chart.update();
+                        }
                     }
                 }
             });
         }
         else if (this.chartType === 'histogram') {
-            new Chart(ctx, {
+            let chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: this.data.map(e => e.x),
@@ -155,12 +162,19 @@ class chart {
                                 precision: 0 // Only whole numbers
                             }
                         }
+                    },
+                    onClick: function(event, elements) {
+                        if (elements.length) {
+                            let clickedIndex = elements[0].index;
+                            chart.data.datasets[0].data.splice(clickedIndex, 1);
+                            chart.update();
+                        }
                     }
                 }
             });
         }
         else {
-            new Chart(ctx, {
+            let chart = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: this.data.map(e => e.x),

@@ -111,6 +111,7 @@ table.lib-table th {
     margin-bottom: 10px;
     padding: 0;
     display: flex;
+    color: black;
 }
 
 .TableObjMenuContainer label {
@@ -123,7 +124,7 @@ table.lib-table th {
     list-style: none;
     padding: 0 !important;
     margin: 0 !important;
-    background-color: #fbf6f6;
+    background-color: #f8f9fa;
     border: black 1px solid;
     border-radius: 4px;
     position: absolute;
@@ -144,7 +145,7 @@ table.lib-table th {
 }
 
 .TableObjMenu li:hover {
-    background-color: #e8e8e8;
+    background-color: #e2e6ea;
 }
 
 .TableObjSubMenu {
@@ -158,7 +159,7 @@ table.lib-table th {
 
 .TableObjMenu li:hover > .TableObjSubMenu {
     display: block;
-    z-index: 99;
+    z-index: 1000000;
 }
 
 #chartContainer {
