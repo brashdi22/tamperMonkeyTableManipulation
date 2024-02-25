@@ -61,6 +61,13 @@ class TableObjToolbar extends HTMLElement {
                 width: 30%;
                 height: 100%;
                 border-radius: 5px;
+                margin-right: 3px;
+            }
+
+            .buttonsDiv {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
             }
 
             .inputFieldContainer select {
@@ -215,7 +222,7 @@ class TableObjToolbar extends HTMLElement {
         highlightButton.id = 'highlightButton';
         highlightButton.title = 'Highlight the selected cells';
 
-        highlightButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 544 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 479.98L99.92 512l35.45-35.45-67.04-67.04L0 479.98zm124.61-240.01a36.592 36.592 0 0 0-10.79 38.1l13.05 42.83-50.93 50.94 96.23 96.23 50.86-50.86 42.74 13.08c13.73 4.2 28.65-.01 38.15-10.78l35.55-41.64-173.34-173.34-41.52 35.44zm403.31-160.7l-63.2-63.2c-20.49-20.49-53.38-21.52-75.12-2.35L190.55 183.68l169.77 169.78L530.27 154.4c19.18-21.74 18.15-54.63-2.35-75.13z"/></svg>';
+        highlightButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="18" width="16" viewBox="0 0 544 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 479.98L99.92 512l35.45-35.45-67.04-67.04L0 479.98zm124.61-240.01a36.592 36.592 0 0 0-10.79 38.1l13.05 42.83-50.93 50.94 96.23 96.23 50.86-50.86 42.74 13.08c13.73 4.2 28.65-.01 38.15-10.78l35.55-41.64-173.34-173.34-41.52 35.44zm403.31-160.7l-63.2-63.2c-20.49-20.49-53.38-21.52-75.12-2.35L190.55 183.68l169.77 169.78L530.27 154.4c19.18-21.74 18.15-54.63-2.35-75.13z"/></svg>';
         highlightButton.onclick = () => {
             highlight(coloursMap[this.shadow.getElementById('highlightColour').value]);
         };
@@ -297,7 +304,7 @@ class TableObjToolbar extends HTMLElement {
         let newTableButton = document.createElement('button');
         newTableButton.id = 'newTableButton';
         newTableButton.title = 'Apply extension to a new table. Click this then click on a table.';
-        newTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="18px" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>';
+        newTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="19px" height="18px" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>';
         newTableButton.onclick = () => {
             this.addTable = !this.addTable;
             if (this.addTable) {
@@ -322,7 +329,7 @@ class TableObjToolbar extends HTMLElement {
         let deleteTableButton = document.createElement('button');
         deleteTableButton.id = 'deleteTableButton';
         deleteTableButton.title = 'Remove extension from a table. Click this then click on a table.';
-        deleteTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="18px" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>';
+        deleteTableButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15px" height="18px" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>';
         deleteTableButton.onclick = () => {
             this.deleteTable = !this.deleteTable;
             if (this.deleteTable) {
@@ -345,8 +352,15 @@ class TableObjToolbar extends HTMLElement {
         
         // Add the elements to the shadow root
 
-        // Highlight
+        // Add/remove instance buttons
         let div = document.createElement('div');
+        div.className = 'buttonsDiv';
+        div.appendChild(newTableButton);
+        div.appendChild(deleteTableButton);
+        this.shadow.appendChild(div);
+
+        // Highlight
+        div = document.createElement('div');
         div.className = 'buttonsDiv';
         div.appendChild(highlightButton);
         div.appendChild(colourSelect);
@@ -370,14 +384,6 @@ class TableObjToolbar extends HTMLElement {
         div.className = 'buttonsDiv';
         div.appendChild(dataTypeButton);
         this.shadow.appendChild(div);
-
-        // Add/remove instance buttons
-        div = document.createElement('div');
-        div.className = 'buttonsDiv';
-        div.appendChild(newTableButton);
-        div.appendChild(deleteTableButton);
-        this.shadow.appendChild(div);
-
     }
 
     createGraphOptionsContainer() {
