@@ -41,16 +41,9 @@ class chart {
         if (oldContainer) oldContainer.remove();
         
         // Create a new chart container
-        const chartContainer = document.createElement('div');
+        const chartContainer = document.createElement('chart-container');
         chartContainer.id = 'chartContainer';
-        
-        // Create a close button
-        const closeButton = document.createElement('button');
-        closeButton.id = 'chartCloseButton';
-        closeButton.textContent = 'x';
-        closeButton.onclick = function() {
-            chartContainer.remove();
-        };
+        document.body.appendChild(chartContainer);
     
         // Set the width and height of the chart container then centre
         // it. (using the normal way to centre this div - which uses
@@ -62,25 +55,12 @@ class chart {
         chartContainer.style.marginLeft = `${-width / 2}px`;
         chartContainer.style.marginTop = `${-height / 2}px`;
 
-        // Insert a canvas element inside the chart container
-        const canvas = document.createElement('canvas');
-        canvas.id = 'chartCanvas';
-        canvas.width = parseInt(chartContainer.style.width, 10);
-        canvas.height = parseInt(chartContainer.style.height, 10);
-        canvas.style.display = 'block';
-        canvas.style.margin = 'auto';
-        chartContainer.appendChild(canvas);
-    
-        // Insert the close button and chart container into the DOM
-        chartContainer.appendChild(closeButton);
-        document.body.appendChild(chartContainer);
+        this.ctx = chartContainer.appendCanvas(width, height).getContext('2d');
     }
     
     plot(){
-        let ctx = document.getElementById('chartCanvas').getContext('2d');
-
         if (this.chartType === 'scatter' || this.chartType === 'line' || this.chartType === 'bar') {
-            let chart = new Chart(ctx, {
+            let chart = new Chart(this.ctx, {
                 type: this.chartType,
                 data: {
                     datasets: [{
@@ -128,7 +108,7 @@ class chart {
             });
         }
         else if (this.chartType === 'histogram') {
-            let chart = new Chart(ctx, {
+            let chart = new Chart(this.ctx, {
                 type: 'bar',
                 data: {
                     labels: this.data.map(e => e.x),
@@ -174,7 +154,7 @@ class chart {
             });
         }
         else {
-            let chart = new Chart(ctx, {
+            let chart = new Chart(this.ctx, {
                 type: 'pie',
                 data: {
                     labels: this.data.map(e => e.x),

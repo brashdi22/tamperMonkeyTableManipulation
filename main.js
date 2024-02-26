@@ -67,8 +67,9 @@ function main() {
     // });
 
 
-    // Define the custom toolbar element using the TableObjToolbar class
+    // Define the custom elements
     customElements.define('table-obj-toolbar', TableObjToolbar);
+    customElements.define('chart-container', ChartContainer);
     
     // Create the toolbar and add to the page
     const toolbar = document.createElement('table-obj-toolbar');
@@ -740,6 +741,20 @@ function sortTableByColumn(table, columnIndex, header) {
     // Re-add rows to tbody
     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
     sortedRows.forEach(row => tbody.appendChild(row));
+
+    // Update the settings menu
+    updateRowsSettingsMenu(table);
+}
+
+function updateRowsSettingsMenu(table){
+    const settingsMenu = document.getElementById(`settingsMenu-${table.id}`);
+    if (settingsMenu){
+        const rows = Array.from(table.tBodies[0].rows);
+        const rowCheckboxes = settingsMenu.querySelectorAll('.rowCheckbox');
+        for (let i = 0; i < rows.length; i++){
+            rowCheckboxes[i].nextElementSibling.textContent = rows[i].cells[1].textContent;
+        }
+    }
 }
 
 function getLiIndex(li, ul) {
