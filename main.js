@@ -1,70 +1,18 @@
 setTimeout(function() {
-    // Select the target table to observe for mutations
-    targetTable = document.getElementsByTagName("table")[0];
-
-    function callMainOnce(){
-        observer.disconnect();     // Stop observing the target table for mutations
-        main();
-    }
-
-    // Set an initial delay for execution
-    const initialDelay = 1;
-    let timeoutId = setTimeout(callMainOnce, initialDelay);
-
-    // Create a callback function to execute when mutations are observed
-    const callback = function(mutationsList, observer) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(callMainOnce, initialDelay);
-    };
-
-    // Create an instance of MutationObserver with the callback function
-    const observer = new MutationObserver(callback);
-
-    // Options for the observer (which mutations to observe)
-    const config = { 
-        attributes: true,
-        childList: true,
-        subtree: true,
-        attributeOldValue: true,
-        characterData: true,
-        characterDataOldValue: true
-    };
-
-    // Start observing the target table for configured mutations
-    if (targetTable)
-        observer.observe(targetTable, config);
-
-}, 1);
-
-function main() {
     'use strict';
 
-    // This try-catch block is used to catch errors when the script is injected directly
-    // into the page (during testing) rather than using Tampermonkey.  
-    try{
-        // Get the CSS text from the imported CSS file and add it to the page
-        const styleSheet = GM_getResourceText("IMPORTED_CSS");
-        GM_addStyle(styleSheet);
-        
-    } catch (e) {console.log(e);}
+    // Add the style sheet to the page
+    const styleSheet = GM_getResourceText("IMPORTED_CSS");
+    GM_addStyle(styleSheet);
 
+    // Load the Chart.js library
     loadChartJSScript();
+
+    // Load the ONNX Runtime Web library
     const ortScript = GM_addElement('script', {src: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0/dist/ort.min.js'});
+    
+    // Load the ONNX model using the ONNX Runtime Web library
     classifierPromise = loadOnnxModel(ortScript);
-    
-    // // Retrieve the tables from the page
-    // const tables = document.getElementsByTagName("table");
-    
-    // // Create an instance of TableObj for each table
-    // Array.from(tables).forEach(table => {
-    //     if (table.rows.length > 1){
-    //         // Some tables have no ids. During the creation of the TableObj, the id is set to
-    //         // the table if it does not have one. That is why the instance is stored in a const
-    //         // before adding it to the tableObjects map.
-    //         const temp = new TableObj(table);
-    //         tableObjects.set(temp.table.id, temp);
-    //     }
-    // });
 
 
     // Define the custom elements
@@ -78,11 +26,11 @@ function main() {
 
 
     addDocumentKeydownListener();
-
     addDocumentClickListener();
 
+    // To be accessed by Selenium during testing
     document.tableObjects = tableObjects;
-}
+}, 1);
 
 let tableObjects = new Map();
 let classifierPromise;
