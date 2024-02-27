@@ -426,21 +426,19 @@ function textToNumberRatio(cell) {
  * @returns {Array<Number>} an array of 12 features
 */
 function analyzeColumn(column) {
-    let dataCells = column.slice(1, column.length);
-    
     // Apply the ratio calculation to each cell and then find the average
-    let avgTextToNumberRatio = dataCells.map(textToNumberRatio)
-                                        .reduce((a, b) => a + b, 0) / dataCells.length;
+    let avgTextToNumberRatio = column.map(textToNumberRatio)
+                                        .reduce((a, b) => a + b, 0) / column.length;
 
     // Ratio of number of unique values to total number of values
-    let uniqueValues = new Set(dataCells).size;
-    let uniqueToTotalRatio = uniqueValues / dataCells.length;
+    let uniqueValues = new Set(column).size;
+    let uniqueToTotalRatio = uniqueValues / column.length;
 
     // Convert dataCells to numeric where possible
-    let numericColumn = dataCells.map(cell => parseFloat(cell)).filter(cell => !isNaN(cell));
+    let numericColumn = column.map(cell => parseFloat(cell)).filter(cell => !isNaN(cell));
 
     // Calculate the percentage of non-NaN values
-    let percentageNonNaN = numericColumn.length / dataCells.length * 100;
+    let percentageNonNaN = numericColumn.length / column.length * 100;
 
     // Initialize default values
     let minVal, maxVal, meanVal, medianVal, stdVal, minStrLength, maxStrLength, meanStrLength, medianStrLength, stdStrLength;
@@ -451,7 +449,7 @@ function analyzeColumn(column) {
     } else {
         // String length calculations for non-numeric data
         minVal = maxVal = meanVal = medianVal = stdVal = 0;
-        let strLengths = dataCells.map(cell => cell.toString().length);
+        let strLengths = column.map(cell => cell.toString().length);
         minStrLength = Math.min(...strLengths);
         maxStrLength = Math.max(...strLengths);
         meanStrLength = strLengths.reduce((a, b) => a + b, 0) / strLengths.length;

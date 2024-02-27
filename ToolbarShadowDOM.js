@@ -145,7 +145,7 @@ class TableObjToolbar extends HTMLElement {
                 border-radius: 5px;
                 padding: 10px 5px;
                 width: 220px;
-                height: 170px;
+                height: 160px;
                 font-size: 12px;
                 transform: translateX(-100%);
                 top: 0;
@@ -410,8 +410,8 @@ class TableObjToolbar extends HTMLElement {
         tooltip.className = 'tooltip';
         tooltip.innerHTML = `
             <p><b>Numerical Data</b> - integers and decimals. Could include some special characters like $, %, …</p>
-            <p><b>Nominal Data</b> - unordered groups. E.g., classifying items into fruits, vegetables and other.</p>
-            <p><b>Ordinal Data</b> - ordered groups. E.g., poor, good, excellent.</p>
+            <p><b>Categorical Data</b> - groups. E.g., classifying items into fruits, vegetables and other. Or
+                                         ordered groups. E.g., poor, good, excellent.</p>
             <p><b>Textual Data</b> - all data that does not fall into one of the above categories.</p>
         `;
         // Hide the tooltip by default
@@ -488,8 +488,8 @@ class TableObjToolbar extends HTMLElement {
         label1.id = 'col1Label';
         label1.innerHTML = 'Column 1 (x)';
 
-        // Add the select options ('numerical', 'textual', 'ordinal', 'nominal')
-        const options = ['numerical', 'textual', 'ordinal', 'nominal'];
+        // Add the select options ('Numerical', 'Textual', 'Categorical')
+        const options = ['Numerical', 'Textual', 'Categorical'];
         options.forEach(option => {
             const optionElement = document.createElement('option');
             optionElement.value = option;
@@ -514,7 +514,7 @@ class TableObjToolbar extends HTMLElement {
         label2.id = 'col2Label';
         label2.innerHTML = 'Column 2 (y)';
 
-        // Add the select options ('numerical', 'textual', 'ordinal', 'nominal')
+        // Add the select options ('Numerical', 'Textual', 'Categorical')
         options.forEach(option => {
             const optionElement = document.createElement('option');
             optionElement.value = option;
@@ -626,7 +626,7 @@ class TableObjToolbar extends HTMLElement {
 
                 // If there one column is numerical and the other is textual, ensure the
                 // the textual column is the x column.
-                if (col2Type === 'textual' && col1Type === 'numerical') {
+                if (col2Type === 'Textual' && col1Type === 'Numerical') {
                     this.swapXandY();
                     const temp = col1Type;
                     col1Type = col2Type;
@@ -660,18 +660,18 @@ class TableObjToolbar extends HTMLElement {
         let disable = [];
 
         if (typeof type2 === 'undefined') {     // Only 1 column selected, so only enable the relevant graphs for 1 dataset
-            if (type1 === 'numerical') {
+            if (type1 === 'Numerical') {
                 enable = ['histogram', 'pie'];
                 disable = ['bar', 'line', 'scatter'];
             }
-            else if (type1 === 'nominal' || type1 === 'ordinal') {
+            else if (type1 === 'Categorical') {
                 enable = ['bar', 'pie'];
                 disable = ['line', 'scatter', 'histogram'];
             }
             else
                 disable = ['bar', 'line', 'scatter', 'histogram', 'pie'];
 
-            if (type1 === 'numerical'){
+            if (type1 === 'Numerical'){
                 const statsIcon = this.shadow.getElementById('col1Name').nextElementSibling;
                 statsIcon.style.display = 'block';
                 this.populateStatsTooltip(statsIcon.querySelector('.tooltip'), true);
@@ -680,15 +680,15 @@ class TableObjToolbar extends HTMLElement {
                 this.shadow.getElementById('col1Name').nextElementSibling.style.display = 'none';
         }
         else {      // 2 columns selected
-            if (type1 === 'numerical' && type2 === 'numerical') {
+            if (type1 === 'Numerical' && type2 === 'Numerical') {
                 enable = ['scatter', 'line'];
                 disable = ['bar', 'histogram', 'pie'];
             }
-            else if (type1 === 'textual' && type2 === 'numerical') {
+            else if (type1 === 'Textual' && type2 === 'Numerical') {
                 enable = ['bar', 'line', 'scatter'];
                 disable = ['histogram', 'pie'];
             }
-            else if (type2 === 'numerical' && (type1 === 'ordinal' || type1 === 'nominal')) {
+            else if (type2 === 'Numerical' && type1 === 'Categorical') {
                 enable = ['bar'];
                 disable = ['line', 'scatter', 'histogram', 'pie'];
             }
@@ -697,14 +697,14 @@ class TableObjToolbar extends HTMLElement {
 
 
             // Show/hide the stats buttons
-            if (type1 === 'numerical') {
+            if (type1 === 'Numerical') {
                 const statsIcon = this.shadow.getElementById('col1Name').nextElementSibling;
                 statsIcon.style.display = 'block';
                 this.populateStatsTooltip(statsIcon.querySelector('.tooltip'), true);
             }
             else 
                 this.shadow.getElementById('col1Name').nextElementSibling.style.display = 'none';
-            if (type2 === 'numerical'){
+            if (type2 === 'Numerical'){
                 const statsIcon = this.shadow.getElementById('col2Name').nextElementSibling;
                 statsIcon.style.display = 'block';
                 this.populateStatsTooltip(statsIcon.querySelector('.tooltip'), false);
@@ -876,11 +876,11 @@ class TableObjToolbar extends HTMLElement {
         // If the data type is numerical, remove any non-numerical characters (like $, %, etc.)
         let col1data = [];
         let col2data = [];
-        if (this.shadow.getElementById('col1Name').value === 'numerical')
+        if (this.shadow.getElementById('col1Name').value === 'Numerical')
             col1data = this.cleanNumericalData(this.col1data);
         else
             col1data = this.col1data;
-        if (this.shadow.getElementById('col2Name').value === 'numerical')
+        if (this.shadow.getElementById('col2Name').value === 'Numerical')
             col2data = this.cleanNumericalData(this.col2data);
         else
             col2data = this.col2data;
@@ -907,7 +907,7 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             this.shadow.getElementById('col1Name').value,
-            'numerical');
+            'Numerical');
     }
 
     /** 
@@ -920,7 +920,7 @@ class TableObjToolbar extends HTMLElement {
      * @param {Array<number>} y An array of numbers
     */
     twoColBarChart(x, y){
-        if (this.shadow.getElementById('col1Name').value === 'textual'){
+        if (this.shadow.getElementById('col1Name').value === 'Textual'){
             // Plot the graph
             new chart('bar', x, this.cleanNumericalData(y),
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
@@ -960,21 +960,21 @@ class TableObjToolbar extends HTMLElement {
         new chart('histogram', col1data, col2data,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
-            'ordinal',
-            'numerical');
+            'Categorical',
+            'Numerical');
     }
 
     /** 
      * Draws a pie chart from a single dataset. 
      * - If the data type is numerical, the data is divided into ranges, 
      *   then the frequency of each range is calculated.
-     * - If the data type is nominal or ordinal, the frequency of each 
+     * - If the data type is categorical, the frequency of each 
      *   unique value is calculated.
     */
     pieChart(){
         let categories = [];
         let frequencies = [];
-        if (this.shadow.getElementById('col1Name').value === 'numerical')
+        if (this.shadow.getElementById('col1Name').value === 'Numerical')
             [categories, frequencies] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
         else
             [categories, frequencies] = this.getOccurences(this.col1data);
@@ -983,8 +983,8 @@ class TableObjToolbar extends HTMLElement {
         new chart('pie', categories, frequencies,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Percentage',
-            'nominal',
-            'numerical');
+            'Categorical',
+            'Numerical');
     }
 
     addPressedClass(button, pressed){

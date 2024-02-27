@@ -3,18 +3,22 @@ class chart {
         this.chartType = chartType;
         this.xLabel = xLabel;
         this.yLabel = yLabel;
+        this.data = this.parseData(xData, yData);
 
-        if (xType !== 'numerical')
+        if (xType !== 'Numerical')
             this.xScale = 'category';
-        else
+        else {
             this.xScale = 'linear';
+            if (chartType === 'line')
+                this.sortByX();
+        }
 
-        if (yType !== 'numerical')
+        if (yType !== 'Numerical')
             this.yScale = 'category';
         else
             this.yScale = 'linear';
 
-        this.data = this.parseData(xData, yData);
+        
         this.margin = {top: 40, right: 40, bottom: 60, left: 70};
         this.createChartContainer();
         this.plot();
@@ -33,6 +37,13 @@ class chart {
         return xData.map((e, i) => {
             return {x: e, y: yData[i]};
         });
+    }
+
+    /**
+     * Sorts the data by the x values.
+     */
+    sortByX(){
+        this.data.sort((a, b) => a.x - b.x);
     }
 
     createChartContainer() {
@@ -79,7 +90,8 @@ class chart {
                                 text: this.xLabel
                             },
                             ticks: {
-                                callback: function(value, index, values) {
+                                callback: (value, index, values) => {
+                                    if (this.xScale === 'category') return this.data[index].x;
                                     return value.toLocaleString();
                                 }
                             }
@@ -91,7 +103,8 @@ class chart {
                                 text: this.yLabel
                             },
                             ticks: {
-                                callback: function(value, index, values) {
+                                callback: (value, index, values) => {
+                                    if (this.yScale === 'category') return this.data[index].y;
                                     return value.toLocaleString();
                                 }
                             }
