@@ -14,11 +14,19 @@ class TableObj {
 
     init(){
         this.tbody = this.table.tBodies[0];
-        this.thead = this.table.tHead;
-        this.table.tabIndex = 0;
 
-        if (this.thead === null || this.thead.rows.length === 0)
+        // In case the table has multiple theads or empty theads
+        const theads  = this.table.querySelectorAll('thead');
+        if (theads.length > 1)
+            this.removeExtraTheads();
+        else if (theads.length === 0)
             this.createThead();
+        else if (theads[0].rows.length === 0 || theads[0].rows[0].cells.length === 0)
+                this.addEmptyCellsToThead();
+
+        this.thead = this.table.tHead;
+
+        this.table.tabIndex = 0;
         
         this.ensureTheadCellsAreThs();
         this.addColumnDragHandles();
@@ -77,6 +85,34 @@ class TableObj {
         // this.scrollInterval = null;
 
         this.addTableSpecificEventListeners();
+    }
+
+    /**
+     * Keeps one thead in the table if there are multiple theads, the remaining 
+     * theads are moved to another table on top of the existing table.
+     */
+    removeExtraTheads(){
+        // Create a new table
+        this.theadsTable = document.createElement("table");
+        this.table.parentElement.insertBefore(this.theadsTable, this.table);
+
+        // Move the extra theads to the new table
+        const theads = this.table.querySelectorAll('thead');
+        for (let i = 0; i < theads.length - 1; i++){
+            this.theadsTable.appendChild(theads[i]);
+        }
+    }
+
+    /** 
+     * Adds a row and cells to the thead if it is empty.
+    */
+    addEmptyCellsToThead(){
+        const row = this.table.tHead.insertRow();
+        const numOfCols = this.tbody.rows[0].cells.length;
+        for (let i = 0; i < numOfCols; i++){
+            const cell = row.insertCell();
+            cell.innerText = 'Col' + (i + 1);
+        }
     }
 
     /**
@@ -600,6 +636,10 @@ class TableObj {
             // Delete the menu container (to reinitialise the event listeners)
             const container = document.getElementById(`${this.table.id}-menuContainer`);
             container.parentElement.removeChild(container);
+
+            // Delete the theadsTable if it exists
+            if (this.theadsTable)
+                this.theadsTable.parentElement.removeChild(this.theadsTable);
 
             this.init();
         });

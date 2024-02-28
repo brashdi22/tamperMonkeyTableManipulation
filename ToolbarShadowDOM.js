@@ -1029,7 +1029,8 @@ class TableObjToolbar extends HTMLElement {
         if (table) {
             if (this.addTable){
                 // Check if the table exits in the tableObjects map before creating a new TableObj instance
-                if (!tableObjects.has(table.id)){
+                if (table.tBodies[0] && table.tBodies[0].rows.length > 1 
+                    && !tableObjects.has(table.id)){
                     table.classList.remove('tableSelected');
                     const temp = new TableObj(table);
                     tableObjects.set(temp.table.id, temp);
@@ -1045,6 +1046,10 @@ class TableObjToolbar extends HTMLElement {
 
                     // Remove the Settings menu
                     document.getElementById(`${table.id}-menuContainer`).remove();
+
+                    // Remove the theadsTable
+                    if (tableObj.theadsTable)
+                        tableObj.theadsTable.remove();
 
                     // Remove the tableObj instance from the map
                     tableObjects.delete(table.id);

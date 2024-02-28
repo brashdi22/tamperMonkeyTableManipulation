@@ -48,8 +48,8 @@ table.lib-table th {
 }
 
 .selectedTableObjCell {
-    /* background-color: antiquewhite !important; */
     background-color: rgb(249, 224, 186) !important;
+    color: black !important;
 }
 
 .selectedTableObjCell.highlightedTableObjCell {
