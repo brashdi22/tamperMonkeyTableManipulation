@@ -168,7 +168,7 @@ chart-container {
     position: fixed;
     top: 50%;
     left: 50%;
-    z-index: 1000000;
+    z-index: 1000000000;
 }
 
 .sortButton {

@@ -17,7 +17,7 @@ class TableObj {
         this.thead = this.table.tHead;
         this.table.tabIndex = 0;
 
-        if (this.thead === null)
+        if (this.thead === null || this.thead.rows.length === 0)
             this.createThead();
         
         this.ensureTheadCellsAreThs();
