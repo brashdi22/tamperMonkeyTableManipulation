@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <title>Benchmark</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 12px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+
+        .pass {
+            background-color: #e7ffe7;
+            color: green;
+        }
+
+        .fail {
+            background-color: rgb(255, 230, 230);
+            color: red;
+        }
+
+        .partial-pass {
+            background-color: #fff2cc;
+            color: #ff9900;
+        }
+
+    </style>
+</head>
+<body>
+    <div>
+        <table>
+            <!-- <thead>
+              <tr>
+                <th rowspan="2">Table</th>
+                <th colspan="4">Rows</th>
+                <th colspan="4">Columns</th>
+                <th colspan="2">Settings</th>
+                <th colspan="2">Sort</th>
+                <th colspan="3">Select</th>
+                <th colspan="2">Hide</th>
+                <th colspan="2">Drag</th>
+                <th colspan="2">Integrate</th>
+                <th colspan="2">Visualize</th>
+              </tr>
+              <tr>
+                <th>handles</th>
+                <th>selectors</th>
+
+                <th>press ctrl select other rows</th>
+                <th>press ctrl unselect some of the selected rows</th>
+                <th>handles</th>
+                <th>press ctrl select other columns</th>
+
+                <th>press ctrl unselect some of the selected columns</th>
+                <th>Select the whole table</th>
+                <th>menu</th>
+                <th>hide button</th>
+                <th>by given column</th>
+                <th>correct number of columns selected</th>
+                <th>cells</th>
+                <th>rows</th>
+                <th>columns</th>
+                <th>rows in settings menu</th>
+                <th>hiding and sorting</th>
+                <th>names and datatypes</th>
+                <th>statistics for numerical data</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table> -->
+
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">Table</th>
+                    <th rowspan="2">Initialise table</th>
+                    <th rowspan="2">Destroy table</th>
+                    <th colspan="3">Select rows</th>
+                    <th colspan="3">Select columns</th>
+                    <th colspan="3">Select cells</th>
+                    <th rowspan="2">Select whole table</th>
+                    <th rowspan="2">Highlight</th>
+                    <th rowspan="2">Magnify</th>
+                    <th rowspan="2">Show header</th>
+                    <th colspan="2">Copy</th>
+                    <th colspan="2">Sort table</th>
+                    <th colspan="2">Hide rows</th>
+                    <th colspan="2">Show rows</th>
+                    <th colspan="2">Hide columns</th>
+                    <th colspan="2">Show columns</th>
+                    <th colspan="2">Drag rows</th>
+                    <th colspan="2">Drag columns</th>
+                    <th rowspan="2">Drag/hide/show</th>
+                    <th colspan="3">Visualise data</th>
+                </tr>
+                <tr>
+                    <!-- <th></th> -->
+                    <!-- <th></th> -->
+
+                    <th>Single</th>
+                    <th>Multiple by drag</th>
+                    <th>Multiple by Ctrl</th>
+
+                    <th>Single</th>
+                    <th>Multiple by drag</th>
+                    <th>Multiple by Ctrl</th>
+
+                    <th>Single</th>
+                    <th>Multiple by drag</th>
+                    <th>Multiple by Ctrl</th>
+
+                    <!-- <th></th> -->
+                    <!-- <th></th> -->
+                    <!-- <th></th> -->
+                    <!-- <th></th> -->
+
+                    <th>Table sorted</th>
+                    <th>Menu updated</th>
+
+                    <th>No hidden cells</th>
+                    <th>With hidden cells</th>
+
+                    <th>Using button</th>
+                    <th>Using menu</th>
+
+                    <th>Using button</th>
+                    <th>Using menu</th>
+
+                    <th>Using button</th>
+                    <th>Using menu</th>
+
+                    <th>Using button</th>
+                    <th>Using menu</th>
+
+                    <th>Row dragged</th>
+                    <th>Menu updated</th>
+
+                    <th>Column dragged</th>
+                    <th>Menu updated</th>
+
+                    <!-- <th></th> -->
+
+                    <th>Right number of cols identified</th>
+                    <th>Classifier returned datatype</th>
+                    <th>Graph drawn</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <!-- <tr>
+                    <td>Sample table</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Sample table 2</td>
+                    <td class="pass"><i class="fas fa-check"></i></td>
+                    <td class="fail"><i class="fas fa-times"></i></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr> -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // This function takes CSV data as input and returns a 2-D array of the data.
+        function parseCSV(csvData) {
+            const lines = csvData.trim().split('\n');
+            const headers = lines[0].split(',');
+        
+            const dataArray = [];
+
+            dataArray.push(headers);
+        
+            for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            dataArray.push(values);
+            }
+        
+            return dataArray;
+        }
+
+        async function readCSV(file){
+            try {
+                const response = await fetch(file);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const CSV = await response.text();
+                const dataArray = parseCSV(CSV);
+                return dataArray;
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        function insertRowsFromCsv(tableId, csvFile) {
+            const table = document.getElementById(tableId);
+            const tbody = table.tBodies[0];
+
+            readCSV(csvFile).then(data => {
+                for (let i = 0; i < data.length; i++) {
+                    const row = document.createElement('tr');
+                    for (let j = 0; j < data[i].length; j++) {
+                        const cell = document.createElement('td');
+                        if (+data[i][j] === 1) {
+                            cell.classList.add('pass');
+                            cell.innerHTML = '<i class="fas fa-check"></i>' + 
+                                    '<span style="display: none;">Passed</span>';
+                        } else if (+data[i][j] === 0) {
+                            cell.classList.add('fail');
+                            cell.innerHTML = '<i class="fas fa-times"></i>' + 
+                                    '<span style="display: none;">Failed</span>';
+                        } else if (+data[i][j] === 0.5) {
+                            cell.classList.add('partial-pass');
+                            cell.innerHTML = '<i class="fas fa-exclamation-triangle"></i>' + 
+                                    '<span style="display: none;">Partially passed</span>';
+                        } else {
+                            const a = document.createElement('a');
+                            a.textContent = data[i][j];
+                            a.href = tablesLinks[i];
+                            a.target = '_blank';
+                            cell.appendChild(a);
+                        }
+                        row.appendChild(cell);
+                    }
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        const tablesLinks = [
+            '',
+            'https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead#browser_compatibility',
+            'https://cryptorank.io/all-coins-list',
+            'https://en.wikipedia.org/wiki/List_of_slow_rotators_(minor_planets)',
+            'https://www.espn.co.uk/football/standings/_/league/eng.1',
+            'https://rstudio-pubs-static.s3.amazonaws.com/682678_24474b297b764ffe90ed6fd12e96055f.html'];
+
+
+        insertRowsFromCsv('results-table', 'results.csv');
+
+
+    </script>
+      
+</body>
+</html>
