@@ -8,6 +8,9 @@ setTimeout(function() {
     // Load the Chart.js library
     loadChartJSScript();
 
+    // Load Luxon library
+    loadLuxonScript();
+
     // Load the ONNX Runtime Web library
     const ortScript = GM_addElement('script', {src: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0/dist/ort.min.js'});
     
@@ -641,6 +644,57 @@ function updateSortArrows(thead, header, isAscending){
  * @param {Number} columnIndex the index of the column in the tbody to sort by
  * @param {HTMLTableCellElement} header the header cell that was clicked
 */
+// function sortTableByColumn(table, columnIndex, header) {
+//     const ascending = toggleSortDirection(header);
+//     updateSortArrows(table.tHead, header, ascending)
+
+//     const tbody = table.tBodies[0];
+//     const rows = Array.from(tbody.rows);
+
+//     // This function compares two rows based on the content of the selected column
+//     const compareFunction = (rowA, rowB) => {
+//         const cellA = rowA.cells[columnIndex].textContent.trim();
+//         const cellB = rowB.cells[columnIndex].textContent.trim();
+//         let valueA, valueB;
+
+//         if (!isNaN(cellA) && !isNaN(cellB)){  // Both cells contain numbers
+//             valueA = +cellA;
+//             valueB = +cellB;
+//         }
+//         else {
+//             // Attempt to convert cell content to a date
+//             let dateA = new Date(cellA);
+//             let dateB = new Date(cellB);
+
+//             // Check if both dates are valid
+//             let isDateAValid = !isNaN(dateA.getTime());
+//             let isDateBValid = !isNaN(dateB.getTime());
+
+//             if (isDateAValid && isDateBValid) {
+//                 valueA = dateA;
+//                 valueB = dateB;
+//             } else {
+//                 valueA = cellA.toLowerCase();
+//                 valueB = cellB.toLowerCase();
+//             }
+//         }
+
+//         if (valueA < valueB) return ascending ? -1 : 1;
+//         if (valueA > valueB) return ascending ? 1 : -1;
+//         return 0;
+//     };
+
+//     // Sort rows
+//     const sortedRows = rows.sort(compareFunction);
+
+//     // Re-add rows to tbody
+//     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+//     sortedRows.forEach(row => tbody.appendChild(row));
+
+//     // Update the settings menu
+//     updateRowsSettingsMenu(table);
+// }
+
 function sortTableByColumn(table, columnIndex, header) {
     const ascending = toggleSortDirection(header);
     updateSortArrows(table.tHead, header, ascending)
@@ -650,30 +704,25 @@ function sortTableByColumn(table, columnIndex, header) {
 
     // This function compares two rows based on the content of the selected column
     const compareFunction = (rowA, rowB) => {
+        const dataType = header.getAttribute('TableObj-col-sort-type');
         const cellA = rowA.cells[columnIndex].textContent.trim();
         const cellB = rowB.cells[columnIndex].textContent.trim();
         let valueA, valueB;
 
-        if (!isNaN(cellA) && !isNaN(cellB)){  // Both cells contain numbers
-            valueA = +cellA;
-            valueB = +cellB;
+        if (dataType === 'Numerical'){
+            valueA = +cellA.replace(/[^0-9.-]/g, '');
+            valueB = +cellB.replace(/[^0-9.-]/g, '');
+
+            if (valueA === '') valueA = -Infinity;
+            if (valueB === '') valueB = -Infinity;
+        }
+        else if (dataType === 'Date'){
+            valueA = luxon.DateTime.fromISO(cellA).toISODate();
+            valueB = luxon.DateTime.fromISO(cellB).toISODate();
         }
         else {
-            // Attempt to convert cell content to a date
-            let dateA = new Date(cellA);
-            let dateB = new Date(cellB);
-
-            // Check if both dates are valid
-            let isDateAValid = !isNaN(dateA.getTime());
-            let isDateBValid = !isNaN(dateB.getTime());
-
-            if (isDateAValid && isDateBValid) {
-                valueA = dateA;
-                valueB = dateB;
-            } else {
-                valueA = cellA.toLowerCase();
-                valueB = cellB.toLowerCase();
-            }
+            valueA = cellA.toLowerCase();
+            valueB = cellB.toLowerCase();
         }
 
         if (valueA < valueB) return ascending ? -1 : 1;
@@ -690,6 +739,32 @@ function sortTableByColumn(table, columnIndex, header) {
 
     // Update the settings menu
     updateRowsSettingsMenu(table);
+}
+
+/**
+ * 
+ * @param {Array<HTMLTableCellElement>} column cells in the column
+ * @returns {String} the data type of the column
+ */
+async function getSortType(column){
+    const ContentArray = column.map(cell => cell.textContent.trim())
+                               .filter(cell => cell !== '');
+    let dataType = await classifyColumn(ContentArray);
+
+    const cell1 = column[0].textContent;
+
+    if (dataType === 'Numerical'){
+        if (isNaN(cell1) && luxon.DateTime.fromISO(cell1).isValid)
+            dataType = 'Date';
+    } 
+    else {
+        if (luxon.DateTime.fromISO(cell1).isValid)
+            dataType = 'Date';
+        else
+            dataType = 'Textual';
+    }
+
+    return dataType;
 }
 
 function updateRowsSettingsMenu(table){
@@ -807,6 +882,16 @@ async function loadChartJSScript() {
     };
     chartjsScript.onerror = function() {
         console.error('Error loading Chart.js script');
+    };
+}
+
+async function loadLuxonScript() {
+    const luxonScript = GM_addElement('script', {src: 'https://cdn.jsdelivr.net/npm/luxon'});
+    luxonScript.onload = function() {
+        console.log('Luxon script loaded successfully');
+    };
+    luxonScript.onerror = function() {
+        console.error('Error loading Luxon script');
     };
 }
 

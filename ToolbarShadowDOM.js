@@ -733,7 +733,7 @@ class TableObjToolbar extends HTMLElement {
     cleanNumericalData(data){
         const cleanedData = [];
         data.forEach(row => {
-            row = row.replace(/[^0-9.]/g, '');
+            row = row.replace(/[^0-9.-]/g, '');
             // If the row is not empty, try to convert to a number
             if (row !== '') {
                 row = +row;

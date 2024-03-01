@@ -435,10 +435,14 @@ class TableObj {
         }
 
         cells = this.getCellsFromObjectIndices(cells);
-        cells.forEach(cell => {
+        cells.forEach(async cell => {
             const button = document.createElement('button');
             button.className = 'sortButton';
             cell.appendChild(button);
+            
+            // Get the sort type of the column
+            const sortType = await getSortType(this.getCellsUnderHeader(cell)[1]);
+            cell.setAttribute('TableObj-col-sort-type', sortType);
         });
     }
 
@@ -911,7 +915,7 @@ class TableObj {
      * Given a header cell (possibly with row or col span), returns the cells that are under it.
      * 
      * @param {HTMLTableCellElement} headerCell 
-     * @returns {Array<HTMLTableCellElement>} An array of the header and all cells beneath it.
+     * @returns {Array<Array<HTMLTableCellElement>>} An array of 2 arrays containg the th cells and the td cells respectively.
      */
     getCellsUnderHeader(headerCell){
         // Turn the index of the header cell into a string to be used as a key in the inverseHeaderMapping
