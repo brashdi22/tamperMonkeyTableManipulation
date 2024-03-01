@@ -287,9 +287,9 @@
             const tbody = table.tBodies[0];
 
             readCSV(csvFile).then(data => {
-                for (let i = 0; i < data.length; i++) {
+                for (let i = 2; i < data.length; i++) {
                     const row = document.createElement('tr');
-                    for (let j = 0; j < data[i].length; j++) {
+                    for (let j = 1; j < data[i].length; j++) {
                         const cell = document.createElement('td');
                         if (+data[i][j] === 1) {
                             cell.classList.add('pass');
@@ -305,8 +305,8 @@
                                     '<span style="display: none;">Partially passed</span>';
                         } else {
                             const a = document.createElement('a');
-                            a.textContent = data[i][j];
-                            a.href = tablesLinks[i];
+                            a.textContent = data[i][1];
+                            a.href = data[i][0];
                             a.target = '_blank';
                             cell.appendChild(a);
                         }
