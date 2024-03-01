@@ -41,6 +41,7 @@ class TableObjToolbar extends HTMLElement {
             }
             
             div {
+                color: black !important;
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 12px;
                 background-color: #f8f8f8;

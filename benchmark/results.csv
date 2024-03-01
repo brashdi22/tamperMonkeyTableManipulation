@@ -1,8 +1,14 @@
-﻿Link,Table,Initialise table,Destroy table,Select rows,,,Select columns,,,Select cells,,,Select whole table,Highlight,Magnify,Show header,Copy,,Sort table,,Hide rows,,Show rows,,Hide columns,,Show columns,,Drag rows,,Drag columns,,drag and hide,Visualise data,,
-,,,,Single,Multiple by drag,Multiple by Ctrl,Single,Multiple by drag,Multiple by Ctrl,Single,Multiple by drag,Multiple by Ctrl,,,,,No hidden cells,With hidden cells,Table sorted,Menu updated,Using button,Using menu,Using button,Using menu,Using button,Using menu,Using button,Using menu,Row dragged,Menu updated,Column dragged,Menu updated,,Right number of cols identified,Classifier returned datatype,Graph drawn
-N/A,Sample table,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead#browser_compatibility,Browser compatibility from developer.mozilla.org,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0
-https://cryptorank.io/all-coins-list,All coins list form cryptorank.io,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-https://en.wikipedia.org/wiki/List_of_slow_rotators_(minor_planets),Slow rotators list from Wikipedia,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-https://www.espn.co.uk/football/standings/_/league/eng.1,Premier League from EPSN,0.5,1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,1,1,1,1,1,0.5,1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,1,1,1
-https://rstudio-pubs-static.s3.amazonaws.com/682678_24474b297b764ffe90ed6fd12e96055f.html,The Big Mac Index for G20,0.5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+﻿Link,Table,Initialise table,Destroy table,Select rows,,,Select columns,,,Select cells,,,Select whole table,Highlight,Magnify,Show header,Sort table,,Copy,,Hide rows,,Show rows,,Hide columns,,Show columns,,Drag rows,,Drag columns,,drag and hide,Visualise data,,
+,,,,Single,Multiple by drag,Multiple by Ctrl,Single,Multiple by drag,Multiple by Ctrl,Single,Multiple by drag,Multiple by Ctrl,,,,,Table sorted,Menu updated,No hidden cells,With hidden cells,Using button,Using menu,Using button,Using menu,Using button,Using menu,Using button,Using menu,Row dragged,Menu updated,Column dragged,Menu updated,,Right number of cols identified,Classifier returned datatype,Graph drawn
+N/A,Sample table,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+https://developer.mozilla.org/en-US/docs/Web/HTML/Element/thead#browser_compatibility,Browser compatibility from developer.mozilla.org,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0
+https://cryptorank.io/all-coins-list,All coins list form cryptorank.io,1,1,1,1,1,0.5,0.5,0.5,1,1,1,1,1,1,1,0,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+https://en.wikipedia.org/wiki/List_of_slow_rotators_(minor_planets),Slow rotators list from Wikipedia,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+https://www.espn.co.uk/football/standings/_/league/eng.1,Premier League from EPSN,0.5,1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,1,1,1,0.5,1,1,0,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,1,0.5,0.5,0.5,1,1,1
+https://www.premierleague.com/tables,Premier League from premierleague.com,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,0,0,0.5,0,1,1,1,1,0,0,0,0,0,1,0,1,0,1,1,1
+https://rstudio-pubs-static.s3.amazonaws.com/682678_24474b297b764ffe90ed6fd12e96055f.html,The Big Mac Index for G20,0.5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+https://worldpopulationreview.com/,World population review,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+https://www.baseball-reference.com/teams/BOS/batteam.shtml,Boston Red Sox Team Yearly Batting Stats from baseball-reference.com,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+https://databank.worldbank.org/indicator/NY.GDP.PCAP.CD/1ff4a498/Popular-Indicators,GDP per capita from worldbank.org,0.5,1,1,1,1,0.5,0.5,0.5,1,1,1,0.5,1,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1
+https://rpubs.com/FlorianHandke/table_contest_2020,Patents vs Venture Capital from RStodio Contest,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+https://www.macrotrends.net/stocks/stock-screener,Stock screener from macrotrends.net,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
