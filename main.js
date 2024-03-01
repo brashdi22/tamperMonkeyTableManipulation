@@ -208,8 +208,10 @@ function showCol(cell){
         headerAbove = JSON.parse(headerAbove);
         const actualCell = tableObj.table.rows[headerAbove.row].cells[headerAbove.col];
 
-        if (actualCell.style.display === 'none')
+        if (actualCell.style.display === 'none'){
+            actualCell.classList.remove('hiddenColumn');
             actualCell.style.display = '';
+        }
         else
             actualCell.colSpan += cell.colSpan;
     });
