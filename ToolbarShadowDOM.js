@@ -733,6 +733,7 @@ class TableObjToolbar extends HTMLElement {
     cleanNumericalData(data){
         const cleanedData = [];
         data.forEach(row => {
+            row = row.replace(/−/g, '-');
             row = row.replace(/[^0-9.-]/g, '');
             // If the row is not empty, try to convert to a number
             if (row !== '') {
@@ -842,7 +843,7 @@ class TableObjToolbar extends HTMLElement {
             let rangeEnd = rangeStart + rangeSize;
             rangeStart = +rangeStart.toFixed(2);
             rangeEnd = +rangeEnd.toFixed(2);
-            frequency.set(`${rangeStart.toLocaleString()} - ${rangeEnd.toLocaleString()}`, 0);
+            frequency.set(`${rangeStart.toLocaleString()} − ${rangeEnd.toLocaleString()}`, 0);
         }
     
         // Count frequencies
@@ -852,7 +853,7 @@ class TableObjToolbar extends HTMLElement {
             let rangeEnd = rangeStart + rangeSize;
             rangeStart = +rangeStart.toFixed(2);
             rangeEnd = +rangeEnd.toFixed(2);
-            const key = `${rangeStart.toLocaleString()} - ${rangeEnd.toLocaleString()}`;
+            const key = `${rangeStart.toLocaleString()} − ${rangeEnd.toLocaleString()}`;
             frequency.set(key, frequency.get(key) + 1);
         }
 

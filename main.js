@@ -710,8 +710,10 @@ function sortTableByColumn(table, columnIndex, header) {
         let valueA, valueB;
 
         if (dataType === 'Numerical'){
-            valueA = +cellA.replace(/[^0-9.-]/g, '');
-            valueB = +cellB.replace(/[^0-9.-]/g, '');
+            valueA = cellA.replace(/−/g, '-');
+            valueB = cellB.replace(/−/g, '-');
+            valueA = +valueA.replace(/[^0-9.-]/g, '');
+            valueB = +valueB.replace(/[^0-9.-]/g, '');
 
             if (valueA === '') valueA = -Infinity;
             if (valueB === '') valueB = -Infinity;
