@@ -399,7 +399,7 @@ class TableObjToolbar extends HTMLElement {
 
         // create a p tag to display
         const p = document.createElement('p');
-        p.innerHTML = 'Confirm the data type of the selected columns: ';
+        p.innerHTML = 'Confirm the data type of the selected data: ';
         // Create an info icon
         const infoIcon = document.createElement('i');
         infoIcon.style.border = '1px solid black';
@@ -589,7 +589,7 @@ class TableObjToolbar extends HTMLElement {
         // Reset the data
         this.col1data = [];
         this.col2data = [];
-        const data = await getColumnsToPlot();
+        const data = await getDataToPlot();
         if (data){
             let col1, col2, col1Header, col1Type, col1Data, col2Header, col2Type, col2Data;
 

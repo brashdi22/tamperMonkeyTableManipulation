@@ -427,23 +427,23 @@ function textToNumberRatio(cell) {
  * - median string length (if non-numeric)
  * - standard deviation of string length (if non-numeric)
  * 
- * @param {Array<string>} column the column to analyze
+ * @param {Array<string>} array the column to analyze
  * @returns {Array<Number>} an array of 12 features
 */
-function analyzeColumn(column) {
+function analyzeArray(array) {
     // Apply the ratio calculation to each cell and then find the average
-    let avgTextToNumberRatio = column.map(textToNumberRatio)
-                                        .reduce((a, b) => a + b, 0) / column.length;
+    let avgTextToNumberRatio = array.map(textToNumberRatio)
+                                        .reduce((a, b) => a + b, 0) / array.length;
 
     // Ratio of number of unique values to total number of values
-    let uniqueValues = new Set(column).size;
-    let uniqueToTotalRatio = uniqueValues / column.length;
+    let uniqueValues = new Set(array).size;
+    let uniqueToTotalRatio = uniqueValues / array.length;
 
     // Convert dataCells to numeric where possible
-    let numericColumn = column.map(cell => parseFloat(cell)).filter(cell => !isNaN(cell));
+    let numericColumn = array.map(cell => parseFloat(cell)).filter(cell => !isNaN(cell));
 
     // Calculate the percentage of non-NaN values
-    let percentageNonNaN = numericColumn.length / column.length * 100;
+    let percentageNonNaN = numericColumn.length / array.length * 100;
 
     // Initialize default values
     let minVal, maxVal, meanVal, medianVal, stdVal, minStrLength, maxStrLength, meanStrLength, medianStrLength, stdStrLength;
@@ -454,7 +454,7 @@ function analyzeColumn(column) {
     } else {
         // String length calculations for non-numeric data
         minVal = maxVal = meanVal = medianVal = stdVal = 0;
-        let strLengths = column.map(cell => cell.toString().length);
+        let strLengths = array.map(cell => cell.toString().length);
         minStrLength = Math.min(...strLengths);
         maxStrLength = Math.max(...strLengths);
         meanStrLength = strLengths.reduce((a, b) => a + b, 0) / strLengths.length;
@@ -506,13 +506,13 @@ function getStats(numericColumn){
 
 /** 
  * This function classifies the given column and returns the predicted data type.
- * @param {Array<string>} column the column to classify
+ * @param {Array<string>} array the column to classify
  * @returns {String} the predicted data type
 */
-async function classifyColumn(column) {
+async function classifyArray(array) {
     session = await classifierPromise;
-    // Convert the column to a Float32Array to meet the input requirements of the model
-    const features = Float32Array.from(analyzeColumn(column));
+    // Convert the array to a Float32Array to meet the input requirements of the model
+    const features = Float32Array.from(analyzeArray(array));
 
     // Create a tensor for the input data
     const inputTensor = new ort.Tensor("float32", features, [1, features.length]); // [1, 12]
@@ -533,21 +533,21 @@ async function classifyColumn(column) {
  * 
  * @returns {Array<Array>} an array of 2 arrays. Each sub-array contains the header, data type and data of a column.
  */
-async function getColumnsToPlot(){
-    const temp = getSelectedCellsAsColumns();
+async function getDataToPlot(){
+    const temp = getSelectedCellsData();
     if (!temp) return;
-    const [col1Header, col1ContentArray, col2Header, col2ContentArray] = temp;
+    const [xLabel, x, yLabel, y] = temp;
     
-    const col1DataType = await classifyColumn(col1ContentArray);
+    const col1DataType = await classifyArray(x);
 
-    if (typeof col2Header === 'undefined')
-        return [[col1Header, col1DataType, col1ContentArray],
+    if (typeof yLabel === 'undefined')
+        return [[xLabel, col1DataType, x],
                  null];
     
-    const col2DataType = await classifyColumn(col2ContentArray);
+    const col2DataType = await classifyArray(y);
 
-    return [[col1Header, col1DataType, col1ContentArray],
-            [col2Header, col2DataType, col2ContentArray]]; 
+    return [[xLabel, col1DataType, x],
+            [yLabel, col2DataType, y]]; 
 }
 
 /** 
@@ -559,7 +559,7 @@ async function getColumnsToPlot(){
  * @returns {Array<Array>} an array of 4 elements: column 1 header, column 1
  *                         content, column 2 header, column 2 content.
  */
-function getSelectedCellsAsColumns(){
+function getSelectedCellsData(){
     const selectedCells = Array.from(document.querySelectorAll('tbody .selectedTableObjCell'))
                             .filter(cell => cell.tagName === 'TD');
     if (selectedCells.length === 0) return;
@@ -765,7 +765,7 @@ function sortTableByColumn(table, columnIndex, header) {
 async function getSortType(column){
     const ContentArray = column.map(cell => cell.textContent.trim())
                                .filter(cell => cell !== '');
-    let dataType = await classifyColumn(ContentArray);
+    let dataType = await classifyArray(ContentArray);
 
     const cell1 = column[0].textContent;
 
