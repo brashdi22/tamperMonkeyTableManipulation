@@ -437,6 +437,7 @@ class TableObj {
         cells = this.getCellsFromObjectIndices(cells);
         cells.forEach(async cell => {
             const button = document.createElement('button');
+            button.type = 'button';
             button.className = 'sortButton';
             cell.appendChild(button);
             
@@ -475,6 +476,7 @@ class TableObj {
     addTableSettingsMenu(){
         // Add a button to be clicked to show the menu
         const settingsButton = document.createElement('button');
+        settingsButton.type = 'button';
         settingsButton.className = 'TableObjMenuButton';
         settingsButton.innerHTML = 'Table Settings';
         settingsButton.onclick = () => {

@@ -646,57 +646,6 @@ function updateSortArrows(thead, header, isAscending){
  * @param {Number} columnIndex the index of the column in the tbody to sort by
  * @param {HTMLTableCellElement} header the header cell that was clicked
 */
-// function sortTableByColumn(table, columnIndex, header) {
-//     const ascending = toggleSortDirection(header);
-//     updateSortArrows(table.tHead, header, ascending)
-
-//     const tbody = table.tBodies[0];
-//     const rows = Array.from(tbody.rows);
-
-//     // This function compares two rows based on the content of the selected column
-//     const compareFunction = (rowA, rowB) => {
-//         const cellA = rowA.cells[columnIndex].textContent.trim();
-//         const cellB = rowB.cells[columnIndex].textContent.trim();
-//         let valueA, valueB;
-
-//         if (!isNaN(cellA) && !isNaN(cellB)){  // Both cells contain numbers
-//             valueA = +cellA;
-//             valueB = +cellB;
-//         }
-//         else {
-//             // Attempt to convert cell content to a date
-//             let dateA = new Date(cellA);
-//             let dateB = new Date(cellB);
-
-//             // Check if both dates are valid
-//             let isDateAValid = !isNaN(dateA.getTime());
-//             let isDateBValid = !isNaN(dateB.getTime());
-
-//             if (isDateAValid && isDateBValid) {
-//                 valueA = dateA;
-//                 valueB = dateB;
-//             } else {
-//                 valueA = cellA.toLowerCase();
-//                 valueB = cellB.toLowerCase();
-//             }
-//         }
-
-//         if (valueA < valueB) return ascending ? -1 : 1;
-//         if (valueA > valueB) return ascending ? 1 : -1;
-//         return 0;
-//     };
-
-//     // Sort rows
-//     const sortedRows = rows.sort(compareFunction);
-
-//     // Re-add rows to tbody
-//     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-//     sortedRows.forEach(row => tbody.appendChild(row));
-
-//     // Update the settings menu
-//     updateRowsSettingsMenu(table);
-// }
-
 function sortTableByColumn(table, columnIndex, header) {
     const ascending = toggleSortDirection(header);
     updateSortArrows(table.tHead, header, ascending)
@@ -717,8 +666,8 @@ function sortTableByColumn(table, columnIndex, header) {
             valueA = +valueA.replace(/[^0-9.-]/g, '');
             valueB = +valueB.replace(/[^0-9.-]/g, '');
 
-            if (valueA === '') valueA = -Infinity;
-            if (valueB === '') valueB = -Infinity;
+            if (valueA === '' || isNaN(valueA)) valueA = -Infinity;
+            if (valueB === '' || isNaN(valueB)) valueB = -Infinity;
         }
         else if (dataType === 'Date'){
             valueA = luxon.DateTime.fromISO(cellA).toISODate();
@@ -826,7 +775,7 @@ function countHeaderRowsWithTH(table) {
 /**
  * Given a table with no thead, this function counts the number of rows
  * that should be considered as headers. It does this by checking the first
- * few rows to see if they have row/col spans.
+ * few rows to see if they have colspans.
  * 
  * @param {HTMLTableElement} table 
  * @returns {Number} the number of rows that should be considered as headers
@@ -835,33 +784,20 @@ function countHeaderRowsWithSpans(table) {
     let numRows = table.rows.length;
     if (numRows === 0) return 0;
 
-    let headerRows = 0;
-    let colCoverage = new Array(numRows).fill(0); // Track cumulative column coverage for each row
+    let headerRows = 1;
 
     for (let i = 0; i < numRows; i++) {
         let row = table.rows[i];
-        let localCoverage = 0; // Track column coverage contributed by the current row
 
+        // If a cell has colspan > 1, go to the next row
         for (let j = 0; j < row.cells.length; j++) {
             let cell = row.cells[j];
             let colspan = cell.hasAttribute('colspan') ? parseInt(cell.getAttribute('colspan'), 10) : 1;
-            let rowspan = cell.hasAttribute('rowspan') ? parseInt(cell.getAttribute('rowspan'), 10) : 1;
-            
-            localCoverage += colspan;
-    
-            // Update future row coverage based on the current cell's rowspan
-            for (let k = 1; k < rowspan && (i + k) < numRows; k++) {
-            colCoverage[i + k] += colspan;
+            if (colspan > 1) {
+                headerRows++;
+                break;
             }
         }
-    
-        colCoverage[i] += localCoverage; // Update current row's cumulative column coverage
-    
-        // Determine if the row contributes to header structure based on column coverage
-        if (i === 0 || colCoverage[i] > colCoverage[i - 1])
-            headerRows++;
-        else
-            break;
     }
 
     return headerRows;
