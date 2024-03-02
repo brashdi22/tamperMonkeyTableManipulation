@@ -560,7 +560,7 @@ async function getDataToPlot(){
  *                         content, column 2 header, column 2 content.
  */
 function getSelectedCellsData(){
-    const selectedCells = Array.from(document.querySelectorAll('tbody .selectedTableObjCell'))
+    let selectedCells = Array.from(document.querySelectorAll('tbody .selectedTableObjCell'))
                             .filter(cell => cell.tagName === 'TD');
     if (selectedCells.length === 0) return;
 
@@ -568,34 +568,49 @@ function getSelectedCellsData(){
 
     // Get the number of distinct rows in the selected cells
     const distinctRows = new Set(selectedCells.map(cell => cell.parentElement.rowIndex));
-    // If the number of distinct rows is 1,
-    if (distinctRows.size === 1){
-        // get the tableObj of the table
-        const tableObj = tableObjects.get(table.id);
 
+    if (distinctRows.size === 1){
+        // Get the tableObj instance
+        const tableObj = tableObjects.get(table.id);
 
         // Get the headers of the selected cells
         const row1 = [];
-
         selectedCells.forEach(cell => {
-            row1.push(tableObj.findColumnHeader(tableObj.tbody.rows[0].cells[cell.cellIndex]));
-        });
-        row1.forEach(cell => {
-            cell.classList.add('selectedTableObjCell');
+            const cellIndex = cell.cellIndex;
+            // Get the header of the selected cell and select it
+            const header = tableObj.findColumnHeader(tableObj.tbody.rows[0].cells[cellIndex]);
+            header.classList.add('selectedTableObjCell');
+
+            // If the cell is not in the first 3 columns, add it to the row1 array
+            if (cellIndex > 2)
+                row1.push(header);
         });
 
-        const [row1Header, row1ContentArray] = parseRow(row1);
-        const [row2Header, row2ContentArray] = parseRow(selectedCells);
+        // Filter the cells that has index less than 3
+        selectedCells = selectedCells.filter(cell => cell.cellIndex > 2);
+
+        // Get the content of the selected cells
+        const row1ContentArray = row1.map(cell => cell.textContent);
+        const row2ContentArray = selectedCells.map(cell => cell.textContent);
 
         return ['row 1', row1ContentArray, 'row 2', row2ContentArray];
     }
     else if (distinctRows.size === 2){
         // Separate the selected cells into two rows
-        const row1 = selectedCells.filter(cell => cell.parentElement.rowIndex === Array.from(distinctRows)[0]);
-        const row2 = selectedCells.filter(cell => cell.parentElement.rowIndex === Array.from(distinctRows)[1]);
+        let row1 = selectedCells.filter(cell => cell.parentElement.rowIndex === Array.from(distinctRows)[0]);
+        let row2 = selectedCells.filter(cell => cell.parentElement.rowIndex === Array.from(distinctRows)[1]);
 
-        const [row1Header, row1ContentArray] = parseRow(row1);
-        const [row2Header, row2ContentArray] = parseRow(row2);
+        // Filter the cells that has index less than 3
+        row1 = row1.filter(cell => cell.cellIndex > 2);
+        row2 = row2.filter(cell => cell.cellIndex > 2);
+
+        // Get the content of the selected cells
+        const row1ContentArray = row1.map(cell => cell.textContent);
+        const row2ContentArray = row2.map(cell => cell.textContent);
+
+        // Get the header of the selected cells
+        const row1Header = row1[0].parentElement.cells[2].textContent;
+        const row2Header = row2[0].parentElement.cells[2].textContent;
 
         return [row1Header, row1ContentArray, row2Header, row2ContentArray];
     }
@@ -635,34 +650,6 @@ function getSelectedCellsData(){
                 return [col1Header, col1ContentArray, col2Header, col2ContentArray];
         }
     }
-}
-
-function parseRow(selectedCells) {
-    let header, headerIndex;
-
-    if (selectedCells[0].tagName === 'TH')
-        headerIndex = 1;
-    else
-        headerIndex = 2;
-
-    // Get the first cell
-    let cell1 = selectedCells[0];
-    while (cell1.cellIndex < headerIndex){
-        selectedCells.shift();
-        cell1 = selectedCells[0];
-    }
-
-    // If the first cell is the first cell in the row, let it be the header and exclude it from the selected cells
-    if (cell1.cellIndex === headerIndex){
-        header = cell1.textContent;
-        selectedCells.shift();
-    }
-    else
-        header = cell1.parentElement.cells[headerIndex].textContent;
-
-    const contentArray = selectedCells.map(cell => cell.textContent);
-
-    return [header, contentArray];
 }
 
 /** 
