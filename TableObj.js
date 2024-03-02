@@ -326,7 +326,7 @@ class TableObj {
     */
     showColNameOnHover(){
         for (let i = 0; i < this.tbody.rows[0].cells.length; i++) {
-            const headerOfColI = this.findColumnHeader(this.tbody.rows[0].cells[i]);
+            const headerOfColI = this.findColumnHeader(this.tbody.rows[0].cells[i]).textContent.trim();
             for (let j = 0; j < this.tbody.rows.length; j++) {
                 try {
                     this.tbody.rows[j].cells[i].title = headerOfColI;
@@ -1010,7 +1010,7 @@ class TableObj {
     findColumnHeader(cell) {
         let headerIndex = this.headerMapping.get(JSON.stringify({row: this.headerRowIndex, col: cell.cellIndex}));
         headerIndex = JSON.parse(headerIndex);
-        return this.thead.rows[headerIndex.row].cells[headerIndex.col].textContent.trim();
+        return this.thead.rows[headerIndex.row].cells[headerIndex.col];
     }
 
     /**
