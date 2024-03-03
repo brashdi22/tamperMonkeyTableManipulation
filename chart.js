@@ -66,12 +66,22 @@ class chart {
         chartContainer.style.marginLeft = `${-width / 2}px`;
         chartContainer.style.marginTop = `${-height / 2}px`;
 
+        // Add a slider to to change the number of bins histograms and pie charts
+        if (this.chartType === 'histogram') {
+            chartContainer.appendSlider(height, true);
+            chartContainer.style.paddingRight = '60px';
+        }
+        else if (this.chartType === 'pie')
+            chartContainer.appendSlider(height, false);
+
+
         this.ctx = chartContainer.appendCanvas(width, height).getContext('2d');
     }
     
     plot(){
+        let chart;
         if (this.chartType === 'scatter' || this.chartType === 'line' || this.chartType === 'bar') {
-            let chart = new Chart(this.ctx, {
+            chart = new Chart(this.ctx, {
                 type: this.chartType,
                 data: {
                     datasets: [{
@@ -110,7 +120,7 @@ class chart {
                             }
                         }
                     },
-                    onClick: function(event, elements) {
+                    onClick: (event, elements) => {
                         if (elements.length) {
                             let clickedIndex = elements[0].index;
                             chart.data.datasets[0].data.splice(clickedIndex, 1);
@@ -121,7 +131,7 @@ class chart {
             });
         }
         else if (this.chartType === 'histogram') {
-            let chart = new Chart(this.ctx, {
+            chart = new Chart(this.ctx, {
                 type: 'bar',
                 data: {
                     labels: this.data.map(e => e.x),
@@ -156,7 +166,7 @@ class chart {
                             }
                         }
                     },
-                    onClick: function(event, elements) {
+                    onClick: (event, elements) => {
                         if (elements.length) {
                             let clickedIndex = elements[0].index;
                             chart.data.datasets[0].data.splice(clickedIndex, 1);
@@ -167,7 +177,7 @@ class chart {
             });
         }
         else {
-            let chart = new Chart(this.ctx, {
+            chart = new Chart(this.ctx, {
                 type: 'pie',
                 data: {
                     labels: this.data.map(e => e.x),
@@ -198,6 +208,7 @@ class chart {
                 }
             });
         }
+        this.chart = chart;
     }
 
 }

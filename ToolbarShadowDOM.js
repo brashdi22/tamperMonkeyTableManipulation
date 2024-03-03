@@ -888,7 +888,7 @@ class TableObjToolbar extends HTMLElement {
             col2data = this.col2data;
 
         // Plot the graph
-        new chart(chartType, col1data, col2data,
+        this.chart = new chart(chartType, col1data, col2data,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             this.shadow.getElementById('col2Label').textContent.slice(0, -3),
             this.shadow.getElementById('col1Name').value,
@@ -905,7 +905,7 @@ class TableObjToolbar extends HTMLElement {
         const [categories, frequency] = this.getOccurences(this.col1data);
 
         // Plot the graph
-        new chart('bar', categories, frequency,
+        this.chart = new chart('bar', categories, frequency,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             this.shadow.getElementById('col1Name').value,
@@ -924,7 +924,7 @@ class TableObjToolbar extends HTMLElement {
     twoColBarChart(x, y){
         if (this.shadow.getElementById('col1Name').value === 'Textual'){
             // Plot the graph
-            new chart('bar', x, this.cleanNumericalData(y),
+            this.chart = new chart('bar', x, this.cleanNumericalData(y),
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             this.shadow.getElementById('col2Label').textContent.slice(0, -3),
             this.shadow.getElementById('col1Name').value,
@@ -934,7 +934,7 @@ class TableObjToolbar extends HTMLElement {
             const [categories, averages] = this.getAveragePerCategory(x, this.cleanNumericalData(y));
 
             // Plot the graph
-            new chart('bar', categories, averages,
+            this.chart = new chart('bar', categories, averages,
                 this.shadow.getElementById('col1Label').textContent.slice(0, -3),
                 'Average ' + this.shadow.getElementById('col2Label').textContent.slice(0, -3),
                 this.shadow.getElementById('col1Name').value,
@@ -959,7 +959,7 @@ class TableObjToolbar extends HTMLElement {
         const [col1data, col2data] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
 
         // Plot the graph
-        new chart('histogram', col1data, col2data,
+        this.chart = new chart('histogram', col1data, col2data,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             'Categorical',
@@ -982,7 +982,7 @@ class TableObjToolbar extends HTMLElement {
             [categories, frequencies] = this.getOccurences(this.col1data);
 
         // Plot the graph
-        new chart('pie', categories, frequencies,
+        this.chart = new chart('pie', categories, frequencies,
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Percentage',
             'Categorical',
