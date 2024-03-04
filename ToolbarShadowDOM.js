@@ -39,6 +39,17 @@ class TableObjToolbar extends HTMLElement {
                 transform: scale(0.95);
                 background-color: #e2e6ea;
             }
+
+            #toggleHideButton {
+                position: absolute;
+                left: -15px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 15px;
+                height: 50%;
+                clip-path: polygon(65% 20%, 100% 0, 100% 100%, 65% 80%, 30% 50%);
+                background-color: #454545;
+            }
             
             div {
                 color: black !important;
@@ -215,6 +226,7 @@ class TableObjToolbar extends HTMLElement {
     connectedCallback() {
         this.createToolBar();
         this.createGraphOptionsContainer();
+        this.createToggleButton();
     }
 
     createToolBar() {
@@ -385,6 +397,20 @@ class TableObjToolbar extends HTMLElement {
         div.className = 'buttonsDiv';
         div.appendChild(dataTypeButton);
         this.shadow.appendChild(div);
+    }
+
+    createToggleButton() {
+        const button = document.createElement('button');
+        button.id = 'toggleHideButton';
+        button.onclick = () => {
+            const toolbar = document.getElementById('TableObjToolbar');
+
+            if (toolbar.style.transform.includes('translateX(93%)'))
+                toolbar.style.transform = 'translateY(-50%) translateX(0%)';
+            else
+                toolbar.style.transform = 'translateY(-50%) translateX(93%)';
+        };
+        this.shadow.appendChild(button);
     }
 
     createGraphOptionsContainer() {
