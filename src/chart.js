@@ -1,9 +1,15 @@
 class chart {
-    constructor(chartType, xData, yData, xLabel, yLabel, xType, yType) {
+    constructor(chartType, xData, yData, xLabel, yLabel, xType, yType, slider=false) {
         this.chartType = chartType;
         this.xLabel = xLabel;
         this.yLabel = yLabel;
         this.data = this.parseData(xData, yData);
+
+        this.colours = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#99ff00', '#9966FF',
+            '#58ca49', '#24607a', '#C9CB3F', '#e00000', '#FA6900',
+            '#E0E4CC', '#F38630', '#A7DBD8', '#D3FFCE', '#EB7E7F'
+          ];
 
         if (xType !== 'Numerical')
             this.xScale = 'category';
@@ -20,7 +26,7 @@ class chart {
 
         
         this.margin = {top: 40, right: 40, bottom: 60, left: 70};
-        this.createChartContainer();
+        this.createChartContainer(slider);
         this.plot();
 
     }
@@ -46,7 +52,15 @@ class chart {
         this.data.sort((a, b) => a.x - b.x);
     }
 
-    createChartContainer() {
+    assignColours(dataLength) {
+        const assignedColours = [];
+        for (let i = 0; i < dataLength; i++) {
+          assignedColours.push(this.colours[i % this.colours.length]);
+        }
+        return assignedColours;
+      }
+
+    createChartContainer(slider) {
         // Delete the existing chart container if it exists
         const oldContainer = document.getElementById('chartContainer');
         if (oldContainer) oldContainer.remove();
@@ -67,11 +81,11 @@ class chart {
         chartContainer.style.marginTop = `${-height / 2}px`;
 
         // Add a slider to to change the number of bins histograms and pie charts
-        if (this.chartType === 'histogram') {
+        if (this.chartType === 'histogram' && slider) {
             chartContainer.appendSlider(height, true);
             chartContainer.style.paddingRight = '60px';
         }
-        else if (this.chartType === 'pie')
+        else if (this.chartType === 'pie' && slider)
             chartContainer.appendSlider(height, false);
 
 
@@ -183,7 +197,8 @@ class chart {
                     labels: this.data.map(e => e.x),
                     datasets: [{
                         label: 'Set 1',
-                        data: this.data.map(e => e.y)
+                        data: this.data.map(e => e.y),
+                        backgroundColor: this.assignColours(this.data.map(e => e.y).length)
                     }]
                 },
                 options: {

@@ -70,7 +70,7 @@ class TableObjToolbar extends HTMLElement {
                 -moz-appearance: none;
                 -webkit-appearance: none;
                 background: transparent;
-                width: 30%;
+                width: 32%;
                 height: 100%;
                 border-radius: 5px;
                 margin-right: 3px;
@@ -108,6 +108,7 @@ class TableObjToolbar extends HTMLElement {
                 left: -2px;
                 transform: translateX(-100%);
                 display: none;
+                z-index: 10;
             }
 
             form {
@@ -304,12 +305,14 @@ class TableObjToolbar extends HTMLElement {
                 dataTypeButton.classList.add('pressed');
                 this.graphOptionsHidden = false;
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'block';
+                this.shadow.getElementById('toggleHideButton').disabled = true;
                 this.updateSelectedColumns();
             }
             else {      // Hide the graphOptionsContainer
                 dataTypeButton.classList.remove('pressed');
                 this.graphOptionsHidden = true;
                 this.shadow.getElementById('graphOptionsContainer').style.display = 'none';
+                this.shadow.getElementById('toggleHideButton').disabled = false;
             }                
         };
 
@@ -989,7 +992,7 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Frequency',
             'Categorical',
-            'Numerical');
+            'Numerical', true);
     }
 
     /** 
@@ -1002,8 +1005,11 @@ class TableObjToolbar extends HTMLElement {
     pieChart(){
         let categories = [];
         let frequencies = [];
-        if (this.shadow.getElementById('col1Name').value === 'Numerical')
+        let silder = false;
+        if (this.shadow.getElementById('col1Name').value === 'Numerical'){
             [categories, frequencies] = this.calculateFrequency(this.cleanNumericalData(this.col1data));
+            silder = true;
+        }
         else
             [categories, frequencies] = this.getOccurences(this.col1data);
 
@@ -1012,7 +1018,7 @@ class TableObjToolbar extends HTMLElement {
             this.shadow.getElementById('col1Label').textContent.slice(0, -3),
             'Percentage',
             'Categorical',
-            'Numerical');
+            'Numerical', silder);
     }
 
     addPressedClass(button, pressed){
