@@ -306,10 +306,10 @@ function copySelectedCellsAsTSV() {
     });
 
     // Get the min and max row/column index of the selected cells (both th and td)
-    minRowIndex = Math.min(Math.min(...rows), Math.min(...tds.map(cell => cell.parentNode.rowIndex)));
-    maxRowIndex = Math.max(Math.max(...rows), Math.max(...tds.map(cell => cell.parentNode.rowIndex)));
-    minColIndex = Math.min(Math.min(...cols), Math.min(...tds.map(cell => cell.cellIndex)));
-    maxColIndex = Math.max(Math.max(...cols), Math.max(...tds.map(cell => cell.cellIndex)));
+    const minRowIndex = Math.min(Math.min(...rows), Math.min(...tds.map(cell => cell.parentNode.rowIndex)));
+    const maxRowIndex = Math.max(Math.max(...rows), Math.max(...tds.map(cell => cell.parentNode.rowIndex)));
+    const minColIndex = Math.min(Math.min(...cols), Math.min(...tds.map(cell => cell.cellIndex)));
+    const maxColIndex = Math.max(Math.max(...cols), Math.max(...tds.map(cell => cell.cellIndex)));
 
     // Create a 2D array with empty strings
     const clipboardArray = Array.from({ length: maxRowIndex - minRowIndex + 1 }, () => Array(maxColIndex - minColIndex + 1).fill(''));
@@ -488,19 +488,19 @@ function analyzeArray(array) {
  *  - q3: The third quartile.
  */
 function getStats(numericColumn){
-    minVal = Math.min(...numericColumn);
-    maxVal = Math.max(...numericColumn);
-    meanVal = numericColumn.reduce((a, b) => a + b, 0) / numericColumn.length;
+    const minVal = Math.min(...numericColumn);
+    const maxVal = Math.max(...numericColumn);
+    const meanVal = numericColumn.reduce((a, b) => a + b, 0) / numericColumn.length;
 
-    let sortedNumeric = [...numericColumn].sort((a, b) => a - b);
-    let mid = Math.floor(sortedNumeric.length / 2);
-    medianVal = sortedNumeric.length % 2 !== 0 ? sortedNumeric[mid] : (sortedNumeric[mid - 1] + sortedNumeric[mid]) / 2;
+    const sortedNumeric = [...numericColumn].sort((a, b) => a - b);
+    const mid = Math.floor(sortedNumeric.length / 2);
+    const medianVal = sortedNumeric.length % 2 !== 0 ? sortedNumeric[mid] : (sortedNumeric[mid - 1] + sortedNumeric[mid]) / 2;
 
     // claculate the 25th and 75th percentiles
-    let q1 = sortedNumeric[Math.floor(sortedNumeric.length * 0.25)];
-    let q3 = sortedNumeric[Math.floor(sortedNumeric.length * 0.75)];
+    const q1 = sortedNumeric[Math.floor(sortedNumeric.length * 0.25)];
+    const q3 = sortedNumeric[Math.floor(sortedNumeric.length * 0.75)];
 
-    stdVal = Math.sqrt(numericColumn.map(val => (val - meanVal) ** 2).reduce((a, b) => a + b, 0) / (numericColumn.length-1));
+    const stdVal = Math.sqrt(numericColumn.map(val => (val - meanVal) ** 2).reduce((a, b) => a + b, 0) / (numericColumn.length-1));
     return {minVal: minVal, maxVal: maxVal, medianVal: medianVal, meanVal: meanVal, stdVal: stdVal, q1: q1, q3: q3};
 }
 
@@ -917,26 +917,6 @@ async function loadOnnxModel(ortScript) {
             reject(new Error('Script failed to load'));
         }
     });
-
-    // return new Promise((resolve, reject) => {
-    //     ortScript.onload = async function() {
-    //         // Fetch the ONNX model from the userscripts resources
-    //         const modelUrl = GM_getResourceURL("ONNX_MODEL");
-    //         const response = await fetch(modelUrl);
-
-    //         // Create a buffer for the model file
-    //         const onnxFileBuffer = await response.arrayBuffer();
-
-    //         // Use the buffer to create an ONNX Runtime Web session (this is the classifier)
-    //         const session = await ort.InferenceSession.create(onnxFileBuffer)
-
-    //         resolve(session);
-    //     };
-    
-    //     ortScript.onerror = function() {
-    //         reject("Script failed to load");
-    //     };
-    // });
 }
 
 /**
